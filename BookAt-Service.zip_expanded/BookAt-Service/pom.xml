@@ -92,14 +92,14 @@
 		    <version>${oracle.jdbc.version}</version>
 		</dependency>
 		<dependency>
-		  <groupId>com.oracle.database.security</groupId>
-		  <artifactId>osdt_core</artifactId>
-		  <version>${oracle.jdbc.version}</version>
+			<groupId>com.oracle.database.security</groupId>
+			<artifactId>osdt_core</artifactId>
+			<version>${oracle.jdbc.version}</version>
 		</dependency>
 		<dependency>
-		  <groupId>com.oracle.database.security</groupId>
-		  <artifactId>osdt_cert</artifactId>
-		  <version>${oracle.jdbc.version}</version>
+			<groupId>com.oracle.database.security</groupId>
+			<artifactId>osdt_cert</artifactId>
+			<version>${oracle.jdbc.version}</version>
 		</dependency>
 	</dependencies>
 
