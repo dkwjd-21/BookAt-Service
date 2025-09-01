@@ -1,1 +1,6 @@
 /.metadata/
+
+.env
+
+# 애플리케이션 설정 파일
+**/application.properties
