@@ -1,3 +1,7 @@
+-- 이벤트 테이블에서 사용할 시퀀스
+CREATE SEQUENCE SEQ_EVENT;
+
+-- 이벤트 테이블
 CREATE TABLE EVENT (
     EVENT_ID          NUMBER          PRIMARY KEY,
     BOOK_ID           VARCHAR2(20)    NULL,
