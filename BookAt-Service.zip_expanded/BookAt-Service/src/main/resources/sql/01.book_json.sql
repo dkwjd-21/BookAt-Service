@@ -120,3 +120,7 @@ VALUES
 COMMIT;
 
 /* ISBN 중복값 + 테이블의 NOT NULL 제약으로 일부 빠지고 315개 테이블에 넣기 성공*/
+
+-- 일부 유효하지 않은 데이터 삭제 
+DELETE FROM BOOK
+WHERE TO_NUMBER(BOOK_ID) BETWEEN 6000428595 AND 6000731272;
