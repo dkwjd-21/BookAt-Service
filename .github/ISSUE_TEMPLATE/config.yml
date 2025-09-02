@@ -1,0 +1,4 @@
+# .github/ISSUE_TEMPLATE/config.yml
+
+# 사용자가 템플릿을 사용하지 않고 빈 이슈를 생성하는 것을 비활성화합니다.
+blank_issues_enabled: false
