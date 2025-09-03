@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="../../static/css/UserSignup.css" />
+    <script src="../../static/js/UserSignup.js"></script>
+    <title>BookAt 회원가입</title>
+  </head>
+  <body>
+    <header class="main-header">
+      <div class="header-top">
+        <a href="@{/mainpage}">
+          <img
+            src="../../static/images/BookAt-Logo.png"
+            class="main-logo-img"
+          />
+        </a>
+        <div class="auth-links">
+          <th:block th:if="${!isLoggedIn}">
+            <a th:href="@{/signup}">회원가입</a>
+            <a th:href="@{/login}">로그인</a>
+          </th:block>
+        </div>
+      </div>
+      <div class="header-bottom">
+        <nav class="nav-links">
+          <a href="./book_header.html" class="nav-item active">도서</a>
+          <a href="./event_header.html" class="nav-item">이벤트</a>
+        </nav>
+        <div class="search-bar">
+          <form id="searchForm" action="#" method="get">
+            <input
+              type="text"
+              name="search-query"
+              placeholder="검색어를 입력하세요"
+            />
+            <span
+              class="search-icon"
+              onclick="document.getElementById('searchForm').submit();"
+            ></span>
+          </form>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div class="signup-container">
+        <h2 class="title">회원가입</h2>
+        <!-- 회원가입 단계 표시 -->
+        <div class="signup-progress">
+          <div class="step-active">
+            <div class="step-circle">1</div>
+            <div class="step-label">본인확인</div>
+          </div>
+          <div class="step">
+            <div class="step-circle">2</div>
+            <div class="step-label">정보입력</div>
+          </div>
+          <div class="step">
+            <div class="step-circle">3</div>
+            <div class="step-label">가입완료</div>
+          </div>
+        </div>
+        <!-- 단계별 컨텐츠 -->
+        <div class="signup-verification">
+          <a href="#" class="verification-btn">휴대폰<br />본인인증</a>
+          <a href="#" class="verification-btn">아이핀<br />본인인증</a>
+        </div>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="ft_content">
+        <div class="ft__left">
+          <div class="ft_logo">
+            <img src="../../static/images/BookAt-LogoTypo.png" alt="BookAt" />
+          </div>
+          <div>
+            (주) 북캣 | 현대이지웰 Java 풀스택 개발자 5회차<br />
+            책읽는고양이 송아정 김명주 박태욱 서지나
+          </div>
+        </div>
+
+        <div class="ft__right">
+          <div>Copyright ⓒ BookAt. ALL RIGHTS RESERVED</div>
+          <div><a href="">관리자로그인</a></div>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
