@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.bookat.mapper.UserMapper">
+	
+	<select id="findUserById" resultType="UserLogin">
+		SELECT * FROM USERS WHERE USER_ID = #{userId}
+	</select>
+	
+</mapper>
