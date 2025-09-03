@@ -1,0 +1,16 @@
+@charset "UTF-8";
+
+.container{margin:0 auto;padding:100px 20px}
+.section-title{font-size: 28px; font-style: normal; font-weight: 700;
+line-height: normal;margin:0 0 10px 0}
+
+.chip{padding:35px 17px 35px 9px; border:1px solid #BFBFBF;border-radius:999px;background:#fff;cursor:pointer}
+.chip--on{background:#B5D173;border-color:#BFBFBF}
+
+.grid{display:grid;grid-template-columns:repeat(6,1fr);gap:20px}
+.card{border:1px solid #eee;border-radius:12px;overflow:hidden;background:#fff}
+.card img{width:200px;height:266px;object-fit:cover;display:block}
+.card .body{padding:10px}
+.card .title{font-weight:600;font-size:14px;line-height:1.4;height:40px;overflow:hidden}
+.card .meta{font-size:12px;color:#6b7280;margin-top:2px}
+
