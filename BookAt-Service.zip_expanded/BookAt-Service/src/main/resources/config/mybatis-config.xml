@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration
+  PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-config.dtd">
+  
+<configuration>
+	<settings>
+		<!--컬럼명-필드명 자동 매핑-->
+		<setting name="mapUnderscoreToCamelCase" value="true"/>
+		<!--실행하는 SQL문, 파라미터 값 확인-->
+		<setting name="logImpl" value="STDOUT_LOGGING"/>
+	</settings>
+	
+	<!--패키지 단위 등록, entity명 사용-->
+  <typeAliases>
+		<typeAlias type="com.bookat.entity.User" alias="User"/>
+		<typeAlias type="com.bookat.entity.Book" alias="Book"/>
+		<typeAlias type="com.bookat.entity.Event" alias="Event"/>
+	</typeAliases>
+	
+	<!--매퍼 xml 경로-->
+	<mappers>
+		<!--패키지 안에 있는 모든 매퍼-->
+		<package name="com.bookat.mapper"/>
+	</mappers>
+</configuration>
