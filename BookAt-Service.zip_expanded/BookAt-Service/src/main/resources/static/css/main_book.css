@@ -4,7 +4,15 @@
 .section-title{font-size: 28px; font-style: normal; font-weight: 700;
 line-height: normal;margin:0 0 10px 0}
 
-.chip{padding:35px 17px 35px 9px; border:1px solid #BFBFBF;border-radius:999px;background:#fff;cursor:pointer}
+.chip{padding:35px 17px 35px 9px; border:1px solid #BFBFBF;border-radius:999px;background:#fff;cursor:pointer;text-align: center;}
+.chip-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;   
+  margin: 0 auto 20px;       
+  max-width: 100%;           
+}
 .chip--on{background:#B5D173;border-color:#BFBFBF}
 
 .grid{display:grid;grid-template-columns:repeat(6,1fr);gap:20px}

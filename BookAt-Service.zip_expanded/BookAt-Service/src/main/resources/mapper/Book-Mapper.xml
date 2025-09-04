@@ -12,20 +12,15 @@
     FETCH FIRST #{limit} ROWS ONLY
   </select>
 
-  <!-- 베스트셀러: ORDER_ITEM.order_quantity 합계 기준 -->
-  <select id="findBestSellers" parameterType="int" resultType="Book">
-    SELECT
-      b.book_id, b.book_title, b.book_cover, b.author, b.book_price,
-      b.publisher, b.pubdate, b.description
-    FROM book b
-    JOIN (
-      SELECT book_id, SUM(order_quantity) AS qty
-      FROM order_item
-      GROUP BY book_id
-    ) s ON s.book_id = b.book_id
-    ORDER BY s.qty DESC, b.book_id
-    FETCH FIRST #{limit} ROWS ONLY
-  </select>
+  <!-- 베스트셀러: 랜덤 선택 -->
+ <select id="findBestSellers" parameterType="int" resultType="Book">
+  SELECT
+    b.book_id, b.book_title, b.book_cover, b.author, b.book_price,
+    b.publisher, b.pubdate, b.description
+  FROM book b
+  ORDER BY DBMS_RANDOM.VALUE
+  FETCH FIRST #{limit} ROWS ONLY
+</select>
 
   <!-- 이벤트 진행 중 도서: EVENT에 연결된 BOOK -->
   <select id="findEventBooks" parameterType="int" resultType="Book">
@@ -34,7 +29,6 @@
       b.publisher, b.pubdate, b.description
     FROM book b
     JOIN event e ON e.book_id = b.book_id
-    -- 필요 시 상태/기간 조건 추가: WHERE e.event_date >= SYSDATE
     FETCH FIRST #{limit} ROWS ONLY
   </select>
 

@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
   <meta charset="UTF-8">
   <title>메인페이지_도서</title>
   <link rel="stylesheet" type="text/css" th:href="@{css/main_book.css}">
+  <link rel="stylesheet" type="text/css" th:href="@{/css/main_header.css}">
 </head>
 <body>
   
-  <div>헤더</div>
-  <div>네비</div>
+  <div th:replace="~{fragments/book_header :: site-header}"></div>
 
   <main class="container" style="padding:16px 0 40px;">
     <!-- 히어로 배너 (이미지 경로는 나중에 교체) -->
@@ -18,7 +18,7 @@
     </section>
 
     <!-- 카테고리 칩 (정적) -->
-    <div class="chip-row" style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:20px;">
+    <div class="chip-row">
       <button class="chip chip--on">소설/시</button>
       <button class="chip">에세이</button>
       <button class="chip">인문</button>
@@ -35,8 +35,8 @@
         <article class="card" th:each="b : ${best}">
           <img th:src="${b.imageUrl}" alt="" />
           <div class="body">
-            <div class="title" th:text="${b.title}">제목</div>
             <div class="meta"  th:text="${b.author}">저자</div>
+            <div class="title" th:text="${b.title}">제목</div>
           </div>
         </article>
       </div>
@@ -71,7 +71,7 @@
     </section>
   </main>
 
-  <div th:replace="~{templates/fragments/footer :: site-footer}"></div>
+  <div th:replace="~{fragments/footer :: site-footer}"></div>
   
 </body>
 </html>
