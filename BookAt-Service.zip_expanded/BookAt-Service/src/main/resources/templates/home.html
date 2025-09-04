@@ -6,29 +6,49 @@
 <script type="text/javascript" src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script type="text/javascript">
     
-	$(document).ready(function() {
-	    const accessToken = "accessToken";
-		
-		async function refreshAccessTokenIfNeeded() {
-	        let token = localStorage.getItem(accessToken);
-	        if(!token) {
+	$(document).ready(async function() {
+	    const accessTokenKey = "accessToken";
+
+	    function isTokenExpired(token) {
+	        if (!token) return true;
+	        try {
+	            const payload = JSON.parse(atob(token.split(".")[1]));
+	            const exp = payload.exp * 1000;
+	            return Date.now() >= exp;
+	        } catch(e) {
+	            return true; // 파싱 실패하면 만료로 간주
+	        }
+	    }
+
+	    async function refreshAccessTokenIfNeeded() {
+	        let token = localStorage.getItem(accessTokenKey);
+	        console.log("현재 access token:", token);
+
+	        if (!token || isTokenExpired(token)) {
 	            try {
 	                const res = await $.ajax({
 	                    url: "/api/user/refresh",
-	                    type: "POST"
+	                    type: "POST",
+	                    xhrFields: { withCredentials: true } // HttpOnly 쿠키 전송
 	                });
-	                localStorage.setItem(accessToken, res.accessToken);
-	                token = res.accessToken;
+	                console.log("new access token:", res.accessToken);
+	                if (res.accessToken) {
+	                    localStorage.setItem(accessTokenKey, res.accessToken);
+	                    token = res.accessToken;
+	                }
 	            } catch(err) {
-	                console.log("Refresh Token 없거나 만료, 로그인 필요");
-					window.location.href = "/api/user/login";
+	                console.log("자동 로그인 실패, access token 발급 불가");
+	                token = null;
 	            }
 	        }
+
 	        return token;
 	    }
 
-	    function updateAuthUI() {
-	        const token = localStorage.getItem(accessToken);
+	    const token = await refreshAccessTokenIfNeeded();
+	    updateAuthUI(token);
+
+	    function updateAuthUI(token) {
 	        if(token){
 	            $("#loginBtn").hide();
 	            $("#logoutBtn").show();
@@ -38,25 +58,27 @@
 	        }
 	    }
 
-	    updateAuthUI(); // 초기 상태 설정
+	    $("#loginBtn").click(() => window.location.href = "/api/user/login");
 
-	    // 로그인 버튼 → loginForm.html
-	    $("#loginBtn").click(function() {
-	        window.location.href = "/api/user/login";
-	    });
+	    $("#logoutBtn").click(async function(event) {
+	        event.preventDefault();
 
-	    // 로그아웃 버튼
-	    $("#logoutBtn").click(async function() {
+	        const token = localStorage.getItem(accessTokenKey);
+	        console.log(token);
+
 	        try {
 	            await $.ajax({
 	                url: "/api/user/logout",
 	                type: "POST",
-	                headers: { "Authorization": "Bearer " + localStorage.getItem(accessToken) }
+	                headers: { "Authorization": "Bearer " + (token || "") },
+	                xhrFields: { withCredentials: true }
 	            });
-	        } finally {
-	            localStorage.removeItem(accessToken);
-	            updateAuthUI();
+	        } catch(err){
+	            console.error("로그아웃 요청 실패", err);
 	        }
+
+	        localStorage.removeItem(accessTokenKey);
+	        updateAuthUI(null);
 	    });
 	});
 	

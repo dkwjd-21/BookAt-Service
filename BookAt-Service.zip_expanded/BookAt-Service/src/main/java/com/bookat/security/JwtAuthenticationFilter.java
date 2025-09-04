@@ -46,6 +46,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         filterChain.doFilter(request, response);
     }
+    
+//    @Override
+//    protected boolean shouldNotFilter(HttpServletRequest request) {
+//        return request.getRequestURI().equals("/api/user/refresh");
+//    }
 
     private String resolveToken(HttpServletRequest request) {
         String bearer = request.getHeader("Authorization");
