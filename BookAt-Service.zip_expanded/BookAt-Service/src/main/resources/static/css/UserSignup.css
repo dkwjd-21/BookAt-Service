@@ -15,6 +15,100 @@ body {
   min-height: 100vh;
 }
 
+/* Header */
+.header-top {
+  background: var(--Navy-100, #003274);
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 5%;
+}
+
+.main-logo-img {
+  width: 150px;
+}
+
+.auth-links {
+  display: flex;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.auth-links a {
+  text-decoration: none;
+  color: #003274;
+  border: 1px solid #003274;
+  border-radius: 20px;
+  padding: 5px 15px;
+  font-size: 14px;
+  background-color: white;
+  height: 20px;
+}
+
+/* 하단 섹션 스타일 */
+.header-bottom {
+  background-color: #003274;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 5%;
+}
+
+.nav-links {
+  display: flex;
+  gap: 20px;
+}
+
+.nav-item {
+  color: white;
+  text-decoration: none;
+  font-size: 16px;
+  padding: 10px 20px;
+  border-radius: 25px;
+  transition: background-color 0.3s;
+  border-radius: 15px 15px 0px 0px;
+  transform: translateY(10px);
+  cursor: pointer;
+}
+
+.nav-item.active {
+  background-color: white;
+  color: #003274;
+  border-radius: 15px 15px 0px 0px;
+  transform: translateY(10px);
+}
+
+/* 검색창 스타일 */
+.search-bar {
+  position: relative;
+  width: 300px;
+  padding-right: 50px;
+}
+
+.search-bar input {
+  width: 100%;
+  border: none;
+  border-radius: 20px;
+  padding: 10px 40px 10px 15px;
+  background-color: white;
+  outline: none;
+  font-size: 14px;
+}
+
+.search-icon {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23888"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16a6.471 6.471 0 0 0 3.23-.88l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>')
+    no-repeat center center;
+  background-size: contain;
+  cursor: pointer;
+}
+
 /* --- Main Container --- */
 main {
   flex-grow: 1;
@@ -136,101 +230,184 @@ main {
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
-/* ------------------------------------------ */
+/* 회원가입 폼 스타일 */
+/* --- 회원가입 폼 스타일 --- */
 
-/* 상단 섹션 스타일 */
-
-.header-top {
-  background: var(--Navy-100, #003274);
-  color: white;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px 5%;
-}
-
-.main-logo-img {
-  width: 150px;
-}
-
-.auth-links {
-  display: flex;
-  gap: 10px;
-  cursor: pointer;
-}
-
-.auth-links a {
-  text-decoration: none;
-  color: #003274;
-  border: 1px solid #003274;
-  border-radius: 20px;
-  padding: 5px 15px;
-  font-size: 14px;
-  background-color: white;
-  height: 20px;
-}
-
-/* 하단 섹션 스타일 */
-.header-bottom {
-  background-color: #003274;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 5%;
-}
-
-.nav-links {
-  display: flex;
-  gap: 20px;
-}
-
-.nav-item {
-  color: white;
-  text-decoration: none;
-  font-size: 16px;
-  padding: 10px 20px;
-  border-radius: 25px;
-  transition: background-color 0.3s;
-  border-radius: 15px 15px 0px 0px;
-  transform: translateY(10px);
-  cursor: pointer;
-}
-
-.nav-item.active {
-  background-color: white;
-  color: #003274;
-  border-radius: 15px 15px 0px 0px;
-  transform: translateY(10px);
-}
-
-/* 검색창 스타일 */
-.search-bar {
-  position: relative;
-  width: 300px;
-  padding-right: 50px;
-}
-
-.search-bar input {
+.signup-form {
   width: 100%;
-  border: none;
-  border-radius: 20px;
-  padding: 10px 40px 10px 15px;
-  background-color: white;
-  outline: none;
-  font-size: 14px;
 }
 
-.search-icon {
-  position: absolute;
-  right: 15px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 20px;
-  height: 20px;
-  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23888"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16a6.471 6.471 0 0 0 3.23-.88l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>')
-    no-repeat center center;
-  background-size: contain;
+.form-group {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px; /* 그룹 간 간격 */
+}
+
+.form-group label {
+  width: 80px; /* 라벨 너비 고정 */
+  flex-shrink: 0; /* 라벨 너비가 줄어들지 않도록 설정 */
+  font-weight: 700; /* 폰트 굵게 */
+  font-size: 15px;
+  text-align: right;
+  padding-right: 20px;
+}
+
+.form-input,
+.form-input-btn {
+  flex-grow: 1; /* 남는 공간 모두 차지 */
+  min-width: 0; /* flex 아이템이 수축할 때 최소 너비 재설정 */
+}
+
+.form-input-btn {
+  display: flex;
+  gap: 10px; /* 입력 필드와 버튼 사이 간격 */
+}
+
+/* 모든 입력 필드 공통 스타일 */
+.form-group input[type="text"],
+.form-group input[type="password"] {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 15px;
+  box-sizing: border-box;
+}
+
+/* 읽기 전용 필드 스타일 */
+.form-group input[readonly] {
+  background-color: #f8f8f8;
+  color: #666;
+  cursor: not-allowed;
+}
+
+/* 중복확인 버튼 스타일 */
+.check-btn {
+  /* HTML에 작성된 클래스명 "cehck-btn"을 그대로 사용했습니다. */
+  flex-shrink: 0;
+  width: 100px;
+  padding: 12px;
+  border: none;
+  background-color: #003274;
+  color: #fff;
+  border-radius: 6px;
   cursor: pointer;
+  font-weight: 500;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.check-btn:hover {
+  background-color: #002a5e;
+}
+
+/* 약관 동의 섹션 */
+.form-agree {
+  text-align: left;
+  margin: 20px 0 10px 0;
+  padding-left: 100px; /* 라벨 너비만큼 들여쓰기 */
+  font-size: 13px;
+  color: #555;
+}
+
+.agree-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.agree-item input[type="checkbox"] {
+  margin-right: 8px;
+  width: 15px;
+  height: 15px;
+}
+
+.agree-item a {
+  color: #333;
+  font-weight: 500;
+  text-decoration: underline;
+}
+
+/* 최종 회원가입 버튼 */
+.submit-btn {
+  width: 100%;
+  padding: 15px;
+  background-color: #003274;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background-color 0.2s;
+}
+
+.submit-btn:hover {
+  background-color: #002a5e;
+}
+
+/* --- 3단계: 가입 완료 --- */
+
+.signup-complete {
+  width: 100%;
+  max-width: 500px; /* 폼 너비를 다른 단계보다 약간 줄여 집중도 높임 */
+  text-align: center;
+}
+
+.complete-message {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #fafafa;
+  padding: 40px 20px;
+  margin-bottom: 30px;
+  font-size: 17px;
+  line-height: 1.8;
+}
+
+.complete-message p:first-child {
+  font-weight: 700;
+  color: #333;
+}
+
+#complete-username {
+  font-weight: 700;
+  color: #003274; /* 포인트 색상 */
+}
+
+.complete-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 15px; /* 버튼 사이 간격 */
+}
+
+.complete-buttons .action-btn {
+  padding: 12px 0;
+  width: 150px;
+  border: 1px solid #003274;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 15px;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+/* 로그인 버튼 스타일 (파란색 채우기) */
+.complete-buttons .action-btn:first-child {
+  background-color: #003274;
+  color: #fff;
+}
+.complete-buttons .action-btn:first-child:hover {
+  background-color: #002a5e;
+}
+
+/* 메인페이지 버튼 스타일 (테두리만) */
+.complete-buttons .action-btn:last-child {
+  background-color: #fff;
+  color: #003274;
+}
+.complete-buttons .action-btn:last-child:hover {
+  background-color: #f0f2f5;
 }
 
 /* --- Footer --- */

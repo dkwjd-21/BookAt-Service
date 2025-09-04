@@ -1,35 +1,42 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="../../static/css/UserSignup.css" />
-    <script src="../../static/js/UserSignup.js"></script>
+    <link rel="stylesheet" th:href="@{/css/UserSignup.css}" />
+    <script th:src="@{/js/UserSignup.js}"></script>
+    <script src="https://cdn.portone.io/v2/browser-sdk.js"></script>
     <title>BookAt 회원가입</title>
+
+    <!-- 모델 값을 JavaScript 변수로 만든다. -->
+    <script th:inline="javascript">
+      /*<![CDATA[*/
+      const PORTONE_STORE_ID = /*[[${portoneStoreId}]]*/ "default-store-id";
+      const PORTONE_CHANNEL_KEY =
+        /*[[${portoneChannelKey}]]*/ "default-channel-key";
+      /*]]>*/
+    </script>
   </head>
   <body>
     <header class="main-header">
       <div class="header-top">
-        <a href="@{/mainpage}">
-          <img
-            src="../../static/images/BookAt-Logo.png"
-            class="main-logo-img"
-          />
+        <a th:href="@{/mainpage}">
+          <img th:src="@{/images/BookAt-Logo.png}" class="main-logo-img" />
         </a>
         <div class="auth-links">
           <th:block th:if="${!isLoggedIn}">
-            <a th:href="@{/signup}">회원가입</a>
-            <a th:href="@{/login}">로그인</a>
+            <a th:href="@{/user/signup}">회원가입</a>
+            <a th:href="@{/user/login}">로그인</a>
           </th:block>
         </div>
       </div>
       <div class="header-bottom">
         <nav class="nav-links">
-          <a href="./book_header.html" class="nav-item active">도서</a>
-          <a href="./event_header.html" class="nav-item">이벤트</a>
+          <a th:href="@{/books}" class="nav-item active">도서</a>
+          <a th:href="@{/events}" class="nav-item">이벤트</a>
         </nav>
         <div class="search-bar">
-          <form id="searchForm" action="#" method="get">
+          <form id="searchForm" th:action="@{/search}" method="get">
             <input
               type="text"
               name="search-query"
@@ -47,25 +54,108 @@
     <main>
       <div class="signup-container">
         <h2 class="title">회원가입</h2>
-        <!-- 회원가입 단계 표시 -->
         <div class="signup-progress">
-          <div class="step-active">
+          <div class="step-active" id="step-fir">
             <div class="step-circle">1</div>
             <div class="step-label">본인확인</div>
           </div>
-          <div class="step">
+          <div class="step" id="step-sec">
             <div class="step-circle">2</div>
             <div class="step-label">정보입력</div>
           </div>
-          <div class="step">
+          <div class="step" id="step-thr">
             <div class="step-circle">3</div>
             <div class="step-label">가입완료</div>
           </div>
         </div>
-        <!-- 단계별 컨텐츠 -->
         <div class="signup-verification">
-          <a href="#" class="verification-btn">휴대폰<br />본인인증</a>
-          <a href="#" class="verification-btn">아이핀<br />본인인증</a>
+          <a href="#" class="verification-btn" onclick="verification('phone');"
+            >휴대폰<br />본인인증</a
+          >
+          <a href="#" class="verification-btn" onclick="verification('ipin');"
+            >아이핀<br />본인인증</a
+          >
+        </div>
+        <div class="signup-form" style="display: none">
+          <form th:action="@{/user/signup/form}" method="post" id="signup-form">
+            <input type="hidden" name="phone"/>
+			<input type="hidden" name="birth">
+            <div class="form-group">
+              <label for="userName">이름</label>
+              <div class="form-input">
+                <input
+                  type="text"
+                  id="userName"
+                  name="userName"
+                  value="김북캣"
+                  readonly
+                />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="userId">아이디</label>
+              <div class="form-input-btn">
+                <input
+                  type="text"
+                  id="userId"
+                  name="userId"
+                  placeholder="아이디를 입력해 주세요."
+                />
+                <button type="button" class="check-btn">중복확인</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="userPw">비밀번호</label>
+              <div class="form-input">
+                <input
+                  type="password"
+                  id="userPw"
+                  name="userPw"
+                  placeholder="비밀번호를 입력해 주세요."
+                />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="email">이메일</label>
+              <div class="form-input-btn">
+                <input
+                  type="text"
+                  id="email"
+                  name="email"
+                  placeholder="이메일을 입력해 주세요."
+                />
+                <button type="button" class="check-btn">중복확인</button>
+              </div>
+            </div>
+            <div class="form-agree">
+              <div class="agree-item">
+                <input type="checkbox" id="agree-terms" name="agree-terms" />
+                <label><a href="#">BookAt 이용 약관</a>에 동의합니다.</label>
+              </div>
+              <div class="agree-item">
+                <input
+                  type="checkbox"
+                  id="agree-privacy"
+                  name="agree-privacy"
+                />
+                <label>
+                  <a href="#">개인정보처리방침</a>
+                  에 따라 개인정보를 수집하고 사용하는 데 동의합니다.
+                </label>
+              </div>
+            </div>
+            <button type="submit" class="submit-btn">회원가입</button>
+          </form>
+        </div>
+        <div class="signup-complete" style="display: none">
+          <div class="complete-message">
+            <p>회원가입에 성공했습니다.</p>
+            <p><span id="complete-username">김북캣</span>님 환영합니다!</p>
+          </div>
+          <div class="complete-buttons">
+            <a th:href="@{/user/login}" class="action-btn">로그인</a>
+            <a th:href="@{/mainpage}" class="action-btn">메인페이지</a>
+          </div>
         </div>
       </div>
     </main>
@@ -74,14 +164,13 @@
       <div class="ft_content">
         <div class="ft__left">
           <div class="ft_logo">
-            <img src="../../static/images/BookAt-LogoTypo.png" alt="BookAt" />
+            <img th:src="@{/images/BookAt-LogoTypo.png}" alt="BookAt" />
           </div>
           <div>
             (주) 북캣 | 현대이지웰 Java 풀스택 개발자 5회차<br />
             책읽는고양이 송아정 김명주 박태욱 서지나
           </div>
         </div>
-
         <div class="ft__right">
           <div>Copyright ⓒ BookAt. ALL RIGHTS RESERVED</div>
           <div><a href="">관리자로그인</a></div>
