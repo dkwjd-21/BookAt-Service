@@ -2,11 +2,12 @@ package com.bookat.service;
 
 import org.springframework.stereotype.Service;
 
-import com.bookat.entity.UserLogin;
+import com.bookat.dto.UserLoginRequest;
+import com.bookat.dto.UserLoginResponse;
 
 @Service
 public interface UserLoginService {
 	
-	UserLogin login(UserLogin userLogin);
+	UserLoginResponse login(UserLoginRequest userLogin);
 
 }

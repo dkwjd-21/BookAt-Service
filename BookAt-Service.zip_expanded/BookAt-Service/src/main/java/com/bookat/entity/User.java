@@ -3,10 +3,11 @@ package com.bookat.entity;
 import lombok.Data;
 
 @Data
-public class UserLogin {
+public class User {
 
 	private String userId;
 	private String userPw;
 	private String userName;
+	private String refreshToken;
 	
 }

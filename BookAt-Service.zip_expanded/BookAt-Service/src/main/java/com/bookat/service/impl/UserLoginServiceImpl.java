@@ -1,11 +1,17 @@
 package com.bookat.service.impl;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.bookat.entity.UserLogin;
+import com.bookat.dto.UserLoginRequest;
+import com.bookat.dto.UserLoginResponse;
+import com.bookat.entity.User;
 import com.bookat.mapper.UserMapper;
 import com.bookat.service.UserLoginService;
+import com.bookat.util.JwtTokenProvider;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,20 +23,35 @@ public class UserLoginServiceImpl implements UserLoginService {
 	
 	private final UserMapper userMapper;
 	private final PasswordEncoder passwordEncoder;
+	private final JwtTokenProvider jwtTokenProvider;
 	
-	public UserLogin login (UserLogin userLogin) {
+	public UserLoginResponse login (UserLoginRequest userLoginRequest) {
 		
-		UserLogin user = userMapper.findUserById(userLogin.getUserId());
+		log.info("userId : {}", userLoginRequest.getUserId());
+		
+		User user = userMapper.findUserById(userLoginRequest.getUserId());
 		
 		if(user == null) {
 			log.info("해당 유저 없음");
+			return null;
 		}
 		
-		if(!passwordEncoder.matches(userLogin.getUserPw(), user.getUserPw())) {
-			log.info("비밀번호가 일치하지 않음");
-		}
+//		if(!passwordEncoder.matches(userLoginRequest.getUserPw(), user.getUserPw())) {
+//			log.info("비밀번호가 일치하지 않음");
+//			return null;		
+//		}
 		
-		return user;
+		String accessToken = jwtTokenProvider.generateAccessToken(user.getUserId());
+		String refreshToken = jwtTokenProvider.generateRefreshToken(user.getUserId());
+		
+		user.setRefreshToken(refreshToken);
+		
+		Map<String, String> values = new HashMap<>();
+		values.put("refreshToken", user.getRefreshToken());
+		values.put("userId", user.getUserId());
+		userMapper.updateUserRefreshToken(values);
+		
+		return new UserLoginResponse(accessToken, refreshToken);
 	}
 
 }

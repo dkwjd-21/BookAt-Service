@@ -1,0 +1,100 @@
+@charset "UTF-8";
+
+#container {
+	margin: 0;
+	color: #8a8a8a;
+	background-color: #f5f6fa;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	height: 100vh;
+}
+
+#container h1 {
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 35px;
+    color: #333;
+}
+
+#inputForm {
+    width: 500px;
+    border-collapse: collapse;
+}
+
+#inputForm div {
+	display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 20px;
+}
+
+#inputForm label {
+	margin-bottom: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #444;
+}
+
+#inputForm input {
+	width: 100%;
+    padding: 12px;
+	margin-bottom: 10px;
+    font-size: 15px;
+	box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    transition: border-color 0.2s;
+}
+
+#inputForm input:focus {
+    border-color: #00007B;
+    outline: none;
+}
+
+#inputForm button {
+    width: 100%;
+    padding: 14px;
+    font-size: 18px;
+    font-weight: bold;
+    background-color: #00007B;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+#inputForm button:hover {
+    background-color: #357ABD;
+}
+
+#inputForm button:active {
+    transform: scale(0.98);
+}
+
+#error-msg {
+    margin-top: 10px;
+    text-align: center;
+    font-size: 14px;
+}
+
+.links {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 14px;
+}
+
+.links a {
+    display: inline-block;
+    margin: 10px;
+    text-decoration: none;
+    color: #8a8a8a;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.links a:hover {
+    font-weight: bold;
+}

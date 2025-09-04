@@ -1,12 +1,15 @@
 package com.bookat.mapper;
 
+import java.util.Map;
+
 import org.apache.ibatis.annotations.Mapper;
 
-import com.bookat.entity.UserLogin;
+import com.bookat.entity.User;
 
 @Mapper
 public interface UserMapper {
 	
-	UserLogin findUserById(String userId);
+	User findUserById(String userId);
+	void updateUserRefreshToken(Map<String, String> values);
 
 }

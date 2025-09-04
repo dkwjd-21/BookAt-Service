@@ -2,12 +2,55 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
 <meta charset="UTF-8">
-<title>메인 페이지</title>
-<link rel="stylesheet" href="/css/default.css">
+<title>홈</title>
+<script type="text/javascript" src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script type="text/javascript">
+    
+	$(document).ready(function() {
+	    const accessToken = "accessToken";
+
+	    function updateAuthUI() {
+	        const token = localStorage.getItem(accessToken);
+	        if(token){
+	            $("#loginBtn").hide();
+	            $("#logoutBtn").show();
+	        } else {
+	            $("#loginBtn").show();
+	            $("#logoutBtn").hide();
+	        }
+	    }
+
+	    updateAuthUI(); // 초기 상태 설정
+
+	    // 로그인 버튼 → loginForm.html
+	    $("#loginBtn").click(function() {
+	        window.location.href = "/api/user/login";
+	    });
+
+	    // 로그아웃 버튼
+	    $("#logoutBtn").click(async function() {
+	        try {
+	            await $.ajax({
+	                url: "/api/user/logout",
+	                type: "POST",
+	                headers: { "Authorization": "Bearer " + localStorage.getItem(accessToken) }
+	            });
+	        } finally {
+	            localStorage.removeItem(accessToken);
+	            updateAuthUI();
+	        }
+	    });
+	});
+	
+</script>
 </head>
 <body>
-	<div id="container">
-		<h1><a th:href="@{/api/user/login}">LOGIN</a></h1>
-	</div>
+    <h1>홈 화면</h1>
+
+    <div id="container">
+        <button id="loginBtn">로그인</button>
+        <button id="logoutBtn" style="display:none;">로그아웃</button>
+    </div>
+
 </body>
 </html>

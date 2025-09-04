@@ -7,13 +7,14 @@ import io.jsonwebtoken.*;
 
 import java.security.Key;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 @Component
 public class JwtTokenProvider {
 	
 	private final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
-    private final long expiration_30m = 1000L * 60 * 30; 			// 30분
-    private final long expiration_7d = 1000L * 60 * 60 * 24 * 7; 	// 7일
+    private final long expiration_30m = TimeUnit.MINUTES.toMillis(30); 			// 30분
+    private final long expiration_7d = TimeUnit.DAYS.toMillis(7); 	// 7일
 
 	public String generateAccessToken(String userId) {
 		return Jwts.builder()
@@ -34,10 +35,19 @@ public class JwtTokenProvider {
 	}
 	
 	public String getUserIdFromToken(String token) {
-		return "";
+		return Jwts.parserBuilder().setSigningKey(key).build()
+				.parseClaimsJws(token)
+				.getBody()
+				.getSubject();
 	}
 	
-	public String validateToken(String token) {
-		return "";
+	public boolean validateToken(String token) {
+		try {
+			Jwts.parserBuilder().setSigningKey(key).build()
+				.parseClaimsJws(token);
+			return true;
+		} catch (JwtException |  IllegalArgumentException e) {
+			return false;
+		}
 	}
 }

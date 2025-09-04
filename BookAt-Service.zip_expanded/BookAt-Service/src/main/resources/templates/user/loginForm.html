@@ -2,32 +2,65 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
 <meta charset="UTF-8">
-<title>메인 페이지</title>
-<link rel="stylesheet" href="/css/default.css">
+<title>로그인</title>
+<link rel="stylesheet" th:href="@{/css/logindefault.css}">
+<script type="text/javascript" src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function() {
+        const accessToken = "accessToken";
+
+        $("#inputForm").submit(function(e) {
+            e.preventDefault();
+
+            const userId = $("#userId").val();
+            const userPw = $("#userPw").val();
+			
+			console.log(`userId : ${userId}`);
+			console.log(`userPw : ${userPw}`);
+
+            $.ajax({
+                url: "/api/user/login",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify({ userId, userPw }),
+                success: function(data) {
+                    // accessToken localStorage 저장
+                    localStorage.setItem(accessToken, data.accessToken);
+                    window.location.href = "/";
+                },
+                error: function(xhr) {
+                    $("#error-msg").text(xhr.responseText);
+                }
+            });
+        });
+    });
+</script>
 </head>
 <body>
+
 	<div id="container">
-		<h1>LoginForm</h1>
-		<form action="/api/user/login" method="post" th:object="${userLogin}">
-			<table>
-				<tr>
-					<th>아이디</th>
-					<td>
-						<input type="text" th:field="*{userId}">
-					</td>
-				</tr>
-				<tr>
-					<th>비밀번호</th>
-					<td>
-						<input type="password" th:field="*{userPw}">
-					</td>
-				</tr>
-			</table>
-			<p>
-			<div>
-				<input type="submit" value="login">
-			</div>
+		<h1>로그인</h1>
+
+		<form id="inputForm">
+		    <div>
+		        <label for="userId">아이디</label>
+		        <input type="text" id="userId" name="userId" placeholder="아이디를 입력해주세요." required>
+		    </div>
+		    <div>
+		        <label for="userPw">비밀번호</label>
+		        <input type="password" id="userPw" name="userPw" placeholder="비밀번호를 입력해주세요." required>
+		    </div>
+		    <button type="submit">로그인</button>
 		</form>
+		
+		<div class="links">
+			<a href="/api/user/findId">아이디 찾기</a>&nbsp;&nbsp;|&nbsp;&nbsp; 
+			<a href="/api/user/findPw">비밀번호 찾기</a>&nbsp;&nbsp;|&nbsp;&nbsp;
+			<a href="/api/user/signUp">회원가입</a>
+		</div>
+
+		<div id="error-msg" style="color:red;"></div>
 	</div>
+
 </body>
 </html>
