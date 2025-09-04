@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>BookAt</title>
-    <link rel="stylesheet" href="../../static/css/mainpage.css" />
+    <link rel="stylesheet" th:href="@{/css/mainpage.css}" />
     <style>
       /* 일단 이미지 들어갈 자리 모두 빈칸 처리해뒀습니다 */
       .header-banner img,
@@ -27,13 +27,13 @@
   <body>
     <header class="main-header">
       <div class="header-top">
-        <a href="@{/mainpage}"><img src="../../static/images/BookAt-Logo.png" class="main-logo-img" /></a>
+        <a href="@{/mainpage}"><img th:src="@{/images/BookAt-Logo.png}" class="main-logo-img" /></a>
 
         <div class="auth-links">
-          <th:block th:if="${!isLoggedIn}">
-            <a th:href="@{/signup}">회원가입</a>
-            <a th:href="@{/login}">로그인</a>
-          </th:block>
+          <!--<th:block th:if="${isLoggedIn == null}">-->
+          <a href="#">회원가입</a>
+          <a href="#">로그인</a>
+          <!--</th:block>-->
 
           <!-- <th:block th:if="${isLoggedIn}">
             <a th:href="@{/mypage}">마이페이지</a>
@@ -45,8 +45,9 @@
 
       <div class="header-bottom">
         <nav class="nav-links">
-          <a th:href="#" class="nav-item">도서</a>
-          <a th:href="#" class="nav-item active">이벤트</a>
+          <a href="#" class="nav-item">도서</a>
+          <!--타임리프 제거해놨음-->
+          <a href="#" class="nav-item active">이벤트</a>
         </nav>
         <div class="search-bar">
           <form id="searchForm" action="#" method="get">
@@ -59,9 +60,8 @@
 
     <main class="container">
       <section class="header-banner">
-        <img src="placeholder.png" alt="Promotion Banner" style="background-color: #cccccc" />
+        <img src="https://placehold.co/1440x200?text=EventPromotionBanner" alt="Promotion Banner" style="background-color: #cccccc" />
         <div class="banner-text">
-          <h2>이번 여름 선물도 북캣과 함께</h2>
           <a href="#" class="btn-bookat">BookAt ></a>
         </div>
       </section>
@@ -77,108 +77,108 @@
       </div>
 
       <section class="event-section">
-        <h2 class="section-title">베스트셀러 도서</h2>
+        <h2 class="section-title">인기 이벤트</h2>
         <div class="event-list">
+          <div th:each="event : ${event}" class="event-card">
+            <img th:src="${event.event_image}" alt="event Cover" class="event-cover" />
+            <p th:text="${event.event_name}" class="event-title">이벤트 이름</p>
+            <p th:text="${event.event_description}" class="event-author">이벤트 설명</p>
+          </div>
           <div class="event-card">
             <img src="placeholder.png" alt="event Cover" class="event-cover" />
             <p class="event-title">이벤트1</p>
-            <p class="event-author">작가1</p>
-          </div>
-          <div class="event-card">
-            <img src="placeholder.png" alt="event Cover" class="event-cover" />
-            <p class="event-title">책1</p>
             <p class="event-author">작가</p>
           </div>
           <div class="event-card">
             <img src="placeholder.png" alt="event Cover" class="event-cover" />
-            <p class="event-title">책1</p>
+            <p class="event-title">이벤트1</p>
             <p class="event-author">작가</p>
           </div>
           <div class="event-card">
             <img src="placeholder.png" alt="event Cover" class="event-cover" />
-            <p class="event-title">책1</p>
+            <p class="event-title">이벤트1</p>
             <p class="event-author">작가</p>
           </div>
           <div class="event-card">
             <img src="placeholder.png" alt="event Cover" class="event-cover" />
-            <p class="event-title">책1</p>
+            <p class="event-title">이벤트1</p>
             <p class="event-author">작가</p>
           </div>
           <div class="event-card">
             <img src="placeholder.png" alt="event Cover" class="event-cover" />
-            <p class="event-title">책1</p>
+            <p class="event-title">이벤트1</p>
             <p class="event-author">작가</p>
           </div>
         </div>
       </section>
 
       <section class="event-section">
-        <h2 class="section-title">신간 도서</h2>
+        <h2 class="section-title">오픈 예정 이벤트</h2>
         <div class="event-list">
           <div class="event-card">
             <img src="placeholder.png" alt="event Cover" class="event-cover" />
-            <p class="event-title">책</p>
+            <p class="event-title">이벤트</p>
             <p class="event-author">작가</p>
           </div>
           <div class="event-card">
             <img src="placeholder.png" alt="event Cover" class="event-cover" />
-            <p class="event-title">책</p>
+            <p class="event-title">이벤트</p>
             <p class="event-author">작가</p>
           </div>
           <div class="event-card">
             <img src="placeholder.png" alt="event Cover" class="event-cover" />
-            <p class="event-title">책</p>
+            <p class="event-title">이벤트</p>
             <p class="event-author">작가</p>
           </div>
           <div class="event-card">
             <img src="placeholder.png" alt="event Cover" class="event-cover" />
-            <p class="event-title">책</p>
+            <p class="event-title">이벤트</p>
             <p class="event-author">작가</p>
           </div>
           <div class="event-card">
             <img src="placeholder.png" alt="event Cover" class="event-cover" />
-            <p class="event-title">책</p>
+            <p class="event-title">이벤트</p>
             <p class="event-author">작가</p>
           </div>
           <div class="event-card">
             <img src="placeholder.png" alt="event Cover" class="event-cover" />
-            <p class="event-title">책</p>
+            <p class="event-title">이벤트</p>
             <p class="event-author">작가</p>
           </div>
         </div>
       </section>
 
       <section class="event-section">
-        <h2 class="section-title">이벤트 진행 중인 도서</h2>
+        <h2 class="section-title">마감 임박 이벤트</h2>
         <div class="event-list">
           <div class="event-card">
             <img src="placeholder.png" alt="event Cover" class="event-cover" />
-            <p class="event-title">책</p>
+            <p class="event-title">이벤트</p>
             <p class="event-author">작가</p>
           </div>
           <div class="event-card">
             <img src="placeholder.png" alt="event Cover" class="event-cover" />
-            <p class="event-title">책</p>
+            <p class="event-title">이벤트</p>
             <p class="event-author">작가</p>
           </div>
           <div class="event-card">
             <img src="placeholder.png" alt="event Cover" class="event-cover" />
-            <p class="event-title">책</p>
+            <p class="event-title">이벤트</p>
             <p class="event-author">작가</p>
           </div>
           <div class="event-card">
             <img src="placeholder.png" alt="event Cover" class="event-cover" />
-            <p class="event-title">책</p>
+            <p class="event-title">이벤트</p>
             <p class="event-author">작가</p>
           </div>
           <div class="event-card">
             <img src="placeholder.png" alt="event Cover" class="event-cover" />
-            <p class="event-title">책</p>
+            <p class="event-title">이벤트</p>
             <p class="event-author">작가</p>
           </div>
           <div class="event-card">
             <img src="placeholder.png" alt="event Cover" class="event-cover" />
-            <p class="event-title">책</p>
+            <p class="event-title">이벤트</p>
             <p class="event-author">작가</p>
           </div>
         </div>
@@ -188,7 +188,7 @@
     <footer th:fragment="site-footer" class="footer" style="border: 1px solid #bfbfbf; margin: 0 auto; color: #bfbfbf; background: #eaeaea">
       <div class="ft_content" style="padding: 40px 100px">
         <div class="ft_logo">
-          <img src="../../static/images/BookAt-LogoTypo.png" th:src="@{/images/eventAt-LogoTypo.png}" alt="eventAt" style="width: 120.645px; height: 26.525px" />
+          <img th:src="@{/images/BookAt-LogoTypo.png}" alt="eventAt" style="width: 120.645px; height: 26.525px" />
         </div>
 
         <div class="ft__left" style="float: left">
