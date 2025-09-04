@@ -8,6 +8,24 @@
     
 	$(document).ready(function() {
 	    const accessToken = "accessToken";
+		
+		async function refreshAccessTokenIfNeeded() {
+	        let token = localStorage.getItem(accessToken);
+	        if(!token) {
+	            try {
+	                const res = await $.ajax({
+	                    url: "/api/user/refresh",
+	                    type: "POST"
+	                });
+	                localStorage.setItem(accessToken, res.accessToken);
+	                token = res.accessToken;
+	            } catch(err) {
+	                console.log("Refresh Token 없거나 만료, 로그인 필요");
+					window.location.href = "/api/user/login";
+	            }
+	        }
+	        return token;
+	    }
 
 	    function updateAuthUI() {
 	        const token = localStorage.getItem(accessToken);
