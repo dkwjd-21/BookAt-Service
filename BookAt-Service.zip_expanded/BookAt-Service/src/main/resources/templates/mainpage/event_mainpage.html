@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BookAt</title>
+    <link rel="stylesheet" th:href="@{/css/event_mainpage.css}" />
+    
+    <style>
+      /* 일단 이미지 들어갈 자리 모두 회색빈칸 처리해뒀습니다 */
+      .header-banner img,
+      .event-cover {
+        background-color: #cccccc;
+        width: 100%;
+        height: auto;
+        display: block;
+      }
+      .header-banner img {
+        height: 200px;
+        object-fit: cover;
+      }
+      .event-card .event-cover {
+        height: 180px;
+        object-fit: contain;
+      }
+    </style>
+  </head>
+  <body>
+    <script th:src="@{/js/event_mainpage.js}"></script>
+    <header class="main-header">
+      <div class="header-top">
+        <a href="@{/mainpage}"><img th:src="@{/images/BookAt-Logo.png}" class="main-logo-img" /></a>
+
+        <div class="auth-links">
+          <!--<th:block th:if="${isLoggedIn == null}">-->
+          <a href="#">회원가입</a>
+          <a href="#">로그인</a>
+          <!--</th:block>-->
+
+          <!-- <th:block th:if="${isLoggedIn}">
+            <a th:href="@{/mypage}">마이페이지</a>
+            <a th:href="@{/logout}">로그아웃</a>
+          </th:block> -->
+          <!-- 로그인 구현 후 로그인 시 바뀌는 부분 -->
+        </div>
+      </div>
+
+      <div class="header-bottom">
+        <nav class="nav-links">
+          <a href="#" class="nav-item">도서</a>
+          <!--타임리프 제거해놨음-->
+          <a href="#" class="nav-item active">이벤트</a>
+        </nav>
+        <div class="search-bar">
+          <form id="searchForm" action="#" method="get">
+            <input type="text" name="search-query" placeholder="검색어를 입력하세요" />
+            <span class="search-icon" onclick="document.getElementById('searchForm').submit();"></span>
+          </form>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+       <section class="header-banner">
+        <div>
+          <img src="https://placehold.co/1440x200?text=EventPromotionBanner1" alt="Promotion Banner" style="background-color: #cccccc" />
+          <div class="banner-text">
+            <a href="#" class="btn-bookat">BookAt ></a>
+          </div>
+          <div>
+            <img src="https://placehold.co/1440x200?text=EventPromotionBanner2" alt="Promotion Banner" style="background-color: #cccccc" />
+          <div class="banner-text">
+            <a href="#" class="btn-bookat">BookAt ></a>
+          </div>
+        </div>
+      </section>
+
+      <!-- <main class="container">	//메인배너 슬라이드 구현 어려움
+    <section class="header-banner">
+        <div class="banner-slider">
+            <div class="banner-slide">
+                <img src="https://placehold.co/1440x200?text=EventPromotionBanner1" alt="Promotion Banner 1" style="background-color: #cccccc" />
+                <div class="banner-text">
+                    <a href="#" class="btn-bookat">BookAt ></a>
+                </div>
+            </div>
+            <div class="banner-slide">
+                <img src="https://placehold.co/1440x200?text=EventPromotionBanner2" alt="Promotion Banner 2" style="background-color: #cccccc" />
+                <div class="banner-text">
+                    <a href="#" class="btn-bookat">BookAt ></a>
+                </div>
+            </div>
+          </div>
+    </section> -->
+
+
+      <div class="category-nav">
+        <a th:href="@{/event/main(local_code='SEOUL')}" th:classappend="${currentLocalCode == 'SEOUL'} ? 'active' : ''">서울</a>
+        <a th:href="@{/event/main(local_code='GYEONGGI_INCHEON')}" th:classappend="${currentLocalCode == 'GYEONGGI_INCHEON'} ? 'active' : ''">경기/인천</a>
+        <a th:href="@{/event/main(local_code='JEOLLA')}" th:classappend="${currentLocalCode == 'JEOLLA'} ? 'active' : ''">전라</a>
+        <a th:href="@{/event/main(local_code='GYEONGSANG')}" th:classappend="${currentLocalCode == 'GYEONGSANG'} ? 'active' : ''">경상</a>
+        <a th:href="@{/event/main(local_code='GANGWON')}" th:classappend="${currentLocalCode == 'GANGWON'} ? 'active' : ''">강원</a>
+        <a th:href="@{/event/main(local_code='CHUNGCHEONG')}" th:classappend="${currentLocalCode == 'CHUNGCHEONG'} ? 'active' : ''">충청</a>
+        <a th:href="@{/event/main(local_code='JEJU')}" th:classappend="${currentLocalCode == 'JEJU'} ? 'active' : ''">제주</a>
+      </div>
+      <div>
+        <section class="event-section">
+          <h2 class="section-title">인기 이벤트</h2>
+          <div class="event-list">
+            <div th:each="event , loop : ${event}" th:if="${loop.index < 6}" class="event-card">
+              <img th:src="${event.event_image}" alt="event Cover" class="event-cover" />
+              <p th:text="${event.event_name}" class="event-title">이벤트 이름</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="event-section">
+          <h2 class="section-title">오픈 예정 이벤트</h2> 
+          <div class="event-list">
+            <div th:each="openTime , loop : ${openTime}" th:if="${loop.index < 6}" class="event-card">
+              <img th:src="${openTime.event_image}" alt="event Cover" class="event-cover" />
+              <p th:text="${openTime.event_name}" class="event-title">이벤트 이름</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="event-section">
+          <h2 class="section-title">마감 임박 이벤트</h2>
+          <div class="event-list">
+            <div th:each="closeTime , loop : ${closeTime}" th:if="${loop.index < 6}" class="event-card">
+              <img th:src="${closeTime.event_image}" alt="event Cover" class="event-cover" />
+              <p th:text="${closeTime.event_name}" class="event-title">이벤트 이름</p>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer th:fragment="site-footer" class="footer" style="border: 1px solid #bfbfbf; margin: 0 auto; color: #bfbfbf; background: #eaeaea">
+      <div class="ft_content" style="padding: 40px 100px">
+        <div class="ft_logo">
+          <img th:src="@{/images/BookAt-LogoTypo.png}" alt="eventAt" style="width: 120.645px; height: 26.525px" />
+        </div>
+
+        <div class="ft__left" style="float: left">
+          <div style="margin-top: 6px; font-size: 18px; font-style: normal; font-weight: 400; line-height: 28px">
+            (주) 북캣 | 현대이지웰 Java 풀스택 개발자 5회차<br />
+            책읽는고양이 송아정 김명주 박태욱 서지나
+          </div>
+        </div>
+
+        <div class="ft__right" style="text-align: right; font-size: 18px; font-style: normal; font-weight: 400; line-height: 28px">
+          <div>Copyright ⓒ BookAt. ALL RIGHTS RESERVED</div>
+          <div><a href="">관리자로그인</a></div>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
