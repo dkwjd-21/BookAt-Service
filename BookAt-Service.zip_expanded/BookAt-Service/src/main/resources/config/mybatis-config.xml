@@ -13,8 +13,8 @@
 	
 	<!--패키지 단위 등록, entity명 사용-->
   <typeAliases>
-		<typeAlias type="com.bookat.entity.User" alias="User"/>
-		<typeAlias type="com.bookat.entity.Book" alias="Book"/>
+		<!--<typeAlias type="com.bookat.entity.User" alias="User"/>-->
+		<!--<typeAlias type="com.bookat.entity.Book" alias="Book"/>-->
 		<typeAlias type="com.bookat.entity.Event" alias="Event"/>
 	</typeAliases>
 	

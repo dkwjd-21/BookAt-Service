@@ -29,7 +29,7 @@
     <script th:src="@{/js/event_mainpage.js}"></script>
     <header class="main-header">
       <div class="header-top">
-        <a href="@{/mainpage}"><img th:src="@{/images/BookAt-Logo.png}" class="main-logo-img" /></a>
+        <a th:href="@{/event/main}"><img th:src="@{/images/BookAt-Logo.png}" class="main-logo-img" /></a>
 
         <div class="auth-links">
           <!--<th:block th:if="${isLoggedIn == null}">-->
@@ -63,7 +63,7 @@
     <main class="container">
        <section class="header-banner">
         <div>
-          <img src="https://placehold.co/1440x200?text=EventPromotionBanner1" alt="Promotion Banner" style="background-color: #cccccc" />
+          <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1200&auto=format&fit=crop" alt="Promotion Banner" style="background-color: #cccccc" />
           <div class="banner-text">
             <a href="#" class="btn-bookat">BookAt ></a>
           </div>
@@ -107,30 +107,30 @@
         <section class="event-section">
           <h2 class="section-title">인기 이벤트</h2>
           <div class="event-list">
-            <div th:each="event , loop : ${event}" th:if="${loop.index < 6}" class="event-card">
-              <img th:src="${event.event_image}" alt="event Cover" class="event-cover" />
-              <p th:text="${event.event_name}" class="event-title">이벤트 이름</p>
-            </div>
+			<div th:each="event, eventStat : ${event}" th:if="${eventStat.index < 6}" class="event-card">
+			  <img th:src="${event.eventImage}" alt="event Cover" class="event-cover" />
+			  <p th:text="${event.eventName}" class="event-title">이벤트 이름</p>
+			</div>
           </div>
         </section>
 
         <section class="event-section">
           <h2 class="section-title">오픈 예정 이벤트</h2> 
           <div class="event-list">
-            <div th:each="openTime , loop : ${openTime}" th:if="${loop.index < 6}" class="event-card">
-              <img th:src="${openTime.event_image}" alt="event Cover" class="event-cover" />
-              <p th:text="${openTime.event_name}" class="event-title">이벤트 이름</p>
-            </div>
-          </div>
+			<div th:each="openTime, openTimeStat : ${openTime}" th:if="${openTimeStat.index < 6}" class="event-card">
+			  <img th:src="${openTime.eventImage}" alt="event Cover" class="event-cover" />
+			  <p th:text="${openTime.eventName}" class="event-title">이벤트 이름</p>
+			</div>
+          </div> 
         </section>
 
         <section class="event-section">
           <h2 class="section-title">마감 임박 이벤트</h2>
           <div class="event-list">
-            <div th:each="closeTime , loop : ${closeTime}" th:if="${loop.index < 6}" class="event-card">
-              <img th:src="${closeTime.event_image}" alt="event Cover" class="event-cover" />
-              <p th:text="${closeTime.event_name}" class="event-title">이벤트 이름</p>
-            </div>
+			<div th:each="closeTime, closeTimeStat : ${closeTime}" th:if="${closeTimeStat.index < 6}" class="event-card">
+			  <img th:src="${closeTime.eventImage}" alt="event Cover" class="event-cover" />
+			  <p th:text="${closeTime.eventName}" class="event-title">이벤트 이름</p>
+			</div>
           </div>
         </section>
       </div>

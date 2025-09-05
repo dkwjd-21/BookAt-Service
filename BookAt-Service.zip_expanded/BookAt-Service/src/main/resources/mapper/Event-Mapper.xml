@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.bookat.mapper.EventMapper">
+
+    <select id="selectEventList" resultType="com.bookat.dto.EventResDto">
+        SELECT * FROM EVENT ORDER BY EVENT_ID ASC
+    </select>
+
+    <select id="selectEventOne" resultType="com.bookat.dto.EventResDto">
+        SELECT * FROM EVENT WHERE EVENT_ID =#{event_id}
+    </select>
+    
+    <select id="selectByLocalCode" resultType="com.bookat.dto.EventResDto">
+        SELECT * FROM EVENT WHERE LOCAL_CODE=#{local_code}
+    </select>
+
+    <select id="selectByLocalCodeAndStartTime" resultType="com.bookat.dto.EventResDto">
+        SELECT * FROM EVENT WHERE LOCAL_CODE=#{local_code} AND EVENT_DATE > SYSDATE + 30 ORDER BY EVENT_DATE ASC
+    </select>
+
+    <select id="selectByLocalCodeAndCloseTime" resultType="com.bookat.dto.EventResDto">
+        SELECT * FROM EVENT WHERE LOCAL_CODE=#{local_code} AND EVENT_DATE > SYSDATE ORDER BY EVENT_DATE ASC
+    </select>
+
+</mapper>
