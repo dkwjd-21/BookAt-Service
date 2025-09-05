@@ -4,9 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>BookAt</title>
-    <link rel="stylesheet" th:href="@{/css/mainpage.css}" />
+    <link rel="stylesheet" th:href="@{/css/event_mainpage.css}" />
+    
     <style>
-      /* 일단 이미지 들어갈 자리 모두 빈칸 처리해뒀습니다 */
+      /* 일단 이미지 들어갈 자리 모두 회색빈칸 처리해뒀습니다 */
       .header-banner img,
       .event-cover {
         background-color: #cccccc;
@@ -25,6 +26,7 @@
     </style>
   </head>
   <body>
+    <script th:src="@{/js/event_mainpage.js}"></script>
     <header class="main-header">
       <div class="header-top">
         <a href="@{/mainpage}"><img th:src="@{/images/BookAt-Logo.png}" class="main-logo-img" /></a>
@@ -59,130 +61,79 @@
     </header>
 
     <main class="container">
-      <section class="header-banner">
-        <img src="https://placehold.co/1440x200?text=EventPromotionBanner" alt="Promotion Banner" style="background-color: #cccccc" />
-        <div class="banner-text">
-          <a href="#" class="btn-bookat">BookAt ></a>
+       <section class="header-banner">
+        <div>
+          <img src="https://placehold.co/1440x200?text=EventPromotionBanner1" alt="Promotion Banner" style="background-color: #cccccc" />
+          <div class="banner-text">
+            <a href="#" class="btn-bookat">BookAt ></a>
+          </div>
+          <div>
+            <img src="https://placehold.co/1440x200?text=EventPromotionBanner2" alt="Promotion Banner" style="background-color: #cccccc" />
+          <div class="banner-text">
+            <a href="#" class="btn-bookat">BookAt ></a>
+          </div>
         </div>
       </section>
+
+      <!-- <main class="container">	//메인배너 슬라이드 구현 어려움
+    <section class="header-banner">
+        <div class="banner-slider">
+            <div class="banner-slide">
+                <img src="https://placehold.co/1440x200?text=EventPromotionBanner1" alt="Promotion Banner 1" style="background-color: #cccccc" />
+                <div class="banner-text">
+                    <a href="#" class="btn-bookat">BookAt ></a>
+                </div>
+            </div>
+            <div class="banner-slide">
+                <img src="https://placehold.co/1440x200?text=EventPromotionBanner2" alt="Promotion Banner 2" style="background-color: #cccccc" />
+                <div class="banner-text">
+                    <a href="#" class="btn-bookat">BookAt ></a>
+                </div>
+            </div>
+          </div>
+    </section> -->
+
 
       <div class="category-nav">
-        <a href="#" class="active">서울</a>
-        <a href="#">경기/인천</a>
-        <a href="#">전라</a>
-        <a href="#">경상</a>
-        <a href="#">강원</a>
-        <a href="#">충청</a>
-        <a href="#">제주</a>
+        <a th:href="@{/event/main(local_code='SEOUL')}" th:classappend="${currentLocalCode == 'SEOUL'} ? 'active' : ''">서울</a>
+        <a th:href="@{/event/main(local_code='GYEONGGI_INCHEON')}" th:classappend="${currentLocalCode == 'GYEONGGI_INCHEON'} ? 'active' : ''">경기/인천</a>
+        <a th:href="@{/event/main(local_code='JEOLLA')}" th:classappend="${currentLocalCode == 'JEOLLA'} ? 'active' : ''">전라</a>
+        <a th:href="@{/event/main(local_code='GYEONGSANG')}" th:classappend="${currentLocalCode == 'GYEONGSANG'} ? 'active' : ''">경상</a>
+        <a th:href="@{/event/main(local_code='GANGWON')}" th:classappend="${currentLocalCode == 'GANGWON'} ? 'active' : ''">강원</a>
+        <a th:href="@{/event/main(local_code='CHUNGCHEONG')}" th:classappend="${currentLocalCode == 'CHUNGCHEONG'} ? 'active' : ''">충청</a>
+        <a th:href="@{/event/main(local_code='JEJU')}" th:classappend="${currentLocalCode == 'JEJU'} ? 'active' : ''">제주</a>
       </div>
+      <div>
+        <section class="event-section">
+          <h2 class="section-title">인기 이벤트</h2>
+          <div class="event-list">
+            <div th:each="event , loop : ${event}" th:if="${loop.index < 6}" class="event-card">
+              <img th:src="${event.event_image}" alt="event Cover" class="event-cover" />
+              <p th:text="${event.event_name}" class="event-title">이벤트 이름</p>
+            </div>
+          </div>
+        </section>
 
-      <section class="event-section">
-        <h2 class="section-title">인기 이벤트</h2>
-        <div class="event-list">
-          <div th:each="event : ${event}" class="event-card">
-            <img th:src="${event.event_image}" alt="event Cover" class="event-cover" />
-            <p th:text="${event.event_name}" class="event-title">이벤트 이름</p>
-            <p th:text="${event.event_description}" class="event-author">이벤트 설명</p>
+        <section class="event-section">
+          <h2 class="section-title">오픈 예정 이벤트</h2> 
+          <div class="event-list">
+            <div th:each="openTime , loop : ${openTime}" th:if="${loop.index < 6}" class="event-card">
+              <img th:src="${openTime.event_image}" alt="event Cover" class="event-cover" />
+              <p th:text="${openTime.event_name}" class="event-title">이벤트 이름</p>
+            </div>
           </div>
-          <div class="event-card">
-            <img src="placeholder.png" alt="event Cover" class="event-cover" />
-            <p class="event-title">이벤트1</p>
-            <p class="event-author">작가</p>
-          </div>
-          <div class="event-card">
-            <img src="placeholder.png" alt="event Cover" class="event-cover" />
-            <p class="event-title">이벤트1</p>
-            <p class="event-author">작가</p>
-          </div>
-          <div class="event-card">
-            <img src="placeholder.png" alt="event Cover" class="event-cover" />
-            <p class="event-title">이벤트1</p>
-            <p class="event-author">작가</p>
-          </div>
-          <div class="event-card">
-            <img src="placeholder.png" alt="event Cover" class="event-cover" />
-            <p class="event-title">이벤트1</p>
-            <p class="event-author">작가</p>
-          </div>
-          <div class="event-card">
-            <img src="placeholder.png" alt="event Cover" class="event-cover" />
-            <p class="event-title">이벤트1</p>
-            <p class="event-author">작가</p>
-          </div>
-        </div>
-      </section>
+        </section>
 
-      <section class="event-section">
-        <h2 class="section-title">오픈 예정 이벤트</h2>
-        <div class="event-list">
-          <div class="event-card">
-            <img src="placeholder.png" alt="event Cover" class="event-cover" />
-            <p class="event-title">이벤트</p>
-            <p class="event-author">작가</p>
+        <section class="event-section">
+          <h2 class="section-title">마감 임박 이벤트</h2>
+          <div class="event-list">
+            <div th:each="closeTime , loop : ${closeTime}" th:if="${loop.index < 6}" class="event-card">
+              <img th:src="${closeTime.event_image}" alt="event Cover" class="event-cover" />
+              <p th:text="${closeTime.event_name}" class="event-title">이벤트 이름</p>
+            </div>
           </div>
-          <div class="event-card">
-            <img src="placeholder.png" alt="event Cover" class="event-cover" />
-            <p class="event-title">이벤트</p>
-            <p class="event-author">작가</p>
-          </div>
-          <div class="event-card">
-            <img src="placeholder.png" alt="event Cover" class="event-cover" />
-            <p class="event-title">이벤트</p>
-            <p class="event-author">작가</p>
-          </div>
-          <div class="event-card">
-            <img src="placeholder.png" alt="event Cover" class="event-cover" />
-            <p class="event-title">이벤트</p>
-            <p class="event-author">작가</p>
-          </div>
-          <div class="event-card">
-            <img src="placeholder.png" alt="event Cover" class="event-cover" />
-            <p class="event-title">이벤트</p>
-            <p class="event-author">작가</p>
-          </div>
-          <div class="event-card">
-            <img src="placeholder.png" alt="event Cover" class="event-cover" />
-            <p class="event-title">이벤트</p>
-            <p class="event-author">작가</p>
-          </div>
-        </div>
-      </section>
-
-      <section class="event-section">
-        <h2 class="section-title">마감 임박 이벤트</h2>
-        <div class="event-list">
-          <div class="event-card">
-            <img src="placeholder.png" alt="event Cover" class="event-cover" />
-            <p class="event-title">이벤트</p>
-            <p class="event-author">작가</p>
-          </div>
-          <div class="event-card">
-            <img src="placeholder.png" alt="event Cover" class="event-cover" />
-            <p class="event-title">이벤트</p>
-            <p class="event-author">작가</p>
-          </div>
-          <div class="event-card">
-            <img src="placeholder.png" alt="event Cover" class="event-cover" />
-            <p class="event-title">이벤트</p>
-            <p class="event-author">작가</p>
-          </div>
-          <div class="event-card">
-            <img src="placeholder.png" alt="event Cover" class="event-cover" />
-            <p class="event-title">이벤트</p>
-            <p class="event-author">작가</p>
-          </div>
-          <div class="event-card">
-            <img src="placeholder.png" alt="event Cover" class="event-cover" />
-            <p class="event-title">이벤트</p>
-            <p class="event-author">작가</p>
-          </div>
-          <div class="event-card">
-            <img src="placeholder.png" alt="event Cover" class="event-cover" />
-            <p class="event-title">이벤트</p>
-            <p class="event-author">작가</p>
-          </div>
-        </div>
-      </section>
+        </section>
+      </div>
     </main>
 
     <footer th:fragment="site-footer" class="footer" style="border: 1px solid #bfbfbf; margin: 0 auto; color: #bfbfbf; background: #eaeaea">

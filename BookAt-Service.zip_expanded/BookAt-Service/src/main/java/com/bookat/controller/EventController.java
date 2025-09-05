@@ -7,6 +7,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.bookat.dto.EventResDto;
 import com.bookat.service.impl.EventServiceImpl;
@@ -38,15 +39,23 @@ public class EventController {
 		return "";	//상세페이지 url 넣으면 될 것 같습니다. 
 	}
 	
-	@GetMapping("/selectByLocalCode")	//지역코드 넣어서 가져오기
-	public String selectByLocalCode(String local_code, Model model){
-		
-		List<EventResDto> res = eventService.selectByLocalCode("SEOUL");
-		System.out.println(res);
-		
-		model.addAttribute("event",res);
-		
-		return "mainpage/event_mainpage";
+
+	@GetMapping("/main")	//메인 페이지로 이동한다.
+	public String eventMainpage(@RequestParam(name = "local_code", required = false, defaultValue = "SEOUL") String local_code, Model model) {
+
+	    List<EventResDto> res = eventService.selectByLocalCode(local_code);
+	    model.addAttribute("event",res);
+
+	    List<EventResDto> resOpenTime = eventService.selectByLocalCodeAndStartTime(local_code); 
+	    model.addAttribute("openTime",resOpenTime);
+
+	    List<EventResDto> resCloseTime = eventService.selectByLocalCodeAndCloseTime(local_code);
+	    model.addAttribute("closeTime",resCloseTime);
+
+	    // 현재 선택된 지역 코드를 모델에 추가
+	    model.addAttribute("currentLocalCode", local_code);
+
+	    return "mainpage/event_mainpage";
 	}
 	
 	

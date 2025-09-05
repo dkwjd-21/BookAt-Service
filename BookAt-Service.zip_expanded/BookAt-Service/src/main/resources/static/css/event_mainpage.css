@@ -147,7 +147,7 @@ body {
 }
 
 .btn-bookat {
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: #f9d849;
   color: #fff;
   text-decoration: none;
   padding: 8px 15px;
@@ -166,7 +166,7 @@ body {
 
 .category-nav a {
   text-decoration: none;
-  color: #555;
+  color: black;
   padding: 10px 15px;
   border: 1px solid #ddd;
   border-radius: 20px;
@@ -175,9 +175,9 @@ body {
 }
 
 .category-nav a.active {
-  background-color: #333;
+  background-color: #f9d849;
   color: #fff;
-  border-color: #333;
+  border-color: #f9d849;
 }
 
 /* 이벤트 섹션 */
