@@ -50,7 +50,8 @@ line-height: normal;margin:0 0 10px 0}
   background: var(--chip-on);
   border-color: var(--chip-on);
   color: #fff; }
-.chip:active { transform: translateY(1px); }
+  
+
 
 /* 선택된 칩 */
 .chip--on {

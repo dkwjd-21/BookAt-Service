@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <title>메인페이지_도서</title>
-  <link rel="stylesheet" type="text/css" th:href="@{css/main_book.css}">
+
   <link rel="stylesheet" type="text/css" th:href="@{/css/main_header.css}">
+  <link rel="stylesheet" type="text/css" th:href="@{css/main_book.css}">
 </head>
 <body>
   
@@ -33,13 +34,15 @@
     <section style="margin-bottom:26px;">
       <h2 class="section-title">베스트셀러 도서</h2>
       <div class="grid">
-        <article class="card" th:each="b : ${best}">
+      <article class="card" th:each="b : ${best}">
+      <a class="card-link" th:href="@{'/books/' + ${b.bookId}}">
           <img th:src="${b.imageUrl}" alt="" />
           <div class="body">
             <div class="meta"  th:text="${b.author}">저자</div>          
             <div class="title" th:text="${b.title}">제목</div>
             <div class="price" th:text="${#numbers.formatInteger(b.price,3,'COMMA')} + '원'">0원</div>
           </div>
+          </a>
         </article>
       </div>
     </section>
@@ -49,12 +52,14 @@
       <h2 class="section-title">신간 도서</h2>
       <div class="grid">
         <article class="card" th:each="b : ${newest}">
+        <a class="card-link" th:href="@{'/books/' + ${b.bookId}}">
           <img th:src="${b.imageUrl}" alt="" />
           <div class="body">
             <div class="meta"  th:text="${b.author}">저자</div>
             <div class="title" th:text="${b.title}">제목</div>
             <div class="price" th:text="${#numbers.formatInteger(b.price,3,'COMMA')} + '원'">0원</div>
           </div>
+          </a>
         </article>
       </div>
     </section>
@@ -64,12 +69,14 @@
       <h2 class="section-title">이벤트 진행 중인 도서</h2>
       <div class="grid">
         <article class="card" th:each="b : ${events}">
+        <a class="card-link" th:href="@{'/books/' + ${b.bookId}}">
           <img th:src="${b.imageUrl}" alt="" />
           <div class="body">
             <div class="meta"  th:text="${b.author}">저자</div>
             <div class="title" th:text="${b.title}">제목</div>
             <div class="price" th:text="${#numbers.formatInteger(b.price,3,'COMMA')} + '원'">0원</div>
           </div>
+          </a>
         </article>
       </div>
     </section>

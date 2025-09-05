@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <title th:text="${selectedCategory == null ? '전체 도서' : selectedCategory + ' 도서'}">도서 목록</title>
-  <link rel="stylesheet" type="text/css" th:href="@{/css/main_book.css}">
+
   <link rel="stylesheet" type="text/css" th:href="@{/css/main_header.css}">
+  <link rel="stylesheet" type="text/css" th:href="@{/css/main_book.css}">
 </head>
 <body>
   <div th:replace="~{fragments/book_header :: site-header}"></div>
@@ -32,12 +33,29 @@
     </div>
 
     <!-- 선택 카테고리 제목 (옵션) -->
-    <h2 th:if="${selectedCategory != null}"
-        th:text="|${selectedCategory} 전체 보기 (${#lists.size(books)}권)|">카테고리</h2>
+<h2 th:if="${selectedCategory != null}">
+  <span th:switch="${selectedCategory}">
+    <span th:case="'FICTION_POETRY'">소설/시</span>
+    <span th:case="'FICTION'">소설</span>
+    <span th:case="'POETRY'">시</span>
+    <span th:case="'ESSAY'">에세이</span>
+    <span th:case="'HUMANITY'">인문</span>
+    <span th:case="'SELF-HELP'">자기계발</span>
+    <span th:case="'MAGAZINE'">잡지</span>
+    <span th:case="'KIDS'">아동도서</span>
+    <span th:case="'HOBBY'">취미</span>
+    <span th:case="*">전체 도서</span>
+  </span>
+  <span th:text="| 전체 보기 (${#lists.size(books)}권)|"></span>
+</h2>
+
+<h2 th:if="${selectedCategory == null}"
+    th:text="|전체 도서 (${#lists.size(books)}권)|"></h2>
 
     <!-- 카드 목록 -->
     <div class="grid">
       <article class="card" th:each="b : ${books}">
+      <a class="card-link" th:href="@{'/books/' + ${b.bookId}}">
         <img loading="lazy" th:src="${b.imageUrl}" alt="" />
         <div class="body">
           <div class="title" th:text="${b.title}">제목</div>
@@ -48,6 +66,7 @@
           </div>
           <div class="price" th:text="${#numbers.formatInteger(b.price,3,'COMMA')} + '원'">0원</div>
         </div>
+        </a>
       </article>
     </div>
 
