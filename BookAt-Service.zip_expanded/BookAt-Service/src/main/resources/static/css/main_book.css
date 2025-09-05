@@ -1,24 +1,75 @@
 @charset "UTF-8";
 
 .container{margin:0 auto;padding:100px 20px}
-.section-title{font-size: 28px; font-style: normal; font-weight: 700;
+.section-title{font-size: 25px; font-style: normal; font-weight: 700;
 line-height: normal;margin:0 0 10px 0}
 
-.chip{padding:35px 17px 35px 9px; border:1px solid #BFBFBF;border-radius:999px;background:#fff;cursor:pointer;text-align: center;}
+
 .chip-row {
   display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  justify-content: center;   
-  margin: 0 auto 20px;       
-  max-width: 100%;           
+  justify-content: center;   /* 가로 중앙 */
+  align-items: center;
+  gap: 14px;                 /* 칩 간 간격 */
+  flex-wrap: wrap;           /* 줄바꿈 허용 */
+  margin: 12px 0 22px;
 }
-.chip--on{background:#B5D173;border-color:#BFBFBF}
+
+/* ===== 정사각형 라운드 칩 ===== */
+:root {
+  --chip-size: 64px;         /* 정사각형 한 변 (제곱수) */
+  --chip-radius: 14px;       /* 모서리 라운드 */
+  --chip-border: #D9D9D9;
+  --chip-on: #A8C66C;        /* 선택색(연두) */
+}
+
+/* a 태그를 버튼처럼 보이게 */
+.chip {
+  width: var(--chip-size);
+  height: var(--chip-size);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 6px;              /* 2줄일 때 안쪽 여백 */
+  border: 1px solid var(--chip-border);
+  border-radius: var(--chip-radius);   /* 둥근 정사각형 */
+  background: #fff;
+  color: #222;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;         /* 2줄 텍스트 예쁘게 */
+  text-align: center;
+  white-space: normal;       /* 줄바꿈 허용 */
+  word-break: keep-all;      /* 한글 단어 중간 끊김 방지 */
+  text-decoration: none;     /* 밑줄 제거 */
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background .15s ease, border-color .15s ease, transform .05s;
+}
+.chip:hover { 
+  background: var(--chip-on);
+  border-color: var(--chip-on);
+  color: #fff; }
+.chip:active { transform: translateY(1px); }
+
+/* 선택된 칩 */
+.chip--on {
+  background: var(--chip-on);
+  border-color: var(--chip-on);
+  color: #fff;
+}
 
 .grid{display:grid;grid-template-columns:repeat(6,1fr);gap:20px}
 .card{border:1px solid #eee;border-radius:12px;overflow:hidden;background:#fff}
-.card img{width:200px;height:266px;object-fit:cover;display:block}
+.card img{
+  display: block;
+  margin: 0 auto;           /* 가로 중앙 */
+  width: 100%;
+  height: 220px;            /* 그리드 통일 */
+  object-fit: contain;      /* 표지 비율 유지 (자르지 않음) */
+  background: #fff;}
 .card .body{padding:10px}
 .card .title{font-weight:600;font-size:14px;line-height:1.4;height:40px;overflow:hidden}
 .card .meta{font-size:12px;color:#6b7280;margin-top:2px}
+.price { font-size:14px; }
 

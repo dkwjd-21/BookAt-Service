@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8">
+  <title th:text="${selectedCategory == null ? '전체 도서' : selectedCategory + ' 도서'}">도서 목록</title>
+  <link rel="stylesheet" type="text/css" th:href="@{/css/main_book.css}">
+  <link rel="stylesheet" type="text/css" th:href="@{/css/main_header.css}">
+</head>
+<body>
+  <div th:replace="~{fragments/book_header :: site-header}"></div>
+
+  <main class="container" style="padding:16px 100px 40px;">
+  
+    <!-- 카테고리 -->
+    <div class="chip-row" style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:20px;">
+      <a class="chip" th:classappend="${selectedCategory} == null ? ' chip--on' : ''"
+         th:href="@{/books/list}">전체</a>
+      <a class="chip" th:classappend="${selectedCategory} == 'FICTION_POETRY' ? ' chip--on' : ''"
+         th:href="@{/books/list(category='FICTION_POETRY')}">소설/시</a>
+      <a class="chip" th:classappend="${selectedCategory} == 'ESSAY' ? ' chip--on' : ''"
+         th:href="@{/books/list(category='ESSAY')}">에세이</a>
+      <a class="chip" th:classappend="${selectedCategory} == 'HUMANITY' ? ' chip--on' : ''"
+         th:href="@{/books/list(category='HUMANITY')}">인문</a>
+      <a class="chip" th:classappend="${selectedCategory} == 'SELF-HELP' ? ' chip--on' : ''"
+         th:href="@{/books/list(category='SELF-HELP')}">자기계발</a>
+      <a class="chip" th:classappend="${selectedCategory} == 'MAGAZINE' ? ' chip--on' : ''"
+         th:href="@{/books/list(category='MAGAZINE')}">잡지</a>
+      <a class="chip" th:classappend="${selectedCategory} == 'KIDS' ? ' chip--on' : ''"
+         th:href="@{/books/list(category='KIDS')}">아동도서</a>
+      <a class="chip" th:classappend="${selectedCategory} == 'HOBBY' ? ' chip--on' : ''"
+         th:href="@{/books/list(category='HOBBY')}">취미</a>
+    </div>
+
+    <!-- 선택 카테고리 제목 (옵션) -->
+    <h2 th:if="${selectedCategory != null}"
+        th:text="|${selectedCategory} 전체 보기 (${#lists.size(books)}권)|">카테고리</h2>
+
+    <!-- 카드 목록 -->
+    <div class="grid">
+      <article class="card" th:each="b : ${books}">
+        <img loading="lazy" th:src="${b.imageUrl}" alt="" />
+        <div class="body">
+          <div class="title" th:text="${b.title}">제목</div>
+          <div class="meta">
+            <span th:text="${b.author}">저자</span>
+            <span> · </span>
+            <span th:text="${b.publisher}">출판사</span>
+          </div>
+          <div class="price" th:text="${#numbers.formatInteger(b.price,3,'COMMA')} + '원'">0원</div>
+        </div>
+      </article>
+    </div>
+
+
+  </main>
+
+  <div th:replace="~{fragments/footer :: site-footer}"></div>
+</body>
+</html>

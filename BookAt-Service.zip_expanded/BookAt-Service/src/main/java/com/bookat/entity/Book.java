@@ -14,6 +14,7 @@ public class Book {
   private String publisher;   // BOOK.PUBLISHER
   private LocalDate pubdate;  // BOOK.PUBDATE
   private String description; // BOOK.DESCRIPTION
+  private String category; // BOOK.CATEGORY
   
   public String getBookId() {
 	return bookId;
@@ -63,5 +64,8 @@ public class Book {
   public void setDescription(String description) {
 	this.description = description;
   }
+  
+  public String getCategory() { return category; }
+  public void setCategory(String category) { this.category = category; }
 
 }
