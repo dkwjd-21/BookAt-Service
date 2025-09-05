@@ -20,6 +20,29 @@
 	        }
 	    }
 
+		async function handleLogout() {
+	        const token = localStorage.getItem(accessTokenKey);
+			
+			console.log("handleLogout 진입");
+			console.log("로그아웃 시점 엑세스 : " + token);
+
+	        // 백엔드 로그아웃 요청
+	        try {
+	            await $.ajax({
+	                url: "/api/user/logout",
+	                type: "POST",
+	                headers: { "Authorization": "Bearer " + (token || "") },
+	                xhrFields: { withCredentials: true }
+	            });
+	        } catch(err) {
+	            console.error("서버 로그아웃 실패", err);
+	        }
+
+	        // 프론트 토큰 삭제 & UI 갱신
+	        localStorage.removeItem(accessTokenKey);
+	        updateAuthUI(null);
+	    }
+		
 	    async function refreshAccessTokenIfNeeded() {
 	        let token = localStorage.getItem(accessTokenKey);
 	        console.log("현재 access token:", token);
@@ -38,6 +61,8 @@
 	                }
 	            } catch(err) {
 	                console.log("자동 로그인 실패, access token 발급 불가");
+					
+					await handleLogout();
 	                token = null;
 	            }
 	        }
@@ -63,22 +88,7 @@
 	    $("#logoutBtn").click(async function(event) {
 	        event.preventDefault();
 
-	        const token = localStorage.getItem(accessTokenKey);
-	        console.log(token);
-
-	        try {
-	            await $.ajax({
-	                url: "/api/user/logout",
-	                type: "POST",
-	                headers: { "Authorization": "Bearer " + (token || "") },
-	                xhrFields: { withCredentials: true }
-	            });
-	        } catch(err){
-	            console.error("로그아웃 요청 실패", err);
-	        }
-
-	        localStorage.removeItem(accessTokenKey);
-	        updateAuthUI(null);
+	        await handleLogout();
 	    });
 	});
 	

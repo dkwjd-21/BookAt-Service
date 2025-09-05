@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import com.bookat.dto.UserLoginRequest;
 import com.bookat.dto.UserLoginResponse;
 import com.bookat.entity.User;
-import com.bookat.mapper.UserMapper;
+import com.bookat.exception.LoginException;
 import com.bookat.service.impl.UserLoginServiceImpl;
 import com.bookat.util.JwtTokenProvider;
 
@@ -36,7 +36,6 @@ public class UserLoginController {
 
     private final JwtTokenProvider jwtTokenProvider;
 	private final UserLoginServiceImpl loginService;
-	private final UserMapper userMapper;
 	
 	@GetMapping("/")
 	public String home() {
@@ -74,8 +73,10 @@ public class UserLoginController {
 			
 			// accessToken localStorage 에 저장
 			return ResponseEntity.ok(new UserLoginResponse(tokens.getAccessToken(), null));
-		} catch (IllegalArgumentException e) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+		} catch (LoginException le) {
+			// 사용자가 없거나 비밀번호 불일치
+
+		    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(le.getMessage());
 		}
 	}
 	
@@ -92,22 +93,20 @@ public class UserLoginController {
 	        }
 	    }
 	    
-	    log.info("refreshToken : {}", refreshToken);
-	    boolean valid = jwtTokenProvider.validateToken(refreshToken);
-	    log.info("토큰 유효 여부: {}", valid);
-	    
 	    if(refreshToken == null || !jwtTokenProvider.validateToken(refreshToken)) {
+	    	// 401에러
 	    	return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("유효하지 않은 리프레시토큰");
 	    }
 	    
 	    String userId = jwtTokenProvider.getUserIdFromToken(refreshToken);
-	    User user = userMapper.findUserById(userId);
+	    User user = loginService.findUserById(userId);
 	    
 	    if(user == null) {
 	    	return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("사용자 없음");
 	    }
 
 	    if (!refreshToken.equals(user.getRefreshToken())) {
+	    	// 401에러
 	        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("서버에 저장된 리프레시 토큰과 다름");
 	    }
 
@@ -118,25 +117,25 @@ public class UserLoginController {
 	
 //	@PostMapping("/logout")
 	@PostMapping("/api/user/logout")
-	public ResponseEntity<String> logout(@RequestHeader("Authorization") String accessToken, HttpServletResponse response) {
-		String token = accessToken.replace("Bearer ", "");
-	    String userId = jwtTokenProvider.getUserIdFromToken(token);
-	    
-	    log.info("token : {}", token);
-	    log.info("userId : {}", userId);
-
-	    User user = userMapper.findUserById(userId);
-	    
-	    if(user == null) {
-	    	return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("사용자 없음");
+	public ResponseEntity<String> logout(@RequestHeader(value="Authorization", required=false) String accessToken, HttpServletResponse response) {
+		String userId = null;
+		
+		if(accessToken != null && accessToken.startsWith("Bearer ")) {
+	        try {
+	            String token = accessToken.replace("Bearer ", "");
+	            userId = jwtTokenProvider.getUserIdFromToken(token); // 만료 토큰도 파싱 가능하도록 구현
+	        } catch(Exception e) {
+	            log.warn("Access Token 파싱 실패, 로그아웃 계속 진행");
+	        }
 	    }
-	    
-	    user.setRefreshToken(null);
-
-		Map<String, String> values = new HashMap<>();
-		values.put("refreshToken", user.getRefreshToken());
-		values.put("userId", user.getUserId());
-		userMapper.updateUserRefreshToken(values);
+		
+		if(userId != null) {
+	        User user = loginService.findUserById(userId);
+//	        if(user != null) {
+//	            user.setRefreshToken(null);
+//	            loginService.refreshTokenUpdate(user.getRefreshToken(), user.getUserId());
+//	        }
+	    }
 
 	    Cookie refreshCookie = new Cookie("refreshToken", null);
 	    refreshCookie.setHttpOnly(true);

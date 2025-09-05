@@ -24,8 +24,8 @@ public class SecurityConfig {
 //        .httpBasic(Customizer.withDefaults())
         .authorizeHttpRequests(auth -> auth
         		.requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
-        		.requestMatchers("/", "/api/user/login", "/api/user/refresh", "/api/user/findId", "/api/user/findPw").permitAll()
-                .requestMatchers("/api/user/logout").authenticated()
+        		.requestMatchers("/", "/api/user/**").permitAll()
+                .requestMatchers("/api/pay/**").authenticated()
                 .anyRequest().denyAll()
         ).addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 		

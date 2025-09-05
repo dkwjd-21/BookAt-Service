@@ -47,10 +47,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
     
-//    @Override
-//    protected boolean shouldNotFilter(HttpServletRequest request) {
-//        return request.getRequestURI().equals("/api/user/refresh");
-//    }
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getRequestURI();
+        return path.equals("/api/user/refresh") || path.equals("/api/user/logout");
+    }
 
     private String resolveToken(HttpServletRequest request) {
         String bearer = request.getHeader("Authorization");

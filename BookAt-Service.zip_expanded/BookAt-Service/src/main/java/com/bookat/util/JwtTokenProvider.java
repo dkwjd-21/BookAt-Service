@@ -24,7 +24,6 @@ public class JwtTokenProvider {
     
     @PostConstruct
     public void init() {
-    	System.out.println("JWT Secret: " + secret);
         key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
@@ -32,7 +31,7 @@ public class JwtTokenProvider {
 		return Jwts.builder()
 				.setSubject(userId)
 				.setIssuedAt(new Date())
-				.setExpiration(new Date(System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(15)))
+				.setExpiration(new Date(System.currentTimeMillis() + expiration_30m))
 				.signWith(key, SignatureAlgorithm.HS256)
 				.compact();
 	}
@@ -47,10 +46,17 @@ public class JwtTokenProvider {
 	}
 	
 	public String getUserIdFromToken(String token) {
-		return Jwts.parserBuilder().setSigningKey(key).build()
-				.parseClaimsJws(token)
-				.getBody()
-				.getSubject();
+	    try {
+	        return Jwts.parserBuilder()
+	                   .setSigningKey(key)
+	                   .build()
+	                   .parseClaimsJws(token)
+	                   .getBody()
+	                   .getSubject();
+	    } catch (ExpiredJwtException e) {
+	        // 만료된 토큰에서도 Claims 추출 가능
+	        return e.getClaims().getSubject();
+	    }
 	}
 	
 	public boolean validateToken(String token) {
@@ -61,5 +67,16 @@ public class JwtTokenProvider {
 		} catch (JwtException |  IllegalArgumentException e) {
 			return false;
 		}
+	}
+	
+	public boolean validateToken(String token, String userId) {
+	    try {
+	        Claims claims = Jwts.parserBuilder().setSigningKey(key).build()
+	            .parseClaimsJws(token).getBody();
+	        String tokenUserId = claims.getSubject(); // 토큰에 담긴 userId
+	        return tokenUserId.equals(userId);       // DB와 비교
+	    } catch (JwtException | IllegalArgumentException e) {
+	        return false;
+	    }
 	}
 }

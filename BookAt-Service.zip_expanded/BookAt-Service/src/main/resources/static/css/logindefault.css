@@ -98,3 +98,8 @@
 .links a:hover {
     font-weight: bold;
 }
+
+.input-error {
+    border: 1px solid #bd2130;
+    outline: none;
+}
