@@ -9,11 +9,13 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import com.bookat.dto.FindPassword;
 import com.bookat.dto.UserLoginRequest;
 import com.bookat.dto.UserLoginResponse;
 import com.bookat.entity.User;
@@ -61,6 +63,7 @@ public class UserLoginController {
 		}
 		
 		try {
+			// refreshToken 서비스에서 디비에 저장
 			UserLoginResponse tokens = loginService.login(userLoginRequest);
 			
 			// refreshToken 쿠키 저장
@@ -105,10 +108,10 @@ public class UserLoginController {
 	    	return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("사용자 없음");
 	    }
 
-	    if (!refreshToken.equals(user.getRefreshToken())) {
-	    	// 401에러
-	        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("서버에 저장된 리프레시 토큰과 다름");
-	    }
+//	    if (!refreshToken.equals(user.getRefreshToken())) {
+//	    	// 401에러, 디비에 저장된 리프레시토큰이랑 일치하는지 확인.
+//	        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("서버에 저장된 리프레시 토큰과 다름");
+//	    }
 
 	    String newAccessToken = jwtTokenProvider.generateAccessToken(userId);
 		
@@ -148,11 +151,25 @@ public class UserLoginController {
 	
 	@GetMapping("/api/user/findId")
 	public String findIdForm() {
+		
 		return "user/findIdForm";
 	}
 	
 	@GetMapping("/api/user/findPw")
-	public String findPwForm() {
+	public String findPwForm(Model model) {
+		model.addAttribute("findPassword", new FindPassword());
 		return "user/findPwForm";
+	}
+	
+	@PostMapping("/api/user/findPw")
+	public String findPw(@ModelAttribute FindPassword findPassword) {
+		
+		
+		return "user/inputPwForm";
+	}
+	
+	@PostMapping("/api/user/changePassword")
+	public String changePassword() {
+		return "user/resultPwForm";
 	}
 }

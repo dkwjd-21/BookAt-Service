@@ -31,7 +31,7 @@ public class JwtTokenProvider {
 		return Jwts.builder()
 				.setSubject(userId)
 				.setIssuedAt(new Date())
-				.setExpiration(new Date(System.currentTimeMillis() + expiration_30m))
+				.setExpiration(new Date(System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(20)))
 				.signWith(key, SignatureAlgorithm.HS256)
 				.compact();
 	}
@@ -40,7 +40,7 @@ public class JwtTokenProvider {
 		return Jwts.builder()
 				.setSubject(userId)
 				.setIssuedAt(new Date())
-				.setExpiration(new Date(System.currentTimeMillis() + expiration_7d))
+				.setExpiration(new Date(System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(50)))
 				.signWith(key, SignatureAlgorithm.HS256)
 				.compact();
 	}

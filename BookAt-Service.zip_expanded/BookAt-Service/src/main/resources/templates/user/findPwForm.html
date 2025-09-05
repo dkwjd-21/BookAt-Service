@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
 <meta charset="UTF-8">
-<title>로그인</title>
+<title>비밀번호 찾기</title>
 <link rel="stylesheet" th:href="@{/css/logindefault.css}">
 <script type="text/javascript" src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script type="text/javascript">
@@ -14,14 +14,14 @@
 	<div id="container">
 		<h1>비밀번호 찾기</h1>
 
-		<form id="inputForm">
+		<form id="inputForm" action="/api/user/findPw" method="post" th:object="${findPassword}">
 		    <div>
 		        <label for="userId">아이디</label>
-		        <input type="text" id="userId" name="userId" placeholder="아이디를 입력해주세요." required>
+		        <input type="text" th:field="*{userId}" id="userId" name="userId" placeholder="아이디를 입력해주세요.">
 		    </div>
 		    <div>
-		        <label for="userPw">전화번호</label>
-		        <input type="password" id="userPw" name="userPw" placeholder="전화번호를 입력해주세요." required>
+		        <label for="userPhone">전화번호</label>
+		        <input type="text" th:field="*{userPhone}" id="userPhone" name="userPhone" placeholder="전화번호를 입력해주세요.">
 		    </div>
 		    <button type="submit">비밀번호 찾기</button>
 		</form>
@@ -31,7 +31,7 @@
 			<a href="/api/user/findId">아이디 찾기</a>
 		</div>
 
-		<div id="error-msg" style="color:red;"></div>
+		<div id="error-msg" style="color:#bd2130; display:none;"></div>
 	</div>
 
 </body>

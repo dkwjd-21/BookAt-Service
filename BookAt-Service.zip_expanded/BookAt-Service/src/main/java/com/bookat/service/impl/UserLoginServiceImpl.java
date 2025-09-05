@@ -47,6 +47,7 @@ public class UserLoginServiceImpl implements UserLoginService {
 		
 //		user.setRefreshToken(refreshToken);
 		
+		// 리프레시토큰 디비 저장
 //		Map<String, String> values = new HashMap<>();
 //		values.put("refreshToken", user.getRefreshToken());
 //		values.put("userId", user.getUserId());

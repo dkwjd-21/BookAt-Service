@@ -1,5 +1,6 @@
 @charset "UTF-8";
 
+/* 로그인 페이지 및 디폴트 디자인 */
 #container {
 	margin: 0;
 	color: #8a8a8a;
@@ -102,4 +103,39 @@
 .input-error {
     border: 1px solid #bd2130;
     outline: none;
+}
+
+/* 아이디 찾기 디자인 수정 */
+.input-group {
+  display: flex !important;       /* 가로 정렬 강제 */
+  flex-direction: row !important; /* 가로 방향 */
+  width: 100%;                    /* 부모 폭에 맞춤 */
+  margin-bottom: 10px;
+}
+
+.input-group input {
+  flex: 3;
+  padding: 12px;
+  font-size: 15px;
+  border: 1px solid #ccc;
+  border-radius: 8px 0 0 8px;
+  box-sizing: border-box;
+}
+
+.input-group button {
+  flex: 1;
+  padding: 12px;
+  font-size: 15px;
+  font-weight: bold;
+  border: 1px solid #ccc;
+  border-left: none;
+  border-radius: 0 8px 8px 0;
+  background-color: #00007B;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.input-group button:hover {
+  background-color: #357ABD;
 }
