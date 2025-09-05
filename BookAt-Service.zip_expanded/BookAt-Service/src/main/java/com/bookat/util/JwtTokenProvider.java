@@ -31,7 +31,7 @@ public class JwtTokenProvider {
 		return Jwts.builder()
 				.setSubject(userId)
 				.setIssuedAt(new Date())
-				.setExpiration(new Date(System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(20)))
+				.setExpiration(new Date(System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(15)))
 				.signWith(key, SignatureAlgorithm.HS256)
 				.compact();
 	}
@@ -69,14 +69,14 @@ public class JwtTokenProvider {
 		}
 	}
 	
-	public boolean validateToken(String token, String userId) {
-	    try {
-	        Claims claims = Jwts.parserBuilder().setSigningKey(key).build()
-	            .parseClaimsJws(token).getBody();
-	        String tokenUserId = claims.getSubject(); // 토큰에 담긴 userId
-	        return tokenUserId.equals(userId);       // DB와 비교
-	    } catch (JwtException | IllegalArgumentException e) {
-	        return false;
-	    }
-	}
+//	public boolean validateToken(String token, String userId) {
+//	    try {
+//	        Claims claims = Jwts.parserBuilder().setSigningKey(key).build()
+//	            .parseClaimsJws(token).getBody();
+//	        String tokenUserId = claims.getSubject(); // 토큰에 담긴 userId
+//	        return tokenUserId.equals(userId);       // DB와 비교
+//	    } catch (JwtException | IllegalArgumentException e) {
+//	        return false;
+//	    }
+//	}
 }

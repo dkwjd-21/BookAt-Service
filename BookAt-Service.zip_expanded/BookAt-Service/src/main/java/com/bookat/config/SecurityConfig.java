@@ -25,7 +25,8 @@ public class SecurityConfig {
         .authorizeHttpRequests(auth -> auth
         		.requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
         		.requestMatchers("/", "/api/user/**").permitAll()
-                .requestMatchers("/api/pay/**").authenticated()
+        		// 로그인 상태 접속 (후에 뷰랑 api 랑 분리? -> 뷰는 permitAll, 기능은 authenticated)
+        		.requestMatchers("/api/pay/**").authenticated()
                 .anyRequest().denyAll()
         ).addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 		

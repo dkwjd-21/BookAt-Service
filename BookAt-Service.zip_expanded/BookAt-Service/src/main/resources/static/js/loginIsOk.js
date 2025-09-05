@@ -7,6 +7,8 @@ $(document).ready(async function() {
 	function isTokenNearExpiry(token) {
 	    if (!token) return true;
 	    try {
+			// header.payload.signature
+			// payload.exp : 만료시간정보
 	        const payload = JSON.parse(atob(token.split(".")[1]));
 	        const exp = payload.exp * 1000;
 			const timeLeft = exp - Date.now();
@@ -17,7 +19,7 @@ $(document).ready(async function() {
 	    }
 	}
 
-	// 엑세스 토큰이 만료됐는지 판단
+	// 엑세스 토큰이 만료됐는지 판단 (true: 만료, false: 유효)
     function isTokenExpired(token) {
         if (!token) return true;
         try {
@@ -33,7 +35,7 @@ $(document).ready(async function() {
         const token = localStorage.getItem(accessTokenKey);
 		
 		console.log("handleLogout 진입");
-		console.log("로그아웃 시점 엑세스 : " + token);
+		console.log("로그아웃 요청 엑세스토큰 : " + token);
 
         // 백엔드 로그아웃 요청
         try {
@@ -52,9 +54,10 @@ $(document).ready(async function() {
         updateAuthUI(null);
     }
 	
+	// 엑세스 토큰 만료 됐으면 리프레시토큰 유효한 동안 갱신
     async function refreshAccessTokenIfNeeded() {
         let token = localStorage.getItem(accessTokenKey);
-        console.log("현재 access token:", token);
+        console.log("refresh, 현재 access token:", token);
 
 //        if (!token || isTokenNearExpiry(token)) {
 		if (!token || isTokenExpired(token)) {
@@ -70,7 +73,7 @@ $(document).ready(async function() {
                     token = res.accessToken;
                 }
             } catch(err) {
-                console.log("자동 로그인 실패, access token 발급 불가");
+                console.log("refresh 토큰 만료, 로그인 실패, access token 발급 불가");
 				
 				await handleLogout();
                 token = null;

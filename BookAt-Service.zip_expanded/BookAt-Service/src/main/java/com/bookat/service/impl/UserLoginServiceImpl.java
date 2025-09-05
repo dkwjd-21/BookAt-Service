@@ -70,14 +70,14 @@ public class UserLoginServiceImpl implements UserLoginService {
 	}
 	
 	// JWT 토큰 검증 (DB 조회 최소화)
-	public boolean verifyToken(String token) {
-        String userId = jwtTokenProvider.getUserIdFromToken(token);
-        if (userId == null) return false;
-
-        User user = userMapper.findUserById(userId); // 필요 시에만 DB 조회
-        if (user == null) return false;
-
-        return jwtTokenProvider.validateToken(token, user.getUserId());
-    }
+//	public boolean verifyToken(String token) {
+//        String userId = jwtTokenProvider.getUserIdFromToken(token);
+//        if (userId == null) return false;
+//
+//        User user = userMapper.findUserById(userId); // 필요 시에만 DB 조회
+//        if (user == null) return false;
+//
+//        return jwtTokenProvider.validateToken(token, user.getUserId());
+//    }
 
 }

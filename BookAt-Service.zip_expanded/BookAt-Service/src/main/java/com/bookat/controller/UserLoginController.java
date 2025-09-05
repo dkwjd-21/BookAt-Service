@@ -32,8 +32,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-//@Controller
-@RestController
+@Controller
+//@RestController
 //@RequestMapping("/api/user")
 @RequiredArgsConstructor
 public class UserLoginController {
@@ -59,13 +59,14 @@ public class UserLoginController {
 	@PostMapping("/api/user/login")
 	public ResponseEntity<?> login(@Valid @RequestBody UserLoginRequest userLoginRequest, BindingResult bindingResult, HttpServletResponse response) {
 		
+		// input 에 값을 입력 안하고 요청할 시 검증
 		if(bindingResult.hasErrors()) {
 			String errMsg = bindingResult.getFieldError().getDefaultMessage();
 			return ResponseEntity.badRequest().body(errMsg);
 		}
 		
 		try {
-			// refreshToken 서비스에서 디비에 저장
+			// refreshToken 서비스에서 디비에 저장 (지금은 비활성화)
 			UserLoginResponse tokens = loginService.login(userLoginRequest);
 			
 			// refreshToken 쿠키 저장
@@ -73,14 +74,14 @@ public class UserLoginController {
 			refreshCookie .setHttpOnly(true);
 //			refreshCookie .setSecure(true);
 			refreshCookie .setPath("/");
-			refreshCookie .setMaxAge(60 * 60 * 24 * 7);
+			refreshCookie .setMaxAge(60 * 60 * 24 * 7);	// 7일
 			response.addCookie(refreshCookie);
 			
-			// accessToken localStorage 에 저장
+			// accessToken 은 localStorage 에 저장
 			return ResponseEntity.ok(new UserLoginResponse(tokens.getAccessToken(), null));
 		} catch (LoginException le) {
+			
 			// 사용자가 없거나 비밀번호 불일치
-
 		    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(le.getMessage());
 		}
 	}
@@ -134,14 +135,16 @@ public class UserLoginController {
 	        }
 	    }
 		
+		// 디비에서도 삭제하기 위함
 		if(userId != null) {
-	        User user = loginService.findUserById(userId);
+//	        User user = loginService.findUserById(userId);
 //	        if(user != null) {
 //	            user.setRefreshToken(null);
 //	            loginService.refreshTokenUpdate(user.getRefreshToken(), user.getUserId());
 //	        }
 	    }
 
+		// 쿠키 삭제
 	    Cookie refreshCookie = new Cookie("refreshToken", null);
 	    refreshCookie.setHttpOnly(true);
 	    refreshCookie.setMaxAge(0);
@@ -173,10 +176,5 @@ public class UserLoginController {
 	@PostMapping("/api/user/changePassword")
 	public String changePassword() {
 		return "user/resultPwForm";
-	}
-	
-	@PostMapping("/api/pay/test")
-	public String payTest() {
-		return "접근 제한 페이지 접근 테스트";
 	}
 }
