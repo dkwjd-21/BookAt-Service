@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.bookat.dto.FindPassword;
 import com.bookat.dto.UserLoginRequest;
@@ -31,7 +32,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@Controller
+//@Controller
+@RestController
 //@RequestMapping("/api/user")
 @RequiredArgsConstructor
 public class UserLoginController {
@@ -171,5 +173,10 @@ public class UserLoginController {
 	@PostMapping("/api/user/changePassword")
 	public String changePassword() {
 		return "user/resultPwForm";
+	}
+	
+	@PostMapping("/api/pay/test")
+	public String payTest() {
+		return "접근 제한 페이지 접근 테스트";
 	}
 }
