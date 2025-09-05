@@ -3,6 +3,7 @@ package com.bookat.controller;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -16,6 +17,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.RestTemplate;
 
+import com.bookat.dto.UserSignup;
+import com.bookat.service.UserSignupService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -24,6 +27,10 @@ import jakarta.servlet.http.HttpSession;
 @Controller
 public class UserSignupController {
 	
+	// service
+	@Autowired
+	private UserSignupService service;
+	
 	// application.properties에서 프론트엔드용 키 값을 주입
     @Value("${portone.public.store-id}")
     private String portoneStoreId;
@@ -31,7 +38,6 @@ public class UserSignupController {
     private String portoneChannelKey;
 	@Value("${portone.api_secret}")
 	private String portoneApiSecret;
-    
     
 	// 회원가입 페이지로 이동 
 	@GetMapping("/user/signup")
@@ -115,5 +121,39 @@ public class UserSignupController {
 	@PostMapping("/user/signup/insert")
 	public void signupInsert() {
 		
+	}
+	
+	// 아이디 중복검사 
+	@GetMapping("/user/signup/chkId")
+	public ResponseEntity<Boolean> checkId(String idVal) {
+		// DB에서 아이디 중복 여부 검사
+		boolean isIdAvailable;
+		UserSignup user = service.getUserById(idVal);
+		System.out.println("아이디 중복 검사 결과 : "+user);
+		
+		if(user == null) {
+			isIdAvailable = true;
+		} else {
+			isIdAvailable = false;
+		}		
+		
+		return ResponseEntity.ok(isIdAvailable);
+	}
+	
+	// 이메일 중복검사 
+	@GetMapping("/user/signup/chkEmail")
+	public ResponseEntity<Boolean> checkEmail(String emailVal) {
+		// DB에서 아이디 중복 여부 검사
+		boolean isEmailAvailable;
+		UserSignup user = service.getUserByEmail(emailVal);
+		System.out.println("이메일 중복 검사 결과 : "+user);
+		
+		if(user == null) {
+			isEmailAvailable = true;
+		} else {
+			isEmailAvailable = false;
+		}	
+				
+		return ResponseEntity.ok(isEmailAvailable);
 	}
 }
