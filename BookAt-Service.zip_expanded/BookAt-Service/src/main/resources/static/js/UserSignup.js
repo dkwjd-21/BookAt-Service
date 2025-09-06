@@ -1,6 +1,5 @@
 // 본인인증 버튼 클릭
-async function verification(method) {
-  console.log("본인인증 방법 : " + method);
+async function verification() {
 
   try {
     // 1. 포트원 본인인증을 호출 & 사용자가 완료할 때까지 기다림
@@ -76,10 +75,83 @@ async function verification(method) {
 let isIdChecked = false;
 let isEmailChecked = false;
 
+// 아이디, 비밀번호, 이메일 유효성 체크용 전역 변수
+let idValid = false;
+let pwValid = false;
+let emailValid = false;
+
 // HTML 문서가 모두 로드되었을 때 스크립트 실행
 document.addEventListener("DOMContentLoaded", function () {
   // #signup-form 태그 선택
   const signupForm = document.getElementById("signup-form");
+
+  // 입력값 유효성 검사 추가
+  const userIdInput = document.getElementById("userId");
+  const userPwInput = document.getElementById("userPw");
+  const emailInput = document.getElementById("email");
+
+  const idMessage = document.getElementById("idMessage");
+  const pwMessage = document.getElementById("pwMessage");
+  const emailMessage = document.getElementById("emailMessage");
+
+  // 아이디 검사
+  userIdInput.addEventListener("input", function () {
+    const userIdValue = userIdInput.value;
+
+    // 아이디 입력 필드가 비어 있으면 메시지를 지운다.
+    if (userIdValue.length === 0) {
+      idMessage.textContent = "";
+      return;
+    }
+
+    if (userIdValue.length >= 4) {
+      idMessage.textContent = "";
+      idValid = true;
+    } else {
+      idMessage.textContent = "아이디는 4자 이상이어야 합니다.";
+      idValid = false;
+    }
+  });
+
+  // 비밀번호 검사
+  userPwInput.addEventListener("input", function () {
+    const userPwValue = userPwInput.value;
+
+    // 비밀번호 입력 필드가 비어 있으면 메시지를 지운다.
+    if (userPwValue.length === 0) {
+      pwMessage.textContent = "";
+      return;
+    }
+
+    // 비밀번호 검사
+    if (userPwValue.length >= 4) {
+      pwMessage.textContent = "";
+      pwValid = true;
+    } else {
+      pwMessage.textContent = "비밀번호는 4자 이상이어야 합니다.";
+      pwValid = false;
+    }
+  });
+
+  // 이메일 검사
+  emailInput.addEventListener("input", function () {
+    const emailValue = emailInput.value;
+
+    // 아이디 입력 필드가 비어 있으면 메시지를 지웁니다.
+    if (emailValue.length === 0) {
+      emailMessage.textContent = "";
+      return;
+    }
+
+    // 이메일 검사
+    if (emailValue.length >= 4) {
+      emailMessage.textContent = "";
+      emailValid = true;
+    } else {
+      emailMessage.textContent = "이메일은 4자 이상이어야 합니다.";
+      emailValid = false;
+    }
+  });
 
   // #signup-form에서 'submit' 이벤트가 발생했을 때
   signupForm.addEventListener("submit", function (event) {
@@ -106,13 +178,22 @@ document.addEventListener("DOMContentLoaded", function () {
       document.getElementById("userId").focus();
       return;
     }
+    if (!idValid) {
+      alert("아이디는 4자 이상이어야 합니다.");
+      return;
+    }
     if (!isIdChecked) {
       alert("아이디 중복 검사를 완료해주세요.");
       return;
     }
+
     if (userData.userPw === "" || userData.userPw === null) {
       alert("비밀번호를 입력해 주세요.");
       document.getElementById("userPw").focus();
+      return;
+    }
+    if (!pwValid) {
+      alert("비밀번호는 4자 이상이어야 합니다.");
       return;
     }
     if (userData.email === "" || userData.email === null) {
@@ -120,10 +201,15 @@ document.addEventListener("DOMContentLoaded", function () {
       document.getElementById("email").focus();
       return;
     }
+    if (!emailValid) {
+      alert("이메일은 4자 이상이어야 합니다.");
+      return;
+    }
     if (!isEmailChecked) {
       alert("이메일 중복 검사를 완료해주세요.");
       return;
     }
+
     if (!agreeTerms.checked) {
       alert("이용 약관에 동의해 주세요.");
       return;
@@ -159,13 +245,14 @@ document.addEventListener("DOMContentLoaded", function () {
         stepFir.className = "step";
         stepSec.className = "step";
         stepThr.className = "step-active";
-	
+
         // 단계별 컨텐츠 변경
         const form = document.getElementsByClassName("signup-form")[0];
         const complete = document.getElementsByClassName("signup-complete")[0];
         form.style.display = "none";
         complete.style.display = "";
-		document.getElementById("complete-username").textContent = data.userName;
+        document.getElementById("complete-username").textContent =
+          data.userName;
       })
       .catch((error) => {
         console.error("회원가입 오류 : ", error);
@@ -203,7 +290,7 @@ function chkId() {
         document.getElementById("userPw").disabled = false;
         document.getElementById("email").disabled = false;
       } else {
-		confirm("이미 사용 중인 아이디 입니다.")
+        confirm("이미 사용 중인 아이디 입니다.");
         console.log("이미 사용 중인 아이디입니다.");
       }
     })
@@ -240,7 +327,7 @@ function chkEmail() {
         confirm("사용 가능한 이메일 입니다.");
         isEmailChecked = true;
       } else {
-		confirm("이미 사용 중인 이메일 입니다.")
+        confirm("이미 사용 중인 이메일 입니다.");
         console.log("이미 사용 중인 이메일입니다.");
       }
     })
