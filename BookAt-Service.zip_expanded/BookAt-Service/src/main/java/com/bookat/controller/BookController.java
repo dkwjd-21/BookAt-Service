@@ -26,13 +26,33 @@ public class BookController{
 	
 	// 메인 : /books
 	@GetMapping
-	public String booksHome(Model model) {
+	public String books(@RequestParam(value = "category", required = false) String category, Model model) {
 		
+        List<BookDto> books = null;
+        
+        //카테고리 선택 시
+        if (category != null && !category.isBlank()) {
+            if (GROUPS.containsKey(category)) {
+                books = bookService.findByCategories(GROUPS.get(category));
+            } else if (ALLOWED.contains(category)) {
+                books = bookService.findByCategory(category);
+            } else {
+            	category = null;
+
+            }
+        }
+        
+		//카테 고리 미선택 시 메인 섹션(베스트/신간/이벤트)
+		if(category == null) {
 		model.addAttribute("best", bookService.getBestSellers(6));
 		model.addAttribute("newest", bookService.getNewBooks(6));
 		model.addAttribute("events", bookService.getEventBooks(6));
+		}
+    
+        model.addAttribute("books", books);
+        model.addAttribute("selectedCategory", category);
 		
-		return "mainpage/book";
+        return "mainpage/book";
 	}
 	
 	// 카테고리(단일)
@@ -45,28 +65,6 @@ public class BookController{
 			"FICTION_POETRY", List.of("FICTION","POETRY")
 	);
 	
-	@GetMapping("/list")
-	public String listBooks(
-		@RequestParam(value = "category", required = false) String category, Model model) {
-		
-		List<BookDto> books;
-		if(category == null || category.isBlank()) {
-		   books = bookService.findAll();
-		   category = null;
-		}else if(GROUPS.containsKey(category)) {
-			books = bookService.findByCategories(GROUPS.get(category));
-		}else if(ALLOWED.contains(category)) {
-			books = bookService.findByCategory(category);
-		}else {
-			books = bookService.findAll();
-			category = null;
-		}
-		
-		model.addAttribute("books", books);
-		model.addAttribute("selectedCategory", category);
-		
-		return "mainpage/booklist";
-	}
 	
 	
 }
