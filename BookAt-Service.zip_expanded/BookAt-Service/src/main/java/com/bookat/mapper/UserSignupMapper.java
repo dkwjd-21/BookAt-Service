@@ -8,4 +8,5 @@ import com.bookat.dto.UserSignup;
 public interface UserSignupMapper {
 	UserSignup selectUserById(String userId);
 	UserSignup selectUserByEmail(String email);
+	int insertUser(UserSignup user);
 }

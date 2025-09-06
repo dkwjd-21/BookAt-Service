@@ -1,5 +1,6 @@
 package com.bookat.controller;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -8,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -58,6 +60,7 @@ public class UserSignupController {
             @RequestBody Map<String, String> payload, HttpSession session) {
         
         Map<String, Object> responseBody = new HashMap<>();
+        
         try {
             String identityVerificationId = payload.get("identityVerificationId");
             String apiUrl = "https://api.portone.io/identity-verifications/" + identityVerificationId;
@@ -119,8 +122,33 @@ public class UserSignupController {
 	
 	// 회원 Insert 하기
 	@PostMapping("/user/signup/insert")
-	public void signupInsert() {
+	public ResponseEntity<Map<String, Object>> signupInsert(@RequestBody UserSignup input) {
+		System.out.println(input.toString());
 		
+		// 전화번호 010XXXXOOOO -> 010-XXXX-0000으로 포맷 변경
+		String phone = input.getPhone();
+		
+		String formattedPhone = phone.substring(0, 3) + "-" + 
+							    phone.substring(3, 7) + "-" + 
+							    phone.substring(7);
+		
+		System.out.println("전화번호 포맷 변경 : "+phone+" -> "+formattedPhone);
+		
+		input.setPhone(formattedPhone);
+		
+		int res = service.insertUser(input);
+		
+		Map<String, Object> responseBody = new HashMap<>();
+		
+		if(res > 0) {
+			responseBody.put("message", "회원가입 성공");
+			responseBody.put("userName", input.getUserName());
+			return ResponseEntity.ok(responseBody);
+		} else {
+			// 회원가입 실패
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Collections.singletonMap("message", "회원가입에 실패했습니다. 다시 시도해 주세요."));
+		}
 	}
 	
 	// 아이디 중복검사 
@@ -129,7 +157,7 @@ public class UserSignupController {
 		// DB에서 아이디 중복 여부 검사
 		boolean isIdAvailable;
 		UserSignup user = service.getUserById(idVal);
-		System.out.println("아이디 중복 검사 결과 : "+user);
+		System.out.println("[ID] 유저 셀렉트 결과 : "+user);
 		
 		if(user == null) {
 			isIdAvailable = true;
@@ -146,7 +174,7 @@ public class UserSignupController {
 		// DB에서 아이디 중복 여부 검사
 		boolean isEmailAvailable;
 		UserSignup user = service.getUserByEmail(emailVal);
-		System.out.println("이메일 중복 검사 결과 : "+user);
+		System.out.println("[EMAIL] 유저 셀렉트 결과 : "+user);
 		
 		if(user == null) {
 			isEmailAvailable = true;

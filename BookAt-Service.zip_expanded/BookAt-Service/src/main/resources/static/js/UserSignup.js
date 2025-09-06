@@ -87,36 +87,43 @@ document.addEventListener("DOMContentLoaded", function () {
     event.preventDefault();
 
     // form의 입력 요소
-    const userId = document.getElementById("userId");
-    const userPw = document.getElementById("userPw");
-    const email = document.getElementById("email");
+    const formData = new FormData(signupForm);
+    const userData = {};
+
+    formData.forEach((value, key) => {
+      userData[key] = value;
+    });
+
+    console.log(userData);
+
+    const userName = document.getElementById("userName");
     const agreeTerms = document.getElementById("agree-terms");
     const agreePrivacy = document.getElementById("agree-privacy");
 
     // 유효성 검사
-    if (userId.value === "" || userId === null) {
+    if (userData.userId === "" || userData.userId === null) {
       alert("아이디를 입력해 주세요.");
-      userId.focus();
+      document.getElementById("userId").focus();
       return;
     }
-	if(!isIdChecked){
-		alert("아이디 중복 검사를 완료해주세요.");
-		return;
-	}
-    if (userPw.value === "" || userPw === null) {
+    if (!isIdChecked) {
+      alert("아이디 중복 검사를 완료해주세요.");
+      return;
+    }
+    if (userData.userPw === "" || userData.userPw === null) {
       alert("비밀번호를 입력해 주세요.");
-      userPw.focus();
+      document.getElementById("userPw").focus();
       return;
     }
-    if (email.value === "" || email === null) {
+    if (userData.email === "" || userData.email === null) {
       alert("이메일을 입력해 주세요.");
-      email.focus();
+      document.getElementById("email").focus();
       return;
     }
-	if(!isEmailChecked){
-		alert("이메일 중복 검사를 완료해주세요.");
-		return;
-	}
+    if (!isEmailChecked) {
+      alert("이메일 중복 검사를 완료해주세요.");
+      return;
+    }
     if (!agreeTerms.checked) {
       alert("이용 약관에 동의해 주세요.");
       return;
@@ -128,20 +135,42 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // 유효성 검사 통과!
     // submit 기본 이벤트 실행 -> DB에 INSERT 요청
+    // 서버로 전송할 가입정보 : userData
+    fetch("/user/signup/insert", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(userData),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("회원가입 실패 : 서버 응답 오류");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        console.log("회원가입 성공 : ", data);
 
-    // 단계 표시 변경
-    const stepFir = document.getElementById("step-fir");
-    const stepSec = document.getElementById("step-sec");
-    const stepThr = document.getElementById("step-thr");
-    stepFir.className = "step";
-    stepSec.className = "step";
-    stepThr.className = "step-active";
-
-    // 단계별 컨텐츠 변경
-    const form = document.getElementsByClassName("signup-form")[0];
-    const complete = document.getElementsByClassName("signup-complete")[0];
-    form.style.display = "none";
-    complete.style.display = "";
+        // 단계 표시 변경
+        const stepFir = document.getElementById("step-fir");
+        const stepSec = document.getElementById("step-sec");
+        const stepThr = document.getElementById("step-thr");
+        stepFir.className = "step";
+        stepSec.className = "step";
+        stepThr.className = "step-active";
+	
+        // 단계별 컨텐츠 변경
+        const form = document.getElementsByClassName("signup-form")[0];
+        const complete = document.getElementsByClassName("signup-complete")[0];
+        form.style.display = "none";
+        complete.style.display = "";
+		document.getElementById("complete-username").textContent = data.userName;
+      })
+      .catch((error) => {
+        console.error("회원가입 오류 : ", error);
+        alert("회원가입 중 오류가 발생했습니다.");
+      });
   });
 });
 
@@ -150,11 +179,11 @@ function chkId() {
   // 입력한 아이디 값
   const idVal = document.getElementById("userId").value;
 
-  if(idVal === null || idVal === ''){
-	alert("아이디를 입력해 주세요.");
-	return;
+  if (idVal === null || idVal === "") {
+    alert("아이디를 입력해 주세요.");
+    return;
   }
-  
+
   // 서버로 중복 확인 요청 - 비동기식으로 진행
   fetch(`/user/signup/chkId?idVal=${idVal}`)
     .then((response) => {
@@ -169,11 +198,12 @@ function chkId() {
       // 서버에서 받은 true/false 값 처리
       if (data === true) {
         console.log("사용 가능한 아이디 입니다.");
-		confirm("사용 가능한 아이디 입니다.");
-		isIdChecked = true;
-		document.getElementById("userPw").disabled = false;
-		document.getElementById("email").disabled = false;
+        confirm("사용 가능한 아이디 입니다.");
+        isIdChecked = true;
+        document.getElementById("userPw").disabled = false;
+        document.getElementById("email").disabled = false;
       } else {
+		confirm("이미 사용 중인 아이디 입니다.")
         console.log("이미 사용 중인 아이디입니다.");
       }
     })
@@ -187,12 +217,12 @@ function chkId() {
 function chkEmail() {
   // 입력한 이메일 값
   const emailVal = document.getElementById("email").value;
-	
-  if(emailVal === null || emailVal === ''){
-  	alert("이메일을 입력해 주세요.");
-  	return;
+
+  if (emailVal === null || emailVal === "") {
+    alert("이메일을 입력해 주세요.");
+    return;
   }
-  
+
   // 서버로 중복 확인 요청 - 비동기식으로 진행
   fetch(`/user/signup/chkEmail?emailVal=${emailVal}`)
     .then((response) => {
@@ -207,9 +237,10 @@ function chkEmail() {
       // 서버에서 받은 true/false 값 처리
       if (data === true) {
         console.log("사용 가능한 이메일 입니다.");
-		confirm("사용 가능한 이메일 입니다.");
-		isEmailChecked = true;
+        confirm("사용 가능한 이메일 입니다.");
+        isEmailChecked = true;
       } else {
+		confirm("이미 사용 중인 이메일 입니다.")
         console.log("이미 사용 중인 이메일입니다.");
       }
     })

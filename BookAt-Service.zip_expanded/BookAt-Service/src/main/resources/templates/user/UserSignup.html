@@ -68,7 +68,7 @@
             <div class="step-label">가입완료</div>
           </div>
         </div>
-        <div class="signup-verification" style="display: none">
+        <div class="signup-verification">
           <a href="#" class="verification-btn" onclick="verification('phone');"
             >휴대폰<br />본인인증</a
           >
@@ -76,7 +76,7 @@
             >아이핀<br />본인인증</a
           >
         </div>
-        <div class="signup-form">
+        <div class="signup-form" style="display: none;">
           <form th:action="@{/user/signup/form}" method="post" id="signup-form">
             <input type="hidden" name="phone" />
             <input type="hidden" name="birth" />

@@ -24,4 +24,9 @@ public class UserSignupServiceImpl implements UserSignupService{
 		return mapper.selectUserByEmail(email);
 	}
 
+	@Override
+	public int insertUser(UserSignup user) {
+		return mapper.insertUser(user);
+	}
+
 }
