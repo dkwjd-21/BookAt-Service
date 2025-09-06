@@ -11,5 +11,6 @@ public interface UserMapper {
 	
 	User findUserById(String userId);
 	void updateUserRefreshToken(Map<String, String> values);
+	void updatePassword(Map<String, String> values);
 
 }

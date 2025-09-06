@@ -8,7 +8,9 @@ public class User {
 	private String userId;
 	private String userPw;
 	private String userName;
-	private String userPhone;
+	private String email;
+	private String phone;
+	private String birth;
 	private String refreshToken;
 	
 }

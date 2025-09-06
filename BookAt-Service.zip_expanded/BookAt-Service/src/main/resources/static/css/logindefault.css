@@ -19,26 +19,26 @@
     color: #333;
 }
 
-#inputForm {
+.inputForm {
     width: 500px;
     border-collapse: collapse;
 }
 
-#inputForm div {
+.inputForm div {
 	display: flex;
     flex-direction: column;
     align-items: flex-start;
     margin-bottom: 20px;
 }
 
-#inputForm label {
+.inputForm label {
 	margin-bottom: 10px;
     font-size: 16px;
     font-weight: 600;
     color: #444;
 }
 
-#inputForm input {
+.inputForm input {
 	width: 100%;
     padding: 12px;
 	margin-bottom: 10px;
@@ -49,12 +49,12 @@
     transition: border-color 0.2s;
 }
 
-#inputForm input:focus {
+.inputForm input:focus {
     border-color: #00007B;
     outline: none;
 }
 
-#inputForm button {
+.inputForm button, #goLogin, #goMain {
     width: 100%;
     padding: 14px;
     font-size: 18px;
@@ -67,11 +67,11 @@
     transition: background-color 0.2s, transform 0.1s;
 }
 
-#inputForm button:hover {
+.inputForm button:hover {
     background-color: #357ABD;
 }
 
-#inputForm button:active {
+.inputForm button:active {
     transform: scale(0.98);
 }
 
@@ -107,9 +107,9 @@
 
 /* 아이디 찾기 디자인 수정 */
 .input-group {
-  display: flex !important;       /* 가로 정렬 강제 */
-  flex-direction: row !important; /* 가로 방향 */
-  width: 100%;                    /* 부모 폭에 맞춤 */
+  display: flex !important;
+  flex-direction: row !important;
+  width: 100%;
   margin-bottom: 10px;
 }
 
@@ -139,3 +139,51 @@
 .input-group button:hover {
   background-color: #357ABD;
 }
+
+/* 안내 문구 박스 */
+.infoChangeResult {
+    background-color: #ffffff;       
+    border: 1px solid #ccc;          
+    width: 500px;                     
+    padding: 20px;
+    margin: 20px 0;
+    border-radius: 8px;
+    box-sizing: border-box;
+    font-size: 16px;
+    color: #333;
+    text-align: center;
+}
+
+/* 버튼 영역 */
+.changeResult {
+    display: flex;                   
+    justify-content: center;
+    gap: 20px;                   
+    margin-top: 20px;
+}
+
+/* 버튼 스타일 */
+.resultBtn {
+    padding: 12px 25px;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    background-color: #00007B;
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.resultBtn:hover {
+    background-color: #357ABD;
+}
+
+.resultBtn:active {
+    transform: scale(0.98);
+}
+
+.section { display: none; }
+.error { color: #bd2130; }
+
+

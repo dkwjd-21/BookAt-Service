@@ -54,7 +54,7 @@ $(document).ready(async function() {
         updateAuthUI(null);
     }
 	
-	// 엑세스 토큰 만료 됐으면 리프레시토큰 유효한 동안 갱신
+	// 엑세스 토큰 만료 됐으면 리프레시토큰이 유효한 동안 갱신
     async function refreshAccessTokenIfNeeded() {
         let token = localStorage.getItem(accessTokenKey);
         console.log("refresh, 현재 access token:", token);

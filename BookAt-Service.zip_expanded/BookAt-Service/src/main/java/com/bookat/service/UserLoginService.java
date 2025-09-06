@@ -10,9 +10,8 @@ import com.bookat.entity.User;
 public interface UserLoginService {
 	
 	UserLoginResponse login(UserLoginRequest userLogin);
-	
 	User findUserById(String userId);
-	
-	void refreshTokenUpdate(String refreshToken, String userId);
+	void updateRefreshToken(String refreshToken, String userId);
+	void updatePassword(String password, String userId);
 
 }

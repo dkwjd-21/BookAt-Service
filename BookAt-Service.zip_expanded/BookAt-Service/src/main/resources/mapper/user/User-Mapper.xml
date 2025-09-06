@@ -13,4 +13,8 @@
 		UPDATE USERS SET REFRESH_TOKEN = #{refreshToken, jdbcType=VARCHAR} WHERE USER_ID = #{userId}
 	</update>
 	
+	<update id="updatePassword" parameterType="map">
+		UPDATE USERS SET USER_PW = #{password, jdbcType=VARCHAR} WHERE USER_ID = #{userId}
+	</update>
+	
 </mapper>

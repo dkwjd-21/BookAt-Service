@@ -6,22 +6,49 @@
 <link rel="stylesheet" th:href="@{/css/logindefault.css}">
 <script type="text/javascript" src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script type="text/javascript">
+	
+	document.addEventListener("DOMContentLoaded", function() {
+	    const pw = document.getElementById("userPw");
+	    const pwCheck = document.getElementById("userPwCheck");
+	    const form = document.getElementById("inputForm");
+		const pwError = document.getElementById("pwError");
+
+	    function checkPasswordMatch() {
+	        if(pw.value !== pwCheck.value){
+	            pwError.style.display = "block";
+	            return false;
+	        } else {
+	            pwError.style.display = "none";
+	            return true;
+	        }
+	    }
+
+	    form.addEventListener("submit", function(event){
+	        if(!checkPasswordMatch()){
+	            event.preventDefault();
+	            pwCheck.focus();
+	        }
+	    });
+	});
+	
 </script>
 </head>
 <body>
 	<div id="container">
 		<h1>비밀번호 변경</h1>
 
-		<form action="/api/user/changePassword" method="post" id="inputForm">
+		<form action="/api/user/changePassword" method="post" id="inputForm" th:object="${inputUserPw}">
+			<input type="hidden" th:field="*{userId}" />
 		    <div>
 		        <label for="userPw">변경할 비밀번호</label>
-		        <input type="password" id="userPw" name="userPw" class="form-control" 
+		        <input th:field="*{password}" type="password" id="userPw" name="userPw" class="form-control" 
 					placeholder="변경할 비밀번호를 입력해주세요.">
 		    </div>
 		    <div>
-		        <input type="password" id="userPwCheck" name="userPwCheck" 
+		        <input th:field="*{passwordCheck}" type="password" id="userPwCheck" name="userPwCheck" 
 					placeholder="비밀번호를 한번 더 입력해주세요.">
 		    </div>
+			<p id="pwError" style="color:#bd2130; display:none;">입력한 비밀번호가 일치하지 않습니다.</p>
 		    <button type="submit">비밀번호 변경</button>
 		</form>
 		

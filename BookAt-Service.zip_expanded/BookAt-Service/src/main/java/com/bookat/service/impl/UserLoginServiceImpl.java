@@ -35,10 +35,7 @@ public class UserLoginServiceImpl implements UserLoginService {
 			throw new LoginException("존재하지 않는 아이디입니다.");
 		}
 		
-//		if(!passwordEncoder.matches(userLoginRequest.getUserPw(), user.getUserPw())) {
-//			throw new LoginException("비밀번호가 일치하지 않습니다.");
-//		}
-		if(!user.getUserPw().equals(userLoginRequest.getUserPw())) {
+		if(!passwordEncoder.matches(userLoginRequest.getUserPw(), user.getUserPw())) {
 			throw new LoginException("비밀번호가 일치하지 않습니다.");
 		}
 		
@@ -62,22 +59,19 @@ public class UserLoginServiceImpl implements UserLoginService {
 	}
 	
 	@Override
-	public void refreshTokenUpdate(String refreshToken, String userId) {
+	public void updateRefreshToken(String refreshToken, String userId) {
 		Map<String, String> values = new HashMap<>();
 		values.put("refreshToken", refreshToken);
 		values.put("userId", userId);
 		userMapper.updateUserRefreshToken(values);
 	}
 	
-	// JWT 토큰 검증 (DB 조회 최소화)
-//	public boolean verifyToken(String token) {
-//        String userId = jwtTokenProvider.getUserIdFromToken(token);
-//        if (userId == null) return false;
-//
-//        User user = userMapper.findUserById(userId); // 필요 시에만 DB 조회
-//        if (user == null) return false;
-//
-//        return jwtTokenProvider.validateToken(token, user.getUserId());
-//    }
+	@Override
+	public void updatePassword(String password, String userId) {
+		Map<String, String> values = new HashMap<>();
+		values.put("password", passwordEncoder.encode(password));
+		values.put("userId", userId);
+		userMapper.updatePassword(values);
+	}
 
 }
