@@ -29,7 +29,7 @@ public class SecurityConfig {
 //        .httpBasic(Customizer.withDefaults())
         .authorizeHttpRequests(auth -> auth
         		.requestMatchers("/css/**", "/js/**", "/images/**").permitAll()	// 정적 리소스 접근 가능
-        		.requestMatchers("/", "/user/**", "/api/user/**").permitAll()	// 로그인 전 접근 가능
+        		.requestMatchers("/", "/user/**", "/api/user/**", "/api/auth/**").permitAll()	// 로그인 전 접근 가능
         		// 로그인 상태 접속 (후에 뷰랑 api 랑 분리? -> 뷰는 permitAll, 기능은 authenticated)
         		.requestMatchers("/api/pay/**").authenticated()
                 .anyRequest().denyAll()

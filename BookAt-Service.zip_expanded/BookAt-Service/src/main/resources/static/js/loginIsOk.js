@@ -63,7 +63,7 @@ $(document).ready(async function() {
 		if (!token || isTokenExpired(token)) {
             try {
                 const res = await $.ajax({
-                    url: "/api/user/refresh",
+                    url: "/api/auth/refresh",
                     type: "POST",
                     xhrFields: { withCredentials: true } // HttpOnly 쿠키 전송
                 });

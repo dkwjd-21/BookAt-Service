@@ -25,7 +25,6 @@ import com.bookat.service.impl.UserLoginServiceImpl;
 import com.bookat.util.JwtTokenProvider;
 
 import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -85,42 +84,6 @@ public class UserLoginController {
 			// 사용자가 없거나 비밀번호 불일치
 		    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(le.getMessage());
 		}
-	}
-	
-	// 엑세스 토큰 갱신
-//	@PostMapping("/refresh")
-	@PostMapping("/api/user/refresh")
-	public ResponseEntity<?> refresh(HttpServletRequest request) {
-		
-		String refreshToken = null;
-	    if (request.getCookies() != null) {
-	        for (Cookie cookie : request.getCookies()) {
-	            if (cookie.getName().equals("refreshToken")) {
-	                refreshToken = cookie.getValue();
-	            }
-	        }
-	    }
-	    
-	    if(refreshToken == null || !jwtTokenProvider.validateToken(refreshToken)) {
-	    	// 401에러
-	    	return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("유효하지 않은 리프레시토큰");
-	    }
-	    
-	    String userId = jwtTokenProvider.getUserIdFromToken(refreshToken);
-	    User user = loginService.findUserById(userId);
-	    
-	    if(user == null) {
-	    	return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("사용자 없음");
-	    }
-
-//	    if (!refreshToken.equals(user.getRefreshToken())) {
-//	    	// 401에러, 디비에 저장된 리프레시토큰이랑 일치하는지 확인.
-//	        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("서버에 저장된 리프레시 토큰과 다름");
-//	    }
-
-	    String newAccessToken = jwtTokenProvider.generateAccessToken(userId);
-		
-	    return ResponseEntity.ok(new UserLoginResponse(newAccessToken, null));
 	}
 	
 	// 로그아웃
