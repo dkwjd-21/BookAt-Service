@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class EventResDto {
 	
+
 	private int eventId;
     private int bookId;
     private String ticketType;
@@ -21,5 +22,6 @@ public class EventResDto {
     private String localCode;
     private String address;
     private Date eventDate;
+
 
 }

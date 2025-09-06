@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8">
+  <title>메인페이지_도서</title>
+
+  <link rel="stylesheet" type="text/css" th:href="@{/css/main_header.css}">
+  <link rel="stylesheet" type="text/css" th:href="@{css/main_book.css}">
+</head>
+<body>
+  
+  <div th:replace="~{fragments/book_header :: site-header}"></div>
+
+  <main class="container" style="padding:16px 100px 40px;">
+    <!-- 히어로 배너 (이미지 경로는 나중에 교체) -->
+    <section style="border-radius:12px; overflow:hidden; margin-bottom:16px;">
+      <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1200&auto=format&fit=crop"
+           alt="" style="width:100%; height:220px; object-fit:cover;">
+    </section>
+
+    <!-- 카테고리 칩 (정적) -->
+    <div class="chip-row" style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:20px;">
+      <a class="chip" th:href="@{/books/list}">전체</a>
+      <a class="chip" th:href="@{/books/list(category='FICTION_POETRY')}">소설/시</a>
+      <a class="chip" th:href="@{/books/list(category='ESSAY')}">에세이</a>
+      <a class="chip" th:href="@{/books/list(category='HUMANITY')}">인문</a>
+      <a class="chip" th:href="@{/books/list(category='SELF-HELP')}">자기계발</a>
+      <a class="chip" th:href="@{/books/list(category='MAGAZINE')}">잡지</a>
+      <a class="chip" th:href="@{/books/list(category='KIDS')}">아동도서</a>
+      <a class="chip" th:href="@{/books/list(category='HOBBY')}">취미</a>
+    </div>
+
+    <!-- 섹션: 베스트셀러 -->
+    <section style="margin-bottom:26px;">
+      <h2 class="section-title">베스트셀러 도서</h2>
+      <div class="grid">
+      <article class="card" th:each="b : ${best}">
+      <a class="card-link" th:href="@{'/books/' + ${b.bookId}}">
+          <img th:src="${b.imageUrl}" alt="" />
+          <div class="body">
+            <div class="meta"  th:text="${b.author}">저자</div>          
+            <div class="title" th:text="${b.title}">제목</div>
+            <div class="price" th:text="${#numbers.formatInteger(b.price,3,'COMMA')} + '원'">0원</div>
+          </div>
+          </a>
+        </article>
+      </div>
+    </section>
+
+    <!-- 섹션: 신간 -->
+    <section style="margin-bottom:26px;">
+      <h2 class="section-title">신간 도서</h2>
+      <div class="grid">
+        <article class="card" th:each="b : ${newest}">
+        <a class="card-link" th:href="@{'/books/' + ${b.bookId}}">
+          <img th:src="${b.imageUrl}" alt="" />
+          <div class="body">
+            <div class="meta"  th:text="${b.author}">저자</div>
+            <div class="title" th:text="${b.title}">제목</div>
+            <div class="price" th:text="${#numbers.formatInteger(b.price,3,'COMMA')} + '원'">0원</div>
+          </div>
+          </a>
+        </article>
+      </div>
+    </section>
+
+    <!-- 섹션: 이벤트 진행 중 -->
+    <section>
+      <h2 class="section-title">이벤트 진행 중인 도서</h2>
+      <div class="grid">
+        <article class="card" th:each="b : ${events}">
+        <a class="card-link" th:href="@{'/books/' + ${b.bookId}}">
+          <img th:src="${b.imageUrl}" alt="" />
+          <div class="body">
+            <div class="meta"  th:text="${b.author}">저자</div>
+            <div class="title" th:text="${b.title}">제목</div>
+            <div class="price" th:text="${#numbers.formatInteger(b.price,3,'COMMA')} + '원'">0원</div>
+          </div>
+          </a>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <div th:replace="~{fragments/footer :: site-footer}"></div>
+  
+</body>
+</html>

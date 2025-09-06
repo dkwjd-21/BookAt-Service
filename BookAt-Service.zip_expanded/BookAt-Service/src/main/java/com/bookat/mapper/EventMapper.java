@@ -4,12 +4,15 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
+import org.apache.ibatis.annotations.Select;
+
 
 import com.bookat.dto.EventResDto;
 
 @Mapper
 public interface EventMapper {
 	
+
 	//@Select(" SELECT * FROM EVENT ORDER BY EVENT_ID ASC ")
 	List<EventResDto> selectEventList();
 	 
@@ -23,6 +26,7 @@ public interface EventMapper {
 	List<EventResDto> selectByLocalCodeAndStartTime(String local_code);
 	
 	//Select( " SELECT * FROM EVENT WHERE LOCAL_CODE=#{local_code} AND EVENT_DATE > SYSDATE ORDER BY EVENT_DATE ASC ")
+
 	List<EventResDto> selectByLocalCodeAndCloseTime(String local_code);
 	
 }
