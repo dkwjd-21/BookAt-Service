@@ -11,15 +11,17 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class EventResDto {
 	
-	private int event_id;
-	private int book_id;
-	private String ticket_type;
-	private String event_name;
-	private String event_description;
-	private int event_price;
-	private String event_image;
-	private String local_code;
-	private String address;
-	private Date event_date;
+
+	private int eventId;
+    private int bookId;
+    private String ticketType;
+    private String eventName;
+    private String eventDescription;
+    private int eventPrice;
+    private String eventImage;
+    private String localCode;
+    private String address;
+    private Date eventDate;
+
 
 }

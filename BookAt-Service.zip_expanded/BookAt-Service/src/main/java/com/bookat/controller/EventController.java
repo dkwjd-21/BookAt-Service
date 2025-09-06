@@ -26,7 +26,9 @@ public class EventController {
 		
 		model.addAttribute("eventList",eventList);
 		
-		return "event_mainpage"; 
+
+		return "mainpage/event_mainpage"; 
+
 
 	}
 	
@@ -52,7 +54,9 @@ public class EventController {
 	    List<EventResDto> resCloseTime = eventService.selectByLocalCodeAndCloseTime(local_code);
 	    model.addAttribute("closeTime",resCloseTime);
 
-	    // 현재 선택된 지역 코드를 모델에 추가
+
+	    // 현재 선택된 지역 코드를 모델에 추가 
+
 	    model.addAttribute("currentLocalCode", local_code);
 
 	    return "mainpage/event_mainpage";
