@@ -22,7 +22,7 @@ $(document).ready(function() {
         const phone = $("#phone").val().trim();
 		
 		if(userId === "") {
-            $("#findIdError").show();
+            $("#findIdError").text("아이디를 입력해주세요.").show();
             $("#findPhoneError").hide();
             $("#userId").focus();
             return;
@@ -31,7 +31,7 @@ $(document).ready(function() {
         }
 
 		if(phone === "" || !/^[0-9]+$/.test(phone)) {
-            $("#findPhoneError").show();
+            $("#findPhoneError").text("전화번호를 제대로 입력해주세요.").show();
             $("#phone").focus();
             return;
         } else {
@@ -49,7 +49,7 @@ $(document).ready(function() {
 					$("#findPwSection").hide();
 					$("#changePwSection").show();
                 } else {
-                    $("#findIdError").text(res.message).show();
+                    $("#findError").text(res.message).show();
                 }
             },
             error: function() {
@@ -67,12 +67,12 @@ $(document).ready(function() {
         const userId = $("#hiddenUserId").val().trim();
 
 		if(password === "" || passwordCheck === "") {
-            $("#pwMismatchError").text("비밀번호를 입력해주세요.").show();
+            $("#findPwError").text("비밀번호를 입력해주세요.").show();
             return;
         }
 		
         if(password !== passwordCheck) {
-            $("#pwMismatchError").show();
+            $("#findPwError").text("입력하신 비밀번호가 일치하지 않습니다.").show();
             $("#userPwCheck").focus();
             return;
         }

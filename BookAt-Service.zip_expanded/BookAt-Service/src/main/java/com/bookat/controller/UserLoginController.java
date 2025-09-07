@@ -46,7 +46,6 @@ public class UserLoginController {
 	}
 	
 	// 로그인
-//	@GetMapping("/login")
 	@GetMapping("/api/user/login")
 	public String loginForm(Model model) {
 		
@@ -55,7 +54,6 @@ public class UserLoginController {
 		return "user/loginForm";
 	}
 	
-//	@PostMapping("/login")
 	@PostMapping("/api/user/login")
 	public ResponseEntity<?> login(@Valid @RequestBody UserLoginRequest userLoginRequest, BindingResult bindingResult, HttpServletResponse response) {
 		
@@ -77,7 +75,6 @@ public class UserLoginController {
 			refreshCookie .setMaxAge(60 * 60 * 24 * 7);	// 7일
 			response.addCookie(refreshCookie);
 			
-			// accessToken 은 localStorage 에 저장
 			return ResponseEntity.ok(new UserLoginResponse(tokens.getAccessToken(), null));
 		} catch (LoginException le) {
 			
@@ -87,7 +84,6 @@ public class UserLoginController {
 	}
 	
 	// 로그아웃
-//	@PostMapping("/logout")
 	@PostMapping("/api/user/logout")
 	public ResponseEntity<String> logout(@RequestHeader(value="Authorization", required=false) String accessToken, HttpServletResponse response) {
 		String userId = null;
@@ -133,66 +129,6 @@ public class UserLoginController {
 		return "user/findPasswordForm";
 	}
 	
-	// =============================================================================================
-	/*
-	@PostMapping("/api/user/findPw")
-	public String findPwCheck(@Valid @ModelAttribute FindPassword inputUserInfo, BindingResult bindingResult, Model model) {
-		
-		if(bindingResult.hasErrors()) {
-			return "/user/findPwForm";
-		}
-		
-		User findUser = loginService.findUserById(inputUserInfo.getUserId());
-		
-		if(findUser == null) {
-			
-			log.info("존재하지 않는 아이디");
-			bindingResult.rejectValue("userId", "id not found", "존재하지 않는 아이디입니다.");
-			return "/user/findPwForm";
-			
-		} else {
-
-			String dbPhone = findUser.getPhone() != null ? findUser.getPhone().replaceAll("-", "") : "";
-			
-			if(!inputUserInfo.getPhone().equals(dbPhone)) {
-				log.info("유저는 있는데 전화번호는 불일치");
-				bindingResult.rejectValue("phone", "phone mismatch", "전화번호가 일치하지 않습니다.");
-				return "/user/findPwForm";
-			}
-			
-			log.info("비밀번호 변경화면으로");
-			
-			InputUserPassword inputUserPassword = new InputUserPassword();
-			inputUserPassword.setUserId(findUser.getUserId());
-			model.addAttribute("inputUserPw", inputUserPassword);
-			
-			return "/user/inputPwForm";
-			
-		}
-		
-	}
-	
-	@PostMapping("/api/user/changePassword")
-	public String changePassword(@ModelAttribute InputUserPassword inputUserPassword, BindingResult bindingResult) {
-		
-		if(bindingResult.hasErrors()) {
-			return "/user/inputPwForm";
-		}
-		
-		User user = loginService.findUserById(inputUserPassword.getUserId());
-		
-		if(user == null) {
-			log.info("아이디 없음");
-			return "redirect:/api/user/login";
-		} else {
-			user.setUserPw(inputUserPassword.getPassword());
-			loginService.updatePassword(user.getUserPw(), user.getUserId());
-			return "user/resultPwForm";
-		}
-	}
-	*/
-	// =============================================================================================
-
 	@PostMapping("/api/user/findPw")
 	@ResponseBody
     public Map<String,Object> findPwCheck(@RequestParam String userId, @RequestParam String phone) {

@@ -41,7 +41,7 @@ public class UserAuthController {
 		String token = accessToken.substring(7);
 
 		try {
-	        // 토큰 유효성 검증 (만료, 서명 체크) 401 에서
+	        // 토큰 유효성 검증 (만료, 서명 체크) 401 에러
 	        if (!jwtTokenProvider.validateToken(token)) {
 	            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
 	                    .body("유효하지 않은 Access Token입니다.");
