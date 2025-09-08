@@ -42,18 +42,29 @@ $(document).ready(function() {
             type: "POST",
             url: "/api/user/findPw",
             data: { userId: userId, phone: phone },
-            success: function(res) {
-                if(res.success) {
-					$("#findIdError").hide();
-					$("#hiddenUserId").val(userId);
-					$("#findPwSection").hide();
-					$("#changePwSection").show();
-                } else {
-                    $("#findError").text(res.message).show();
-                }
+            success: function(data) {
+				$("#findIdError").hide();
+				$("#hiddenUserId").val(data);
+				$("#findPwSection").hide();
+				$("#changePwSection").show();
             },
-            error: function() {
-                alert("서버 오류 발생");
+            error: function(xhr) {
+				const errMsg = xhr.responseText;
+				
+				// 아이디 관련 에러
+				if (errMsg.includes("아이디")) {
+				    $("#findIdError").text(errMsg).show();
+				    $("#userId").focus().addClass("inputError");
+				}
+				// 비밀번호 관련 에러
+				else if (errMsg.includes("전화번호")) {
+				    $("#findPhoneError").text(errMsg).show();
+				    $("#phone").focus().addClass("inputError");
+				}
+				// 그 외 (공통 에러)
+				else {
+				    alert(errMsg);
+				}
             }
         });
     });
@@ -66,10 +77,17 @@ $(document).ready(function() {
         const passwordCheck = $("#userPwCheck").val().trim();
         const userId = $("#hiddenUserId").val().trim();
 
-		if(password === "" || passwordCheck === "") {
+		if(password === "") {
             $("#findPwError").text("비밀번호를 입력해주세요.").show();
+			$("#userPw").focus();
             return;
         }
+		
+		if(passwordCheck === "") {
+		    $("#findPwError").text("비밀번호를 한번 더 입력해주세요.").show();
+			$("#userPwCheck").focus();
+		    return;
+		}
 		
         if(password !== passwordCheck) {
             $("#findPwError").text("입력하신 비밀번호가 일치하지 않습니다.").show();

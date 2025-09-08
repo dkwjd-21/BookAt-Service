@@ -11,6 +11,7 @@ public interface UserLoginService {
 	
 	UserLoginResponse login(UserLoginRequest userLogin);
 	User findUserById(String userId);
+	User findPwByIdPhone(String userId, String phone);
 	void updateRefreshToken(String refreshToken, String userId);
 	void updatePassword(String password, String userId);
 

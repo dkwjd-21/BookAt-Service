@@ -55,13 +55,7 @@ public class UserLoginController {
 	}
 	
 	@PostMapping("/api/user/login")
-	public ResponseEntity<?> login(@Valid @RequestBody UserLoginRequest userLoginRequest, BindingResult bindingResult, HttpServletResponse response) {
-		
-		// input 에 값을 입력 안하고 요청할 시 검증
-		if(bindingResult.hasErrors()) {
-			String errMsg = bindingResult.getFieldError().getDefaultMessage();
-			return ResponseEntity.badRequest().body(errMsg);
-		}
+	public ResponseEntity<?> login(@RequestBody UserLoginRequest userLoginRequest, HttpServletResponse response) {
 		
 		try {
 			// refreshToken 서비스에서 디비에 저장 (지금은 비활성화)
@@ -131,27 +125,16 @@ public class UserLoginController {
 	
 	@PostMapping("/api/user/findPw")
 	@ResponseBody
-    public Map<String,Object> findPwCheck(@RequestParam String userId, @RequestParam String phone) {
-        Map<String,Object> result = new HashMap<>();
-
-        User user = loginService.findUserById(userId);
-        if(user == null) {
-            result.put("success", false);
-            result.put("message", "존재하지 않는 아이디입니다.");
-            return result;
-        }
-
-        String dbPhone = user.getPhone() != null ? user.getPhone().replaceAll("-", "") : "";
-        if(!phone.equals(dbPhone)) {
-            result.put("success", false);
-            result.put("message", "전화번호가 일치하지 않습니다.");
-            return result;
-        }
-
-        result.put("success", true);
-        result.put("userId", user.getUserId());
+    public ResponseEntity<?> findPwCheck(@RequestParam String userId, @RequestParam String phone) {
         
-        return result;
+        try {
+        	User user = loginService.findPwByIdPhone(userId, phone);
+        	
+        	return ResponseEntity.ok(user.getUserId());
+        } catch (LoginException le) {
+        	return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(le.getMessage());
+		}
+        
     }
 
     @PostMapping("/api/user/changePassword")

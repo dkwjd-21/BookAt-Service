@@ -16,8 +16,20 @@
 		    const userPw = $("#userPw").val().trim();
 
 		    // 기존 에러 초기화
-		    $("#userId-error, #userPw-error").hide().text("");
-		    $("#userId, #userPw").removeClass("input-error");
+		    $("#userIdError, #userPwError").hide().text("");
+		    $("#userId, #userPw").removeClass("inputError");
+			
+			if(userId === "") {
+			    $("#userIdError").text("아이디를 입력해주세요.").show();
+				userId.focus();
+			    return;
+			}
+
+			if(userPw === "") {
+			    $("#userPwError").text("비밀번호를 입력해주세요.").show();
+			    userPw.focus();
+			    return;
+			}
 
             $.ajax({
                 url: "/api/user/login",
@@ -30,19 +42,17 @@
                     window.location.href = "/";
                 },
                 error: function(xhr) {
-					const errMsg = xhr.responseText; // 그냥 문자열 받음
-					
-					console.log(errMsg);
+					const errMsg = xhr.responseText;
 
 				    // 아이디 관련 에러
 				    if (errMsg.includes("아이디")) {
-				        $("#userId-error").text(errMsg).show();
-				        $("#userId").focus().addClass("input-error");
+				        $("#userIdError").text(errMsg).show();
+				        $("#userId").focus().addClass("inputError");
 				    }
 				    // 비밀번호 관련 에러
 				    else if (errMsg.includes("비밀번호")) {
-				        $("#userPw-error").text(errMsg).show();
-				        $("#userPw").focus().addClass("input-error");
+				        $("#userPwError").text(errMsg).show();
+				        $("#userPw").focus().addClass("inputError");
 				    }
 				    // 그 외 (공통 에러)
 				    else {
@@ -63,13 +73,13 @@
 		        <label for="userId">아이디</label>
 		        <input type="text" id="userId" name="userId" class="form-control" 
 					placeholder="아이디를 입력해주세요.">
-				<p id="userId-error" style="color:#bd2130; display:none;"></p>
+				<p id="userIdError" style="color:#bd2130; display:none;"></p>
 		    </div>
 		    <div>
 		        <label for="userPw">비밀번호</label>
 		        <input type="password" id="userPw" name="userPw" 
 					placeholder="비밀번호를 입력해주세요.">
-				<p id="userPw-error" style="color:#bd2130; display:none;"></p>
+				<p id="userPwError" style="color:#bd2130; display:none;"></p>
 		    </div>
 		    <button type="submit">로그인</button>
 		</form>

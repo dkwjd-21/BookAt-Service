@@ -59,6 +59,23 @@ public class UserLoginServiceImpl implements UserLoginService {
 	}
 	
 	@Override
+	public User findPwByIdPhone(String userId, String phone) {
+		User user = userMapper.findUserById(userId);
+		
+		if(user == null) {
+			throw new LoginException("존재하지 않는 아이디입니다.");
+		}
+		
+		String dbPhone = user.getPhone() != null ? user.getPhone().replaceAll("-", "") : "";
+		
+		if(!phone.equals(dbPhone)) {
+			throw new LoginException("전화번호가 일치하지 않습니다.");
+		}
+		
+		return user;
+	}
+	
+	@Override
 	public void updateRefreshToken(String refreshToken, String userId) {
 		Map<String, String> values = new HashMap<>();
 		values.put("refreshToken", refreshToken);
