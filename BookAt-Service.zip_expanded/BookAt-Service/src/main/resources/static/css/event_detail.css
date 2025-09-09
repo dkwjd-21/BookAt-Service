@@ -1,0 +1,274 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+
+hr {
+  border: none;
+  border-top: 2px solid #ccc;
+  height: 0;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  line-height: 1.6;
+  margin: 0;
+  padding: 0;
+  color: #333;
+  background-color: #f4f4f4;
+}
+
+.main-header {
+  font-family: Arial, sans-serif;
+}
+
+/* 상단 섹션 스타일 */
+.header-top {
+  background: var(--Navy-100, #003274);
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 5%;
+}
+
+.main-logo-img {
+  width: 150px;
+}
+
+.auth-links {
+  display: flex;
+  gap: 10px;
+  cursor: pointer;
+}
+
+a {
+  text-decoration: none;
+}
+
+.auth-links a {
+  text-decoration: none;
+  color: #003274;
+  border: 1px solid #003274;
+  border-radius: 20px;
+  padding: 5px 15px;
+  font-size: 14px;
+  background-color: white;
+  height: 20px;
+}
+
+/* 하단 섹션 스타일 */
+.header-bottom {
+  background-color: #003274;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 5%;
+}
+
+.nav-links {
+  display: flex;
+  gap: 20px;
+}
+
+.nav-item {
+  color: white;
+  text-decoration: none;
+  font-size: 16px;
+  padding: 10px 20px;
+  border-radius: 25px;
+  transition: background-color 0.3s;
+  border-radius: 15px 15px 0px 0px;
+  transform: translateY(10px);
+  cursor: pointer;
+}
+
+.nav-item.active {
+  background-color: white;
+  color: #003274;
+  border-radius: 15px 15px 0px 0px;
+  transform: translateY(10px);
+}
+
+/* 검색창 스타일 */
+.search-bar {
+  position: relative;
+  width: 300px;
+  padding-right: 50px;
+}
+
+.search-bar input {
+  width: 100%;
+  border: none;
+  border-radius: 20px;
+  padding: 10px 40px 10px 15px;
+  background-color: white;
+  outline: none;
+  font-size: 14px;
+}
+
+.search-icon {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23888"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16a6.471 6.471 0 0 0 3.23-.88l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>') no-repeat center center;
+  background-size: contain;
+  cursor: pointer;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 20px auto;
+  background-color: white;
+  padding: 20px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  padding-right: 30px;
+}
+
+.breadcrumb {
+  color: #888;
+  margin-bottom: 20px;
+}
+
+.event-header {
+  display: flex;
+  gap: 30px;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 20px;
+  margin-bottom: 20px;
+}
+
+.event-image-container {
+  width: 300px;
+  height: 400px;
+}
+
+.event-main-image {
+  width: 100%;
+  height: 100%;
+  background-color: #ccc;
+  border-radius: 10px;
+}
+
+.event-info {
+  flex-grow: 1;
+}
+
+.event-title {
+  font-size: 30px;
+  font-weight: bold;
+  margin-top: 0;
+}
+
+.meta p {
+  margin: 5px 0;
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: 500;
+  font-size: 25px;
+  line-height: normal;
+}
+
+.price {
+  font-size: 24px;
+  font-weight: bold;
+  color: #3498db;
+  margin: 15px 0;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.wishlist-btn,
+.reserve-btn {
+  padding: 10px 20px;
+  border: 1px solid #ccc;
+  background-color: white;
+  cursor: pointer;
+  font-size: 16px;
+  border-radius: 5px;
+}
+
+.reserve-btn {
+  background-color: #3498db;
+  color: white;
+  border: none;
+}
+
+.related-books {
+  margin-bottom: 30px;
+}
+
+.related-book-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.related-book-image {
+  width: 80px;
+  height: 120px;
+}
+
+.event-details {
+  display: flex;
+  gap: 30px;
+}
+
+.event-description {
+  flex: 1;
+}
+
+.event-map {
+  width: 400px;
+  height: 250px;
+}
+
+.map-placeholder {
+  width: 100%;
+  height: 100%;
+}
+
+.review-section {
+  margin-top: 30px;
+}
+
+.review-list {
+  margin-top: 20px;
+}
+
+.review-item {
+  border: 1px solid #e0e0e0;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 5px;
+}
+
+.review-write-btn {
+  float: right;
+  padding: 8px 15px;
+  border: 1px solid #ccc;
+  background-color: #f9f9f9;
+  cursor: pointer;
+}
+
+.cancellation-info {
+  margin-top: 30px;
+  padding-left: 20px;
+}
+
+.info_text {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+#map {
+  /* 지도의 크기를 설정 */
+  width: 100%;
+  height: 100%;
+}

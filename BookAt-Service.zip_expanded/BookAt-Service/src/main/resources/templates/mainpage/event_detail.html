@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title th:text="${event.eventName}"></title>
+    <link rel="stylesheet" th:href="@{/css/event_detail.css}" />
+    <!-- Leaflet 라이브러리 가져오기(여기서는 1.9.4를 사용했지만, 원하는 버전으로 바꿔도 무방 -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+      html,
+      body {
+        height: 100%;
+        padding: 0;
+        margin: 0;
+      }
+      #map {
+        /* 지도의 크기를 설정 */
+        width: 400px;
+        height: 400px;
+        /* border-radius: 100%; */
+      }
+    </style>
+  </head>
+  <body>
+    <header class="main-header">
+      <div class="header-top">
+        <a th:href="@{/event/main}"><img th:src="@{/images/BookAt-Logo.png}" class="main-logo-img" /></a>
+
+        <div class="auth-links">
+          <!--<th:block th:if="${isLoggedIn == null}">-->
+          <a href="#">회원가입</a>
+          <a href="#">로그인</a>
+          <!--</th:block>-->
+
+          <!-- <th:block th:if="${isLoggedIn}">
+            <a th:href="@{/mypage}">마이페이지</a>
+            <a th:href="@{/logout}">로그아웃</a>
+          </th:block> -->
+          <!-- 로그인 구현 후 로그인 시 바뀌는 부분 -->
+        </div>
+      </div>
+
+      <div class="header-bottom">
+        <nav class="nav-links">
+          <a href="#" class="nav-item">도서</a>
+          <!--타임리프 제거해놨음-->
+          <a href="#" class="nav-item active">이벤트</a>
+        </nav>
+        <div class="search-bar">
+          <form id="searchForm" action="#" method="get">
+            <input type="text" name="search-query" placeholder="검색어를 입력하세요" />
+            <span class="search-icon" onclick="document.getElementById('searchForm').submit();"></span>
+          </form>
+        </div>
+      </div>
+    </header>
+    <!------------------------------------------------------------>
+    <main class="container">
+      <div class="breadcrumb">
+        이벤트 카테고리 >
+        <span th:switch="${event.localCode}">
+          <span th:case="'GYEONGGI_INCHEON'">경기/인천</span>
+          <span th:case="'SEOUL'">서울</span>
+          <span th:case="'JEOLLA'">전라</span>
+          <span th:case="'JEJU'">제주</span>
+          <span th:case="'GANGWON'">강원</span>
+          <span th:case="'CHUNGCHEONG'">충청</span>
+          <span th:case="'GYEONGSANG'">경상</span>
+        </span>
+      </div>
+    </main>
+
+    <main class="container">
+      <section class="event-header">
+        <div class="event-image-container">
+          <img th:src="${event.eventImage}" alt="Event Image" class="event-main-image" />
+        </div>
+        <div class="event-info">
+          <h1 th:text="${event.eventName}" class="event-title"></h1>
+          <div class="meta">
+            <p class="date" th:text="${#dates.format(event.eventDate, 'yyyy년 MM월 dd일')}"></p>
+            <p class="location" th:text="${event.address}"></p>
+            <div class="rating">
+              <!-- <span th:text="${event.rating}"></span> -->
+            </div>
+          </div>
+          <hr />
+          <div class="price" th:text="${event.eventPrice} + '원'"></div>
+          <div class="reservation-status">
+            <!-- <p>예매 가능: <span th:text="${event.remainingTickets}"></span>좌석 남음 (선착순)</p> -->
+          </div>
+          <div class="actions">
+            <!-- <button class="wishlist-btn">찜</button>
+            <button th:if="${event.isPreOpen}" class="reserve-btn" th:text="${event.openDate} + ' 오픈예정'"></button>
+            <button th:unless="${event.isPreOpen}" class="reserve-btn">예매하기</button> -->
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <main class="container">
+      <section class="related-books">
+        <h2>관련 도서</h2>
+        <!-- <div th:each="book : ${relatedBooks}" class="related-book-item">
+          <img th:src="${book.bookImage}" alt="Book Cover" class="related-book-image" />
+          <p th:text="${book.bookName}"></p>
+        </div> -->
+      </section>
+    </main>
+
+    <main class="container">
+      <section class="event-details">
+        <h2>이벤트 소개</h2>
+        <div class="event-description">
+          <p th:text="${event.eventDescription}"></p>
+          <p th:text="${event.address}"></p>
+          <!--<p th:text="'정원 ' + ${event.maxAttendees} + '명'"></p>
+          <p th:text="'정가 ' + ${event.originalPrice} + '원'"></p>
+          <p th:text="'할인가 ' + ${event.discountPrice} + '원'"></p>-->
+        </div>
+        <div class="event-map">
+          <div class="map-placeholder">
+            <div id="map"></div>
+            <script>
+              // Leaflet 초기화
+              var map = L.map("map").setView({ lon: 127.766, lat: 36.355 }, 13);
+
+              // 최대 범위 지정
+              map.setMaxBounds([
+                [32, 123],
+                [44, 132.5],
+              ]);
+
+              // '오픈스트리트맵 한국'에서 서비스하는 '군사 시설 없는 오픈스트리트맵 지도 타일'을 삽입
+              L.tileLayer("https://tiles.osm.kr/hot/{z}/{x}/{y}.png", {
+                maxZoom: 19,
+                attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap 기여자</a>',
+              }).addTo(map);
+
+              // 축척 막대를 지도 왼쪽 하단에 노출
+              L.control.scale({ imperial: true, metric: true }).addTo(map);
+
+              // 마커를 지도에 추가
+              L.marker({ lon: 127.766, lat: 36.355 }).bindPopup("@{event.address}").addTo(map);
+            </script>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <main class="container">
+      <section class="review-section">
+        <!-- <h2>관람 후기 (<span th:text="${reviews.size()}"></span>)</h2>
+        <button class="review-write-btn">리뷰 작성</button>
+        <div class="review-list">
+          <div th:each="review : ${reviews}" class="review-item">
+            <p class="user-info" th:text="${review.author} + ' | ' + ${review.date}"></p>
+            <p class="review-rating" th:text="${review.rating}"></p>
+            <p class="review-text" th:text="${review.content}"></p>
+          </div>
+        </div> -->
+      </section>
+    </main>
+
+    <main class="container">
+      <section class="cancellation-info">
+        <h2>티켓 예매 및 취소/환불 안내</h2>
+        <div>
+          <pre class="info_text">
+1. 예매 기간
+  - 예매 오픈: 이벤트 당일 기준 1개월 전
+  - 예매 마감: 이벤트 시작 직전까지
+2. 취소 및 환불 규정
+  - 이벤트 2주 전까지: 전액 환불 (취소 수수료 없음)
+  - 2주 전 ~ 1주 전: 결제 금액의 10% 수수료 부과
+  - 1주 전 : 결제 금액의 20% 수수료 부과
+  ※ 환불 시 예매 번호는 무효 처리되며, 좌석 및 인원 수에 즉시 반영됩니다.
+3. 티켓 발권
+  - 예매 번호 확인 후 현장 발권 또는 모바일 QR 발권 가능
+4. 좌석 변경 안내
+  - 동일 가격의 좌석으로 변경 가능합니다.
+  - 기존 좌석은 취소 처리 후 새 좌석으로 즉시 배정됩니다.
+          </pre>
+        </div>
+      </section>
+    </main>
+    <!-------------------------------------------------------------------------------->
+    <footer th:fragment="site-footer" class="footer" style="border: 1px solid #bfbfbf; margin: 0 auto; color: #bfbfbf; background: #eaeaea">
+      <div class="ft_content" style="padding: 40px 100px">
+        <div class="ft_logo">
+          <img th:src="@{/images/BookAt-LogoTypo.png}" alt="eventAt" style="width: 120.645px; height: 26.525px" />
+        </div>
+
+        <div class="ft__left" style="float: left">
+          <div style="margin-top: 6px; font-size: 18px; font-style: normal; font-weight: 400; line-height: 28px">
+            (주) 북캣 | 현대이지웰 Java 풀스택 개발자 5회차<br />
+            책읽는고양이 송아정 김명주 박태욱 서지나
+          </div>
+        </div>
+
+        <div class="ft__right" style="text-align: right; font-size: 18px; font-style: normal; font-weight: 400; line-height: 28px">
+          <div>Copyright ⓒ BookAt. ALL RIGHTS RESERVED</div>
+          <div><a href="">관리자로그인</a></div>
+          <!--관리자페이지 이동 추가해야함-->
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

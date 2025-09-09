@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", function () {
-  const categoryNav = document.querySelector(".category-nav");
+  const categoryNav = document.querySelector(".chip-row");
   const links = categoryNav.querySelectorAll("a");
 
   links.forEach((link) => {

@@ -21,24 +21,24 @@ public class EventController {
 	
 	
 	@GetMapping("/selectAll")	//전체 리스트 불러오기
-	public String selectAll(Model model){
+	public List<EventResDto> selectAll(Model model){
 		List<EventResDto> eventList = eventService.selectAll();
 		
 		model.addAttribute("eventList",eventList);
 		
 
-		return "mainpage/event_mainpage"; 
+		return eventList; 
 
 
 	}
 	
 	@GetMapping("/selectOne")	//이벤트 아이디로 이벤트 하나 불러오기
-	public String selectOne(int event_id, Model model) {
+	public EventResDto selectOne(int event_id, Model model) {
 		
 		EventResDto event = eventService.selectOne(event_id);
 		model.addAttribute("event",event);
 		
-		return "";	//상세페이지 url 넣으면 될 것 같습니다. 
+		return event;	
 	}
 	
 
@@ -56,10 +56,10 @@ public class EventController {
 
 	    // 현재 선택된 지역 코드를 모델에 추가 
 
-	    return "mainpage/event_mainpage_copy";	//바꿀부분
+	    return "mainpage/event_mainpage";	//바꿀부분
 	}
 	
-	@GetMapping("/category")	//메인 페이지로 이동한다. 
+	@GetMapping("/category")	//카테고리별 페이지로 이동한다. 
 	public String eventMainpage(@RequestParam(name = "local_code", required = false, defaultValue = "SEOUL") String local_code, Model model) {
 
 	    List<EventResDto> res = eventService.selectByLocalCode(local_code);
@@ -76,8 +76,21 @@ public class EventController {
 
 	    model.addAttribute("currentLocalCode", local_code);
 
-	    return "mainpage/event_mainpage";
-	}
+	    return "mainpage/event_categorypage";
+	};
+	
+	@GetMapping("/detail")
+    public String eventDetail(@RequestParam("event_id") int event_id, Model model){
+        
+        // selectOne 메소드를 사용하여 특정 이벤트 데이터를 조회
+        EventResDto event = eventService.selectOne(event_id);
+        
+        // 조회된 데이터를 "event"라는 이름으로 모델에 추가
+        model.addAttribute("event", event);
+        
+        // 상세 페이지 뷰를 반환 
+        return "mainpage/event_detail";
+    }
 	
 	
 	
