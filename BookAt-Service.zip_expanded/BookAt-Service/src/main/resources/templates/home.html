@@ -4,15 +4,15 @@
 <meta charset="UTF-8">
 <title>홈</title>
 <script type="text/javascript" src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script th:src="@{/js/loginIsOk.js}"></script>
+<script th:inline="javascript" th:src="@{/js/loginIsOk.js}"></script>
 </head>
 <body>
-    <h1>홈 화면</h1>
 
-    <div id="container">
-        <button id="loginBtn">로그인</button>
-        <button id="logoutBtn" style="display:none;">로그아웃</button>
-    </div>
+	<div th:replace="fragments/header :: main-header"></div>
+	
+	<h1>BookAt MainPage</h1>
+	
+	<div th:replace="fragments/footer :: main-footer"></div>
 
 </body>
 </html>

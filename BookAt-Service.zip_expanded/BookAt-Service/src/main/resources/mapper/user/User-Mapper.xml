@@ -17,4 +17,8 @@
 		UPDATE USERS SET USER_PW = #{password, jdbcType=VARCHAR} WHERE USER_ID = #{userId}
 	</update>
 	
+	<select id="findIdBySimpleAuth" resultType="User">
+		SELECT * FROM USERS WHERE USER_NAME = #{userName} AND PHONE = #{phone} AND BIRTH = #{birth}
+	</select>
+	
 </mapper>

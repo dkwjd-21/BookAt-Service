@@ -90,5 +90,25 @@ public class UserLoginServiceImpl implements UserLoginService {
 		values.put("userId", userId);
 		userMapper.updatePassword(values);
 	}
+	
+	@Override
+	public User findIdBySimpleAuth(String userName, String phone, String birth) {
+
+		if(phone != null && phone.length() == 11) {
+			phone = phone.replaceFirst("(\\d{3})(\\d{4})(\\d{4})", "$1-$2-$3");
+		}
+		
+		Map<String, String> values = new HashMap<>();
+		values.put("userName", userName);
+		values.put("phone", phone);
+		values.put("birth", birth);
+		User user = userMapper.findIdBySimpleAuth(values);
+		
+		if(user == null) {
+			throw new LoginException("회원정보가 존재하지 않습니다.");
+		}
+		
+		return user;
+	}
 
 }

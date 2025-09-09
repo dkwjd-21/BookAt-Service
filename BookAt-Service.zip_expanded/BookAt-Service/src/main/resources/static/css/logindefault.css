@@ -19,26 +19,39 @@
     color: #333;
 }
 
-.inputForm {
-    width: 500px;
+.login-container {
+	background-color: #fff;                /* 흰색 배경 */
+	padding: 40px 30px;
+	border-radius: 12px;                   /* 모서리 둥글게 */
+	box-shadow: 0 8px 24px rgba(0,0,0,0.1);/* 은은한 그림자 */
+	width: 500px;                          /* form과 맞춤 */
+	max-width: 90%;                        /* 작은 화면 대응 */
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+.input-form, .section {
+    /*width: 500px;*/
+	width: 100%;
     border-collapse: collapse;
 }
 
-.inputForm > div {
+.input-form > div {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     margin-bottom: 20px;
 }
 
-.inputForm label {
+.input-form label {
 	margin-bottom: 10px;
     font-size: 16px;
     font-weight: 600;
     color: #444;
 }
 
-.inputForm input {
+.input-form input {
 	width: 100%;
     padding: 12px;
 	margin-bottom: 10px;
@@ -49,12 +62,12 @@
     transition: border-color 0.2s;
 }
 
-.inputForm input:focus {
+.input-form input:focus {
     border-color: #00007B;
     outline: none;
 }
 
-.inputForm button, #goLogin, #goMain {
+.input-form button, #go-login, #go-main {
     width: 100%;
     padding: 14px;
     font-size: 18px;
@@ -67,13 +80,13 @@
 	transition: background-color 0.2s, transform 0.2s, box-shadow 0.2s ease-in-out;
 }
 
-.inputForm button:hover {
+.input-form button:hover {
 	transform: scale(1.02);
 	box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 	font-weight: bold;
 }
 
-.inputForm button:active {
+.input-form button:active {
     transform: scale(0.98);
 }
 
@@ -113,39 +126,7 @@
     outline: none;
 }
 
-/* 아이디 찾기 디자인 수정 */
-.input-group {
-  display: flex !important;
-  flex-direction: row !important;
-  width: 100%;
-  margin-bottom: 10px;
-}
-
-.input-group input {
-  flex: 3;
-  padding: 12px;
-  font-size: 15px;
-  border: 1px solid #ccc;
-  border-radius: 8px 0 0 8px;
-  box-sizing: border-box;
-}
-
-.input-group button {
-  flex: 1;
-  padding: 12px;
-  font-size: 15px;
-  font-weight: bold;
-  border: 1px solid #ccc;
-  border-left: none;
-  border-radius: 0 8px 8px 0;
-  background-color: #00007B;
-  color: white;
-  cursor: pointer;
-  transition: background-color 0.2s, transform 0.1s;
-}
-
-/* 안내 문구 박스 */
-.infoChangeResult {
+.info-change-result {
     background-color: #ffffff;       
     border: 1px solid #ccc;          
     width: 500px;                     
@@ -159,7 +140,7 @@
 }
 
 /* 버튼 영역 */
-.changeResult {
+.change-result {
     display: flex;                   
     justify-content: center;
     gap: 20px;                   
@@ -167,7 +148,7 @@
 }
 
 /* 버튼 스타일 */
-.resultBtn {
+.result-btn {
     padding: 12px 25px;
     font-size: 16px;
     font-weight: bold;
@@ -179,15 +160,45 @@
     transition: background-color 0.2s, transform 0.1s;
 }
 
-.resultBtn:hover {
+.result-btn {
     background-color: #357ABD;
 }
 
-.resultBtn:active {
+.result-btn {
     transform: scale(0.98);
 }
 
 .section { display: none; }
 .error { color: #bd2130; }
 
+.verify-btn {
+	width: 100%;
+}
 
+.verify-btn > button {
+	width: 100%;
+	padding: 14px;
+	font-size: 18px;
+	font-weight: bold;
+	background-color: #00007B;
+	color: white;
+	border: none;
+	border-radius: 10px;
+	cursor: pointer;
+	transition: background-color 0.2s, transform 0.2s, box-shadow 0.2s ease-in-out;
+}
+
+.verify-btn > button:hover {
+	transform: scale(1.02);
+	box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+	font-weight: bold;
+}
+
+.find-id-result {
+	font-size: 25px;
+}
+
+#find-id-info {
+	color: #00007B;
+	font-weight: bold;
+}

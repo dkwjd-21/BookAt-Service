@@ -1,65 +1,65 @@
 $(document).ready(function() {
 
-    $("#findPwSection").show();
-	$("#changePwSection, #resultSection").hide();
+    $("#find-pw-section").show();
+	$("#change-pw-section, #result-section").hide();
 
     // 전화번호 숫자만 입력 체크
     $("#phone").on("input", function() {
         const cleaned = this.value.replace(/[^0-9]/g, '');
         if (this.value !== cleaned) {
             this.value = cleaned;
-            $("#findPhoneError").show();
+            $("#find-phone-error").show();
         } else {
-            $("#findPhoneError").hide();
+            $("#find-phone-error").hide();
         }
     });
 
     // 비밀번호 찾기 제출
-    $("#findPwSection").submit(function(e) {
+    $("#find-pw-section").submit(function(e) {
         e.preventDefault();
 
 		const userId = $("#userId").val().trim();
         const phone = $("#phone").val().trim();
 		
 		if(userId === "") {
-            $("#findIdError").text("아이디를 입력해주세요.").show();
-            $("#findPhoneError").hide();
+            $("#find-id-error").text("아이디를 입력해주세요.").show();
+            $("#find-phone-error").hide();
             $("#userId").focus();
             return;
         } else {
-            $("#findIdError").hide();
+            $("#find-id-error").hide();
         }
 
 		if(phone === "" || !/^[0-9]+$/.test(phone)) {
-            $("#findPhoneError").text("전화번호를 제대로 입력해주세요.").show();
+            $("#find-phone-error").text("전화번호를 제대로 입력해주세요.").show();
             $("#phone").focus();
             return;
         } else {
-            $("#findPhoneError").hide();
+            $("#find-phone-error").hide();
         }
 
         $.ajax({
+			url: "/user/findPw",
             type: "POST",
-            url: "/api/user/findPw",
             data: { userId: userId, phone: phone },
             success: function(data) {
-				$("#findIdError").hide();
-				$("#hiddenUserId").val(data);
-				$("#findPwSection").hide();
-				$("#changePwSection").show();
+				$("#find-id-error").hide();
+				$("#hidden-user-id").val(data);
+				$("#find-pw-section").hide();
+				$("#change-pw-section").show();
             },
             error: function(xhr) {
 				const errMsg = xhr.responseText;
 				
 				// 아이디 관련 에러
 				if (errMsg.includes("아이디")) {
-				    $("#findIdError").text(errMsg).show();
-				    $("#userId").focus().addClass("inputError");
+				    $("#find-id-error").text(errMsg).show();
+				    $("#userId").focus().addClass("input-error");
 				}
 				// 비밀번호 관련 에러
 				else if (errMsg.includes("전화번호")) {
-				    $("#findPhoneError").text(errMsg).show();
-				    $("#phone").focus().addClass("inputError");
+				    $("#find-phone-error").text(errMsg).show();
+				    $("#phone").focus().addClass("input-error");
 				}
 				// 그 외 (공통 에러)
 				else {
@@ -70,41 +70,41 @@ $(document).ready(function() {
     });
 
     // 비밀번호 변경 제출
-    $("#changePwSection").submit(function(e) {
+    $("#change-pw-section").submit(function(e) {
         e.preventDefault();
 
         const password = $("#userPw").val().trim();
         const passwordCheck = $("#userPwCheck").val().trim();
-        const userId = $("#hiddenUserId").val().trim();
+        const userId = $("#hidden-user-id").val().trim();
 
 		if(password === "") {
-            $("#findPwError").text("비밀번호를 입력해주세요.").show();
+            $("#find-pw-check").text("비밀번호를 입력해주세요.").show();
 			$("#userPw").focus();
             return;
         }
 		
 		if(passwordCheck === "") {
-		    $("#findPwError").text("비밀번호를 한번 더 입력해주세요.").show();
+		    $("#find-pw-check").text("비밀번호를 한번 더 입력해주세요.").show();
 			$("#userPwCheck").focus();
 		    return;
 		}
 		
         if(password !== passwordCheck) {
-            $("#findPwError").text("입력하신 비밀번호가 일치하지 않습니다.").show();
+            $("#find-pw-check").text("입력하신 비밀번호가 일치하지 않습니다.").show();
             $("#userPwCheck").focus();
             return;
         }
 		
-        $("#pwMismatchError").hide();
+        $("#pw-mismatch-error").hide();
 
         $.ajax({
+			url: "/user/changePassword",
             type: "POST",
-            url: "/api/user/changePassword",
             data: { userId: userId, password: password },
             success: function(res) {
                 if(res.success) {
-                    $("#changePwSection").hide();
-                    $("#resultSection").show();
+                    $("#change-pw-section").hide();
+                    $("#result-section").show();
                 } else {
                     alert(res.message);
                 }
@@ -116,7 +116,7 @@ $(document).ready(function() {
     });
 
     // 결과 버튼
-    $("#goLogin").click(function() { location.href="/api/user/login"; });
-    $("#goMain").click(function() { location.href="/"; });
+    $("#go-login").click(function() { location.href="/user/login"; });
+    $("#go-main").click(function() { location.href="/"; });
 
 });

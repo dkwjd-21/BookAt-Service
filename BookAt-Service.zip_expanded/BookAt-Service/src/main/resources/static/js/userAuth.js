@@ -18,7 +18,7 @@
 	        if (!token) return false;
 	        try {
 	            await $.ajax({
-	                url: "/api/auth/validate",
+	                url: "/auth/validate",
 	                type: "POST",
 	                headers: { "Authorization": "Bearer " + token }
 	            });
@@ -34,7 +34,7 @@
 	    async function refreshAccessToken() {
 	        try {
 	            const res = await $.ajax({
-	                url: "/api/auth/refresh",
+	                url: "/auth/refresh",
 	                type: "POST",
 	                xhrFields: { withCredentials: true } // Refresh Token 쿠키 전송
 	            });
@@ -85,7 +85,7 @@
 	
 	        try {
 	            await $.ajax({
-	                url: "/api/user/logout",
+	                url: "/user/logout",
 	                type: "POST",
 	                headers: { "Authorization": "Bearer " + (token || "") },
 	                xhrFields: { withCredentials: true }
@@ -95,7 +95,7 @@
 	        }
 	
 	        localStorage.removeItem(accessTokenKey);
-	        window.location.href = "/api/user/login"; // 로그인 페이지로 이동
+	        window.location.href = "/user/login"; // 로그인 페이지로 이동
 	    }
 	
 	    // 초기 실행: 인증 시도

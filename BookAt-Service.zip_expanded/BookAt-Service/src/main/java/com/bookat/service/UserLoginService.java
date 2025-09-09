@@ -14,5 +14,6 @@ public interface UserLoginService {
 	User findPwByIdPhone(String userId, String phone);
 	void updateRefreshToken(String refreshToken, String userId);
 	void updatePassword(String password, String userId);
+	User findIdBySimpleAuth(String userName, String phone, String birth);
 
 }

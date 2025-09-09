@@ -40,7 +40,7 @@ $(document).ready(async function() {
         // 백엔드 로그아웃 요청
         try {
             await $.ajax({
-                url: "/api/user/logout",
+                url: "/user/logout",
                 type: "POST",
                 headers: { "Authorization": "Bearer " + (token || "") },
                 xhrFields: { withCredentials: true }
@@ -57,13 +57,13 @@ $(document).ready(async function() {
 	// 엑세스 토큰 만료 됐으면 리프레시토큰이 유효한 동안 갱신
     async function refreshAccessTokenIfNeeded() {
         let token = localStorage.getItem(accessTokenKey);
-        console.log("refresh, 현재 access token:", token);
+        console.log("현재 access token:", token);
 
 //        if (!token || isTokenNearExpiry(token)) {
 		if (!token || isTokenExpired(token)) {
             try {
                 const res = await $.ajax({
-                    url: "/api/auth/refresh",
+                    url: "/auth/refresh",
                     type: "POST",
                     xhrFields: { withCredentials: true } // HttpOnly 쿠키 전송
                 });
@@ -82,21 +82,31 @@ $(document).ready(async function() {
 
         return token;
     }
+	
+	const isLogin = /*[[${isLoggedIn}]]*/ false; 
+	if(isLogin){
+	    $("#loginBtn, #signupBtn").hide();
+	    $("#logoutBtn").show();
+	} else {
+	    $("#loginBtn, #signupBtn").show();
+	    $("#logoutBtn").hide();
+	}
 
     const token = await refreshAccessTokenIfNeeded();
     updateAuthUI(token);
 
     function updateAuthUI(token) {
         if(token){
-            $("#loginBtn").hide();
+            $("#loginBtn, #signupBtn").hide();
             $("#logoutBtn").show();
         } else {
-            $("#loginBtn").show();
+            $("#loginBtn, #signupBtn").show();
             $("#logoutBtn").hide();
         }
     }
 
-    $("#loginBtn").click(() => window.location.href = "/api/user/login");
+    $("#loginBtn").click(() => window.location.href = "/user/login");
+	$("#signupBtn").click(() => window.location.href = "/user/signup");
 
     $("#logoutBtn").click(async function(event) {
         event.preventDefault();
