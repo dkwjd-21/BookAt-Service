@@ -40,7 +40,7 @@ public class UserSignupController {
     private String portoneChannelKey;
 	@Value("${portone.api_secret}")
 	private String portoneApiSecret;
-    
+	
 	// 회원가입 페이지로 이동 
 	@GetMapping("/user/signup")
 	public String signupVerification(Model model) {
@@ -124,17 +124,6 @@ public class UserSignupController {
 	@PostMapping("/user/signup/insert")
 	public ResponseEntity<Map<String, Object>> signupInsert(@RequestBody UserSignup input) {
 		System.out.println(input.toString());
-		
-		// 전화번호 010XXXXOOOO -> 010-XXXX-0000으로 포맷 변경
-		String phone = input.getPhone();
-		
-		String formattedPhone = phone.substring(0, 3) + "-" + 
-							    phone.substring(3, 7) + "-" + 
-							    phone.substring(7);
-		
-		System.out.println("전화번호 포맷 변경 : "+phone+" -> "+formattedPhone);
-		
-		input.setPhone(formattedPhone);
 		
 		int res = service.insertUser(input);
 		
