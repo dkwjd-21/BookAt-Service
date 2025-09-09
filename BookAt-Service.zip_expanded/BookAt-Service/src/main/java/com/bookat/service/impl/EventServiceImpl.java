@@ -45,6 +45,23 @@ public class EventServiceImpl implements EventService{
 		return mapper.selectByLocalCodeAndCloseTime(local_code);
 	}
 	
+	@Override
+	public List<EventResDto> selectForMain() {
+		
+		return mapper.selectForMain();
+	}
+	
+	@Override
+	public List<EventResDto> selectByStartTime() {
+		
+		return mapper.selectByStartTime();
+	}
+
+	@Override
+	public List<EventResDto> selectByCloseTime() {
+		
+		return mapper.selectByCloseTime();
+	}
 
 	@Override
 	public int insert(EventResDto dto) {
@@ -63,6 +80,10 @@ public class EventServiceImpl implements EventService{
 
 		return 0;	//미완
 	}
+
+	
+
+	
 
 	
 

@@ -29,4 +29,10 @@ public interface EventMapper {
 
 	List<EventResDto> selectByLocalCodeAndCloseTime(String local_code);
 	
+	List<EventResDto> selectForMain();
+	
+	List<EventResDto> selectByStartTime();
+
+	List<EventResDto> selectByCloseTime();
+	
 }

@@ -42,7 +42,24 @@ public class EventController {
 	}
 	
 
-	@GetMapping("/main")	//메인 페이지로 이동한다.
+	@GetMapping	//메인 페이지로 이동한다.
+	public String eventMainpage(Model model) { 
+
+	    List<EventResDto> res = eventService.selectForMain();
+	    model.addAttribute("event",res);
+	    
+	    List<EventResDto> resOpenTime = eventService.selectByStartTime(); 
+	    model.addAttribute("openTime",resOpenTime);
+
+	    List<EventResDto> resCloseTime = eventService.selectByCloseTime();
+	    model.addAttribute("closeTime",resCloseTime);
+
+	    // 현재 선택된 지역 코드를 모델에 추가 
+
+	    return "mainpage/event_mainpage_copy";	//바꿀부분
+	}
+	
+	@GetMapping("/category")	//메인 페이지로 이동한다. 
 	public String eventMainpage(@RequestParam(name = "local_code", required = false, defaultValue = "SEOUL") String local_code, Model model) {
 
 	    List<EventResDto> res = eventService.selectByLocalCode(local_code);
@@ -61,7 +78,6 @@ public class EventController {
 
 	    return "mainpage/event_mainpage";
 	}
-	
 	
 	
 	
