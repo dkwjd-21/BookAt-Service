@@ -24,8 +24,8 @@
     border-collapse: collapse;
 }
 
-.inputForm div {
-	display: flex;
+.inputForm > div {
+    display: flex;
     flex-direction: column;
     align-items: flex-start;
     margin-bottom: 20px;
@@ -64,11 +64,13 @@
     border: none;
     border-radius: 10px;
     cursor: pointer;
-    transition: background-color 0.2s, transform 0.1s;
+	transition: background-color 0.2s, transform 0.2s, box-shadow 0.2s ease-in-out;
 }
 
 .inputForm button:hover {
-    background-color: #357ABD;
+	transform: scale(1.02);
+	box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+	font-weight: bold;
 }
 
 .inputForm button:active {
@@ -82,14 +84,16 @@
 }
 
 .links {
-    text-align: center;
+    display: flex;
+    flex-direction: row; /* 강제로 가로 정렬 */
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
     margin-top: 20px;
     font-size: 14px;
 }
 
 .links a {
-    display: inline-block;
-    margin: 10px;
     text-decoration: none;
     color: #8a8a8a;
     font-weight: 500;
@@ -98,6 +102,10 @@
 
 .links a:hover {
     font-weight: bold;
+}
+
+.links span {
+    color: #ccc; /* 구분자 색상 */
 }
 
 .input-error {
@@ -134,10 +142,6 @@
   color: white;
   cursor: pointer;
   transition: background-color 0.2s, transform 0.1s;
-}
-
-.input-group button:hover {
-  background-color: #357ABD;
 }
 
 /* 안내 문구 박스 */
