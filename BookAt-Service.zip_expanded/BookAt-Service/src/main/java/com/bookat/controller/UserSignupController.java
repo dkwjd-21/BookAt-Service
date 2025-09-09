@@ -11,6 +11,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -41,6 +42,9 @@ public class UserSignupController {
 	@Value("${portone.api_secret}")
 	private String portoneApiSecret;
     
+	@Autowired
+	private PasswordEncoder passwordEncoder;
+	
 	// 회원가입 페이지로 이동 
 	@GetMapping("/user/signup")
 	public String signupVerification(Model model) {
@@ -135,6 +139,10 @@ public class UserSignupController {
 		System.out.println("전화번호 포맷 변경 : "+phone+" -> "+formattedPhone);
 		
 		input.setPhone(formattedPhone);
+		
+		// 비밀번호 암호화 
+		String encodedPassword = passwordEncoder.encode(input.getUserPw());
+		input.setUserPw(encodedPassword);
 		
 		int res = service.insertUser(input);
 		
