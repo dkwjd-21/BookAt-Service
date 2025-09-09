@@ -97,7 +97,7 @@
     </div>
 
     <section th:if="${selectedCategory != null}" style="margin-top:28px;">
-      <h2>
+      <h2 class="category-title">
         <span th:switch="${selectedCategory}">
           <span th:case="'FICTION_POETRY'">소설/시</span>
           <span th:case="'FICTION'">소설</span>
@@ -110,7 +110,7 @@
           <span th:case="'HOBBY'">취미</span>
           <span th:case="*">전체 도서</span>
         </span>
-        <span th:text="| 전체 보기 (${#lists.size(books)}권)|"></span>
+        <span class="category-count" th:text="| 전체 보기 (${#lists.size(books)}권)|"></span>
       </h2>
 
       <div class="grid">

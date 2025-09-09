@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8">
+  <title th:text="'BookAt - '+${book.title}">BookAt</title>
+
+  <!-- 기존 공통 CSS -->
+  <link rel="stylesheet" th:href="@{/css/main_header.css}">
+  <link rel="stylesheet" th:href="@{/css/main_book.css}">
+  <!-- 상세 전용 CSS -->
+  <link rel="stylesheet" th:href="@{/css/detail_book.css}">
+</head>
+
+<body style="background:#f7f8fa;">
+  <div th:replace="~{fragments/book_header :: site-header}"></div>
+  
+  <!-- 상단 카테고리 패널 -->
+<div class="panel panel-crumb">
+  <span class="crumb-label">도서 카테고리</span>
+  <a class="crumb-cat" th:href="@{/books(category=${book.category})}"
+     th:text="${book.category == 'SELF-HELP' ? '자기계발' :
+               book.category == 'FICTION' ? '소설' :
+               book.category == 'POETRY' ? '시' :
+               book.category == 'ESSAY' ? '에세이' :
+               book.category == 'HUMANITY' ? '인문' :
+               book.category == 'MAGAZINE' ? '잡지' :
+               book.category == 'KIDS' ? '아동도서' :
+               book.category == 'HOBBY' ? '취미' : '전체 도서'}">
+    카테고리
+  </a>
+</div>
+
+<!-- 도서 상세 패널 -->
+<section class="panel" style="margin-top:16px;">
+  <div class="detail-grid">
+    <!-- 표지 -->
+    <img class="detail-thumb"
+         th:src="${book.imageUrl != null ? book.imageUrl : 'https://placehold.co/340x440?text=Book'}"
+         th:alt="${book.title}">
+
+    <!-- 정보 -->
+    <div>
+      <h1 class="detail-title" th:text="${book.title}">책 제목</h1>
+
+      <div class="detail-meta">
+        <span>저자</span>&nbsp;&nbsp;|&nbsp;&nbsp;<span th:text="${book.author}">작가명</span>
+        <br>
+        <span>출판사</span>&nbsp;&nbsp;|&nbsp;&nbsp;<span th:text="${book.publisher}">출판사</span>
+        <br>
+        <span>출간일</span>&nbsp;&nbsp;|&nbsp;&nbsp;<span th:text="${book.pubdate != null ? #temporals.format(book.pubdate, 'yyyy년 MM월 dd일') : '-'}">2025년 09월 01일</span>
+        <br>
+        <span>리뷰()</span>
+        <br>
+      </div>
+
+      <!-- 리뷰와 가격 사이 연한 구분선 -->
+      <div class="soft-divider"></div>
+
+      <!-- 가격 + 배송 문구 -->
+      <div class="detail-price-row">
+        <span class="price-number"
+              th:text="${#numbers.formatDecimal(book.price, 0, 'COMMA', 0, 'POINT')}"></span>원
+        &nbsp;&nbsp; <span class="ship-note">기본배송비 3,000원 / 15,000원 이상 무료</span>
+      </div>
+
+      <!-- 수량 + 버튼들 -->
+<div class="detail-qty-row">
+  <label for="qty">수량</label>
+  <input class="detail-qty" id="qty" type="number" min="1" value="1"
+         oninput="document.getElementById('giftQty').value=this.value;
+                  document.getElementById('cartQty').value=this.value;
+                  document.getElementById('orderQty').value=this.value;">
+</div>
+
+<!-- 버튼 (아래 줄에) -->
+<div class="detail-btn-row">
+  <!-- 위시리스트 -->
+  <form th:action="@{|/books/${book.bookId}/wishlist|}" method="post">
+    <button type="submit" class="btn-heart"
+            th:classappend="${liked} ? ' is-liked' : ''">
+      <span class="icon" th:text="${liked} ? '♥' : '♡'">♡</span>
+      <span></span>
+    </button>
+  </form>
+
+  <!-- 선물하기 -->
+  <form th:action="@{|/books/${book.bookId}/gift|}" method="post">
+    <input type="hidden" id="giftQty" name="qty" value="1">
+    <button class="btn" type="submit">선물하기</button>
+  </form>
+
+  <!-- 장바구니 -->
+  <form th:action="@{|/books/${book.bookId}/cart|}" method="post">
+    <input type="hidden" id="cartQty" name="qty" value="1">
+    <button class="btn" type="submit">장바구니 담기</button>
+  </form>
+
+  <!-- 바로구매 -->
+  <form th:action="@{|/books/${book.bookId}/order|}" method="post">
+    <input type="hidden" id="orderQty" name="qty" value="1">
+    <button class="btn btn--primary" type="submit">바로구매</button>
+  </form>
+</div>
+    </div>
+  </div>
+</section>
+
+<!-- 리뷰 패널(지금은 껍데기만) -->
+<!-- 1) '도서 관련 이벤트' 패널 -->
+<section class="panel" style="margin-top:16px;">
+  <h3 class="section-title" style="margin:0 0 12px 0;">관련 이벤트</h3>
+
+  <div th:if="${#lists.isEmpty(events)}" style="color:#6b7280">진행 중인 이벤트가 없습니다.</div>
+
+  <div th:if="${!#lists.isEmpty(events)}" class="grid" style="grid-template-columns:repeat(6,1fr);gap:14px;">
+    <a th:each="ev : ${events}" class="card card-link"
+       th:href="@{|/events/${ev.eventId}|}">
+      <img th:src="${ev.imageUrl != null ? ev.imageUrl : 'https://placehold.co/300x420?text=Event'}" alt="event">
+      <div class="body">
+        <div class="title" th:text="${ev.title}">이벤트 제목</div>
+        <div class="meta" th:text="${ev.badge}">진행중</div>
+      </div>
+    </a>
+  </div>
+</section>
+
+<!-- 2) 도서 소개 패널 -->
+<section class="panel" style="margin-top:16px;">
+  <h3 class="section-title" style="margin:0 0 12px 0;">도서 소개</h3>
+  <div style="white-space:pre-line;color:#374151;" th:text="${book.description}">설명</div>
+</section>
+
+<!-- 3) 전체 리뷰 패널 -->
+<section class="panel" style="margin-top:16px;">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+    <h3 class="section-title" style="margin:0;">전체 리뷰 (<span th:text="${reviewCount}">0</span>)</h3>
+    <form th:action="@{|/books/${book.bookId}/reviews/new|}" method="get">
+      <a class="btn" role="button" th:href="@{|/books/${book.bookId}/reviews/new|}">
+  리뷰 작성
+</a>
+    </form>
+  </div>
+
+  <!-- 리뷰 없을 때 -->
+  <div th:if="${#lists.isEmpty(reviews)}" style="color:#6b7280">작성된 리뷰가 없습니다.</div>
+
+  <!-- 리뷰 리스트 -->
+  <div th:each="rv : ${reviews}" style="padding:12px 0;border-top:1px solid #eee;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+      <!-- 별점 표시: 가득★ 와 빈☆를 5개 기준으로 -->
+      <span>
+        <span th:each="i: ${#numbers.sequence(1, rv.rating)}">★</span>
+        <span th:each="i: ${#numbers.sequence(1, 5 - rv.rating)}" style="color:#d1d5db">★</span>
+      </span>
+      <span class="meta" th:text="${rv.userId}">user_id</span>
+      <span class="meta" style="margin-left:6px;"
+            th:text="${#temporals.format(rv.createdAt, 'yyyy.MM.dd')}">2025.09.01</span>
+    </div>
+    <div style="white-space:pre-line;color:#374151;" th:text="${rv.content}">리뷰 내용</div>
+  </div>
+</section>
+
+<!-- 4) 취소 및 환불 규정 패널 (고정 문구) -->
+<section class="panel" style="margin-top:16px;margin-bottom:30px;">
+  <h3 class="section-title" style="margin:0 0 12px 0;">취소 및 환불 규정</h3>
+
+  <div class="policy">
+    <ol class="policy-list">
+      <li>
+        <b>주문 취소</b>
+        <ul class="policy-sub">
+          <li>결제 완료 후에는 취소 요청을 접수해야 하며, 승인 여부에 따라 처리됩니다.</li>
+        </ul>
+      </li>
+
+      <li>
+        <b>환불 안내</b>
+        <ul class="policy-sub">
+          <li>환불은 결제 수단과 동일한 방법으로 처리됩니다.</li>
+          <li>결제 완료 후 7영업일 이내에 환불이 완료되는 것을 목표로 합니다.</li>
+          <li>부분 환불은 불가하며, 주문 전체를 취소하는 경우에만 환불 가능합니다.</li>
+        </ul>
+      </li>
+
+      <li>
+        <b>환불 불가 조건</b>
+        <ul class="policy-sub">
+          <li>배송 완료 후 책 상품은 상품 손상, 물리적 훼손 시 환불 불가합니다.</li>
+        </ul>
+      </li>
+
+      <li>
+        <b>마이페이지 &gt; 주문 내역 &gt; 취소/환불 요청</b>
+        <ul class="policy-sub">
+          <li>고객센터 문의: support@bookat.com 또는 02-1234-5678</li>
+        </ul>
+      </li>
+
+      <li>
+        <b>유의 사항</b>
+        <ul class="policy-sub">
+          <li>취소 및 환불 정책은 사정에 따라 변경될 수 있으며, 최신 내용은 사이트 공지 또는 주문 화면에서 확인 가능합니다.</li>
+          <li>환불 시 발생하는 수수료는 결제 수단과 환불 방식에 따라 달라질 수 있습니다.</li>
+        </ul>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<div th:replace="~{fragments/footer :: site-footer}"></div>
+
+</body>
+</html>

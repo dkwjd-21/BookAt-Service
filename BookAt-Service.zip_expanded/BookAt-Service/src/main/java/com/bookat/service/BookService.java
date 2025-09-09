@@ -14,4 +14,6 @@ public interface BookService {
   List<BookDto> findByCategory(String category);
   List<BookDto> findByCategories(List<String> categories);
   
+  //단건 조회(상세페이지)
+  BookDto selectOne(String bookId);
 }

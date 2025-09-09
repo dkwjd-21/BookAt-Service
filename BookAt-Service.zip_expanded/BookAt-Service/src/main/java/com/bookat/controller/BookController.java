@@ -5,13 +5,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 
 import com.bookat.service.BookService;
+import com.bookat.service.ReviewService;
+//import com.bookat.service.EventService;
+//import com.bookat.dto.EventDto;
 import com.bookat.dto.*;
 import lombok.RequiredArgsConstructor;
 
@@ -23,6 +29,8 @@ import lombok.RequiredArgsConstructor;
 public class BookController{
 
 	private final BookService bookService;
+	private final ReviewService reviewService;
+    //private final EventService eventService;
 	
 	// 메인 : /books
 	@GetMapping
@@ -54,6 +62,59 @@ public class BookController{
 		
         return "mainpage/book";
 	}
+	
+	//도서 상세 페이지
+	@GetMapping("/{bookId}")
+	public String bookDetail(@PathVariable String bookId, Model model) {
+		BookDto book = bookService.selectOne(bookId);
+		model.addAttribute("book", book);
+
+		//머지 후 살려야됨
+		//List<EventCardDto> events = eventService.findByBookId(bookId);
+		//model.addAttribute("events", events);
+		
+		//머지 후 삭제
+		model.addAttribute("events", java.util.Collections.emptyList());
+		
+		//머지 후 살려야됨
+        //List<ReviewDto> reviews = reviewService.findByBookId(bookId);
+        //int reviewCount = reviewService.countByBookId(bookId);
+		
+		//머지 후 삭제
+	    java.util.List<ReviewDto> reviews = java.util.Collections.emptyList();
+	    int reviewCount = 0;
+	    if (reviewService != null) {
+	        try {
+	            reviews = reviewService.findByBookId(bookId);
+	            reviewCount = reviewService.countByBookId(bookId);
+	        } catch (DataAccessException e) {
+	        }
+	    }
+	    
+	    model.addAttribute("reviews", reviews);
+	    model.addAttribute("reviewCount", reviewCount);
+		
+		return "mainpage/bookdetail";
+	}
+	
+	//선물하기 기능
+	@PostMapping("/{bookId}/gift")
+	public String gift(@PathVariable String bookId) {
+		return  "redirect:/books/" + bookId;
+	}
+	
+	//장바구니 기능
+	@PostMapping("/{bookId}/cart")
+	public String cart(@PathVariable String bookId) {
+		return  "redirect:/books/" + bookId;
+	}
+	
+	//구매하기
+	@PostMapping("/{bookId}/order")
+	public String order(@PathVariable String bookId) {
+		return  "redirect:/books/" + bookId;
+	}
+	
 	
 	// 카테고리(단일)
 	private static final Set<String> ALLOWED = Set.of(
