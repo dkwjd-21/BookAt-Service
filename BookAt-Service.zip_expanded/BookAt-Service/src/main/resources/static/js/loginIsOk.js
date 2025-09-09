@@ -27,7 +27,7 @@ $(document).ready(async function() {
             const exp = payload.exp * 1000;
             return Date.now() >= exp;
         } catch(e) {
-            return true; // 파싱 실패하면 만료로 간주
+            return true;
         }
     }
 
@@ -37,7 +37,6 @@ $(document).ready(async function() {
 		console.log("handleLogout 진입");
 		console.log("로그아웃 요청 엑세스토큰 : " + token);
 
-        // 백엔드 로그아웃 요청
         try {
             await $.ajax({
                 url: "/user/logout",
@@ -48,10 +47,10 @@ $(document).ready(async function() {
         } catch(err) {
             console.error("서버 로그아웃 실패", err);
         }
-
-        // 프론트 토큰 삭제 & UI 갱신
+		
         localStorage.removeItem(accessTokenKey);
-        updateAuthUI(null);
+		$("#loginBtn, #signupBtn").show();
+		$("#logoutBtn").hide();
     }
 	
 	// 엑세스 토큰 만료 됐으면 리프레시토큰이 유효한 동안 갱신
@@ -74,7 +73,7 @@ $(document).ready(async function() {
                 }
             } catch(err) {
                 console.log("refresh 토큰 만료, 로그인 실패, access token 발급 불가");
-				
+				// 리프레시 토큰 만료되면 자동 로그아웃
 				await handleLogout();
                 token = null;
             }
@@ -82,29 +81,33 @@ $(document).ready(async function() {
 
         return token;
     }
-	
-	const isLogin = /*[[${isLoggedIn}]]*/ false; 
-	if(isLogin){
-	    $("#loginBtn, #signupBtn").hide();
-	    $("#logoutBtn").show();
-	} else {
-	    $("#loginBtn, #signupBtn").show();
-	    $("#logoutBtn").hide();
-	}
 
-    const token = await refreshAccessTokenIfNeeded();
-    updateAuthUI(token);
-
-    function updateAuthUI(token) {
-        if(token){
-            $("#loginBtn, #signupBtn").hide();
-            $("#logoutBtn").show();
+    async function updateAuthUI() {
+		const token = await refreshAccessTokenIfNeeded();
+		
+        if(token) {
+			try {
+                const res = await $.ajax({
+                    url: "/auth/validate",
+                    type: "POST",
+                    headers: { "Authorization": "Bearer " + token }
+                });
+                console.log("토큰 검증 성공:", res);
+                $("#loginBtn, #signupBtn").hide();
+                $("#logoutBtn").show();
+            } catch (xhr) {
+				console.warn("토큰 검증 실패:", xhr.responseText);
+				$("#loginBtn, #signupBtn").show();
+				$("#logoutBtn").hide();
+			}
         } else {
             $("#loginBtn, #signupBtn").show();
             $("#logoutBtn").hide();
         }
     }
 
+	await updateAuthUI();
+	
     $("#loginBtn").click(() => window.location.href = "/user/login");
 	$("#signupBtn").click(() => window.location.href = "/user/signup");
 

@@ -10,14 +10,12 @@
 	<header th:fragment="main-header" class="main-header">
 	  <div class="header-top">
 	    <a th:href="@{/mainpage}">
-	      <img th:src="@{/images/BookAt-Logo.png}" class="main-logo-img" />
+			<img th:src="@{/images/BookAt-Logo.png}" class="main-logo-img" />
 	    </a>
 	    <div class="auth-links">
-	      <th:block>
 			<button id="logoutBtn" style="display:none;">로그아웃</button>
 			<button id="loginBtn">로그인</button>
 			<button id="signupBtn">회원가입</button>
-	      </th:block>
 	    </div>
 	  </div>
 	  <div class="header-bottom">
