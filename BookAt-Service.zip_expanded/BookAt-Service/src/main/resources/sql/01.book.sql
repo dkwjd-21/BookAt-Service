@@ -1,30 +1,55 @@
+
+
+---------------------------------------------------------------------------------
+
+-- 도서
+CREATE TABLE BOOK (
+  BOOK_ID     VARCHAR2(20) PRIMARY KEY,   -- 값은 ISBN
+  BOOK_TITLE  VARCHAR2(500)    NOT NULL,  
+  BOOK_COVER  VARCHAR2(1000)    NOT NULL,
+  AUTHOR      VARCHAR2(200)    NOT NULL,
+  BOOK_PRICE  NUMBER           NOT NULL,
+  PUBLISHER   VARCHAR2(100)    NOT NULL,
+  PUBDATE     DATE             NOT NULL,
+  DESCRIPTION VARCHAR2(4000)    NOT NULL
+);
+
+---------------------------------------------------------------------------------
+
+-- 도서 재고
+CREATE TABLE BOOK_INVENTORY (
+  BOOK_ID       VARCHAR2(20) PRIMARY KEY
+                REFERENCES BOOK(BOOK_ID),
+  BOOK_INVENTORY NUMBER    DEFAULT 10 NOT NULL
+);
+
+---------------------------------------------------------------------------------
+
+-- 도서 구매
+CREATE TABLE PURCHASE (
+	PAYMENT_ID NUMBER PRIMARY KEY,
+	TOTAL_PRICE NUMBER NOT NULL,
+	PAYMENT_PRICE NUMBER NOT NULL,
+	PAYMENT_METHOD VARCHAR2(50) NOT NULL,
+	PAYMENT_STATUS NUMBER(2) NOT NULL,
+	PAYMENT_DATE DATE NOT NULL,
+	PAYMENT_INFO VARCHAR2(100) NULL
+);
+CREATE SEQUENCE SEQ_PURCHASE;
+
+ALTER TABLE PURCHASE ADD CONSTRAINT CHK_PAYMENT_METHOD
+CHECK (PAYMENT_METHOD IN ('CARD', 'VIRTUAL', 'POINT'));
+ALTER TABLE PURCHASE ADD CONSTRAINT CHK_PAYMENT_STATUS
+CHECK (PAYMENT_STATUS IN (0, 1, -1, 2));
+
+---------------------------------------------------------------------------------
+
+-- JSON 형식의 대용량 데이터를 임시로 저장하기 위한 테이블 
 CREATE TABLE stage_book (
   doc CLOB CHECK (doc IS JSON)
 );
 
-
-CREATE TABLE book (
-  book_Id     VARCHAR2(20) PRIMARY KEY,   -- 값은 ISBN
-  book_title  VARCHAR2(500)    NOT NULL,  
-  book_cover  VARCHAR2(1000)    NOT NULL,
-  author      VARCHAR2(200)    NOT NULL,
-  book_Price  NUMBER           NOT NULL,
-  publisher   VARCHAR2(100)    NOT NULL,
-  pubdate     DATE             NOT NULL,
-  description VARCHAR2(4000)    NOT NULL
-);
-
-
-SELECT * FROM book;
-
-CREATE TABLE book_inventory (
-  book_Id       VARCHAR2(20) PRIMARY KEY
-                REFERENCES book(book_Id),
-  book_Inventory NUMBER      DEFAULT 10 NOT NULL
-);
-
-SELECT * FROM book_inventory;
-
+-- STAGE_BOOK 테이블의 JSON 데이터를 조회하여 ITEMS의 총 개수 확인 
 SELECT COUNT(*) AS json_item_cnt
 FROM stage_book s,
      JSON_TABLE(
@@ -35,34 +60,7 @@ FROM stage_book s,
        )
      );
 
-
-SELECT COUNT(*) AS c FROM book;
-
-
-
-SELECT COUNT(*) AS before_cnt FROM book;
-
-ALTER TABLE book MODIFY (description VARCHAR2(32767 CHAR));
-
-DELETE FROM book;
-COMMIT;
-
-
-SELECT USER AS session_user,
-       SYS_CONTEXT('USERENV','CURRENT_SCHEMA') AS current_schema
-FROM dual;
-
-
-SELECT owner, table_name
-FROM   all_tables
-WHERE  table_name IN ('BOOK','STAGE_BOOK','BOOK_INVENTORY');
-
-ALTER SESSION SET CURRENT_SCHEMA=ADMIN;
-
-DELETE FROM ADMIN.book; COMMIT;
-
-ALTER TABLE ADMIN.book MODIFY (description NULL);
-
+-- JSON 데이터를 가공하여 BOOK 테이블에 삽입/업데이트 (MERGE)
 MERGE INTO ADMIN.book b
 USING (
   SELECT *
@@ -124,3 +122,11 @@ COMMIT;
 -- 일부 유효하지 않은 데이터 삭제 
 DELETE FROM BOOK
 WHERE TO_NUMBER(BOOK_ID) BETWEEN 6000428595 AND 6000731272;
+
+-- 카테고리 테이블 추가 
+ALTER TABLE BOOK ADD (category VARCHAR2(50));
+
+-- 생략 
+UPDATE book SET category = 'KIDS' WHERE book_id = '9781524770488';
+
+
