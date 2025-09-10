@@ -37,4 +37,8 @@
         SELECT * FROM (SELECT * FROM EVENT WHERE EVENT_DATE > SYSDATE ORDER BY EVENT_DATE ASC) WHERE ROWNUM &lt;= 6
     </select>
 
+	<select id="selectBookOne"  parameterType="string" resultType="Book">
+		SELECT * FROM BOOK WHERE BOOK_ID = #{book_id}
+	</select>
+
 </mapper>

@@ -2,7 +2,9 @@ package com.bookat.service;
 
 import java.util.List;
 
+import com.bookat.dto.BookDto;
 import com.bookat.dto.EventResDto;
+import com.bookat.entity.Book;
 
 public interface EventService {
 	public List<EventResDto> selectAll();
@@ -13,6 +15,7 @@ public interface EventService {
 	public List<EventResDto> selectForMain();
 	public List<EventResDto> selectByStartTime();
 	public List<EventResDto> selectByCloseTime();
+	public Book selectBookOne(String book_id);
 	
 	public int insert(EventResDto dto);	//아직 사용 안함
 	public int udpate(EventResDto dto);

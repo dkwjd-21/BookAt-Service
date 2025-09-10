@@ -1,15 +1,24 @@
 package com.bookat.controller;
 
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.bookat.dto.BookDto;
 import com.bookat.dto.EventResDto;
+import com.bookat.entity.Book;
+import com.bookat.entity.Event;
 import com.bookat.service.impl.EventServiceImpl;
 
 @Controller
@@ -79,19 +88,56 @@ public class EventController {
 	    return "mainpage/event_categorypage";
 	};
 	
-	@GetMapping("/detail")
+	@GetMapping("/detail")	//상세페이지로 이동
     public String eventDetail(@RequestParam("event_id") int event_id, Model model){
         
-        // selectOne 메소드를 사용하여 특정 이벤트 데이터를 조회
         EventResDto event = eventService.selectOne(event_id);
-        
-        // 조회된 데이터를 "event"라는 이름으로 모델에 추가
         model.addAttribute("event", event);
         
+        Book book = eventService.selectBookOne(event.getBookId());
+        System.out.println("res " + book);
+        model.addAttribute("book", book);
+
         // 상세 페이지 뷰를 반환 
         return "mainpage/event_detail";
     }
 	
+	
+	@GetMapping("/events/{eventId}/reservation")	//만약 사용자가 티켓팅url로 바로 접속하게 되면 현재 시간과 비교해서 접속을 차단한다.
+	public String reservationPage(@PathVariable int eventId, Model model, RedirectAttributes redirectAttributes) {
+
+	    EventResDto event = eventService.selectOne(eventId);
+
+	    // 📌 [추가] 이벤트가 존재하지 않을 경우의 예외 처리
+	    if (event == null) {
+	        redirectAttributes.addFlashAttribute("errorMessage", "존재하지 않는 이벤트입니다.");
+	        return "redirect:/event/main"; // 또는 적절한 오류 페이지로 이동
+	    }
+
+	    // 1. 현재 서버 시간
+	    LocalDateTime now = LocalDateTime.now();
+
+	    // 2. 📌 [수정] java.util.Date를 java.time.LocalDateTime으로 변환
+	    Date eventDateFromDb = event.getEventDate();
+	    LocalDateTime eventDateTime = eventDateFromDb.toInstant()
+	                                                 .atZone(ZoneId.systemDefault())
+	                                                 .toLocalDateTime();
+
+	    // 3. 📌 [수정] 예매 마감 시간을 계산: 이벤트 날짜의 하루 전 23:59:59
+	    LocalDateTime ticketingCloseTime = eventDateTime.toLocalDate().minusDays(1).atTime(LocalTime.MAX);
+
+	    // 4. 📌 [수정] 현재 시간이 예매 마감 시간을 지났는지 검증
+	    if (now.isAfter(ticketingCloseTime)) {
+	        // 예매 기간이 아닐 경우, 상세 페이지로 리다이렉트하며 에러 메시지를 전달.
+	        redirectAttributes.addFlashAttribute("errorMessage", "예매 가능한 시간이 아닙니다.");
+	        // URL을 @RequestParam 형식에 맞게 변경
+	        return "redirect:/event/detail?event_id=" + eventId;
+	    }
+
+	    // 예매 가능 시간일 경우, 정상적으로 예매 페이지로 이동
+	    model.addAttribute("event", event);
+	    return "mainpage/reservation_page" ; // 템플릿 경로 추가해야함
+	}
 	
 	
 }

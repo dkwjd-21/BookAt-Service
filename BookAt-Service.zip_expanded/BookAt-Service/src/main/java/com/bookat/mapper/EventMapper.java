@@ -4,10 +4,9 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import org.apache.ibatis.annotations.Select;
-
 
 import com.bookat.dto.EventResDto;
+import com.bookat.entity.Book;
 
 @Mapper
 public interface EventMapper {
@@ -34,5 +33,7 @@ public interface EventMapper {
 	List<EventResDto> selectByStartTime();
 
 	List<EventResDto> selectByCloseTime();
+	
+	Book selectBookOne(String book_id);
 	
 }

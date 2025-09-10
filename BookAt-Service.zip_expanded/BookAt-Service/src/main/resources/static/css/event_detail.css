@@ -118,6 +118,15 @@ a {
   background-size: contain;
   cursor: pointer;
 }
+.main_container {
+  max-width: 1200px;
+  margin: 20px auto;
+  margin-top: 0;
+  background-color: #f0f2f5;
+  padding: 20px;
+
+  /* padding-right: 30px; */
+}
 
 .container {
   max-width: 1200px;
@@ -126,12 +135,12 @@ a {
   padding: 20px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   border-radius: 10px;
-  padding-right: 30px;
+  /* padding-right: 30px; */
+  position: relative;
 }
 
 .breadcrumb {
   color: #888;
-  margin-bottom: 20px;
 }
 
 .event-header {
@@ -156,6 +165,7 @@ a {
 
 .event-info {
   flex-grow: 1;
+  position: relative;
 }
 
 .event-title {
@@ -168,36 +178,46 @@ a {
   margin: 5px 0;
   font-family: Arial, Helvetica, sans-serif;
   font-weight: 500;
-  font-size: 25px;
+  font-size: 20px;
   line-height: normal;
 }
-
+.price-info {
+  display: flex;
+  position: absolute;
+  bottom: 50px;
+  width: 100%;
+}
 .price {
-  font-size: 24px;
+  font-size: 30px;
   font-weight: bold;
-  color: #3498db;
+  color: #f9d849;
   margin: 15px 0;
+  width: 20%;
+}
+.price-inform {
+  width: 80%;
+  margin: 15px 0;
+  color: #8b8b8b;
 }
 
 .actions {
   display: flex;
   gap: 10px;
   margin-top: 20px;
+  position: absolute;
+  bottom: 0;
 }
 
 .wishlist-btn,
 .reserve-btn {
   padding: 10px 20px;
   border: 1px solid #ccc;
-  background-color: white;
+  /* background-color: white; */
   cursor: pointer;
   font-size: 16px;
   border-radius: 5px;
-}
-
-.reserve-btn {
-  background-color: #3498db;
-  color: white;
+  /* background-color: #f9d849; */
+  color: rgb(0, 0, 0);
   border: none;
 }
 
@@ -209,11 +229,22 @@ a {
   display: flex;
   align-items: center;
   gap: 15px;
+  background-color: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  padding: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  width: 200px;
 }
 
 .related-book-image {
-  width: 80px;
-  height: 120px;
+  /* width: 100%; */
+  height: 200px; /* Fixed height for event covers */
+  object-fit: contain; /* Ensures the image fits without cropping */
+  border-radius: 4px;
+  margin-bottom: 10px;
+  background-color: #cccccc;
 }
 
 .event-details {

@@ -13,7 +13,7 @@ public class EventResDto {
 	
 
 	private int eventId;
-    private int bookId;
+    private String bookId;
     private String ticketType;
     private String eventName;
     private String eventDescription;

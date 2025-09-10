@@ -8,6 +8,7 @@
     <!-- Leaflet 라이브러리 가져오기(여기서는 1.9.4를 사용했지만, 원하는 버전으로 바꿔도 무방 -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
     <style>
       html,
       body {
@@ -18,15 +19,15 @@
       #map {
         /* 지도의 크기를 설정 */
         width: 400px;
-        height: 400px;
-        /* border-radius: 100%; */
+        height: 240px;
+        border-radius: 10px;
       }
     </style>
   </head>
   <body>
     <header class="main-header">
       <div class="header-top">
-        <a th:href="@{/event/main}"><img th:src="@{/images/BookAt-Logo.png}" class="main-logo-img" /></a>
+        <a th:href="@{/event}"><img th:src="@{/images/BookAt-Logo.png}" class="main-logo-img" /></a>
 
         <div class="auth-links">
           <!--<th:block th:if="${isLoggedIn == null}">-->
@@ -57,102 +58,120 @@
       </div>
     </header>
     <!------------------------------------------------------------>
-    <main class="container">
-      <div class="breadcrumb">
-        이벤트 카테고리 >
-        <span th:switch="${event.localCode}">
-          <span th:case="'GYEONGGI_INCHEON'">경기/인천</span>
-          <span th:case="'SEOUL'">서울</span>
-          <span th:case="'JEOLLA'">전라</span>
-          <span th:case="'JEJU'">제주</span>
-          <span th:case="'GANGWON'">강원</span>
-          <span th:case="'CHUNGCHEONG'">충청</span>
-          <span th:case="'GYEONGSANG'">경상</span>
-        </span>
-      </div>
-    </main>
-
-    <main class="container">
-      <section class="event-header">
-        <div class="event-image-container">
-          <img th:src="${event.eventImage}" alt="Event Image" class="event-main-image" />
+    <main class="main_container">
+      <main class="container">
+        <div class="breadcrumb">
+          이벤트 카테고리 >
+          <span th:switch="${event.localCode}">
+            <span th:case="'GYEONGGI_INCHEON'">경기/인천</span>
+            <span th:case="'SEOUL'">서울</span>
+            <span th:case="'JEOLLA'">전라</span>
+            <span th:case="'JEJU'">제주</span>
+            <span th:case="'GANGWON'">강원</span>
+            <span th:case="'CHUNGCHEONG'">충청</span>
+            <span th:case="'GYEONGSANG'">경상</span>
+          </span>
         </div>
-        <div class="event-info">
-          <h1 th:text="${event.eventName}" class="event-title"></h1>
-          <div class="meta">
-            <p class="date" th:text="${#dates.format(event.eventDate, 'yyyy년 MM월 dd일')}"></p>
-            <p class="location" th:text="${event.address}"></p>
-            <div class="rating">
-              <!-- <span th:text="${event.rating}"></span> -->
+      </main>
+
+      <main class="container">
+        <section class="event-header">
+          <div class="event-image-container">
+            <img th:src="${event.eventImage}" alt="Event Image" class="event-main-image" />
+          </div>
+          <div class="event-info">
+            <h1 th:text="${event.eventName}" class="event-title"></h1>
+            <div class="meta">
+              <h2>날짜</h2>
+              <p class="date" th:text="${#dates.format(event.eventDate, 'yyyy년 MM월 dd일')}"></p>
+              <h2>주소</h2>
+              <p class="location" th:text="${event.address} + '원'"></p>
+              <div class="rating">
+                <!-- <span th:text="${event.rating}"></span> -->
+              </div>
+            </div>
+            <hr />
+            <div class="price-info">
+              <span class="price" th:text="${event.eventPrice} + '원'"></span>
+              <span class="price-inform">표시된 금액은 기준가이며,<br />선택 옵션 또는 할인/추가 요금에 따라 실제 결제 금액이 달라질 수 있습니다.</span>
+            </div>
+            <div class="actions">
+              <button class="wishlist-btn">찜</button>
+              <button class="wishlist-btn">알림받기</button>
+              <button id="reserve-btn" class="reserve-btn" th:data-event-date="${#dates.format(event.eventDate, 'yyyy-MM-dd')}" style="background-color: #f9d849"></button>
             </div>
           </div>
-          <hr />
-          <div class="price" th:text="${event.eventPrice} + '원'"></div>
-          <div class="reservation-status">
-            <!-- <p>예매 가능: <span th:text="${event.remainingTickets}"></span>좌석 남음 (선착순)</p> -->
+        </section>
+      </main>
+
+      <main class="container">
+        <section class="related-books">
+          <h2>관련 도서</h2>
+          <div class="related-book-item">
+            <img th:src="${book.bookCover}" alt="Book Cover" class="related-book-image" />
+            <p th:text="${book.bookTitle}"></p>
           </div>
-          <div class="actions">
-            <!-- <button class="wishlist-btn">찜</button>
-            <button th:if="${event.isPreOpen}" class="reserve-btn" th:text="${event.openDate} + ' 오픈예정'"></button>
-            <button th:unless="${event.isPreOpen}" class="reserve-btn">예매하기</button> -->
+        </section>
+      </main>
+
+      <main class="container">
+        <section class="event-details">
+          <div class="event-description">
+            <h2>이벤트 소개</h2>
+            <p th:text="${event.eventDescription}"></p>
+            <h2>장소</h2>
+            <p th:text="${event.address}"></p>
+            <!--<p th:text="'정원 ' + ${event.maxAttendees} + '명'"></p>-->
+            <h2>참가 금액</h2>
+            <table>
+              <tr>
+                <td>성인</td>
+                <td style="padding-left: 10px" th:text="${#numbers.formatDecimal(event.eventPrice, 0, 'COMMA', 0, 'POINT')} + '원'"></td>
+              </tr>
+              <tr>
+                <td>청소년</td>
+                <td style="padding-left: 10px" th:text="${#numbers.formatDecimal(event.eventPrice * 0.8, 0, 'COMMA', 0, 'POINT')} + '원'"></td>
+              </tr>
+              <tr>
+                <td>어린이</td>
+                <td style="padding-left: 10px" th:text="${#numbers.formatDecimal(event.eventPrice * 0.5, 0, 'COMMA', 0, 'POINT')} + '원'"></td>
+              </tr>
+            </table>
           </div>
-        </div>
-      </section>
-    </main>
+          <div class="event-map">
+            <div class="map-placeholder">
+              <div id="map"></div>
+              <script>
+                // Leaflet 초기화
+                var map = L.map("map").setView({ lon: 127.766, lat: 36.355 }, 13);
 
-    <main class="container">
-      <section class="related-books">
-        <h2>관련 도서</h2>
-        <!-- <div th:each="book : ${relatedBooks}" class="related-book-item">
-          <img th:src="${book.bookImage}" alt="Book Cover" class="related-book-image" />
-          <p th:text="${book.bookName}"></p>
-        </div> -->
-      </section>
-    </main>
+                // 최대 범위 지정
+                map.setMaxBounds([
+                  [32, 123],
+                  [44, 132.5],
+                ]);
 
-    <main class="container">
-      <section class="event-details">
-        <h2>이벤트 소개</h2>
-        <div class="event-description">
-          <p th:text="${event.eventDescription}"></p>
-          <p th:text="${event.address}"></p>
-          <!--<p th:text="'정원 ' + ${event.maxAttendees} + '명'"></p>
-          <p th:text="'정가 ' + ${event.originalPrice} + '원'"></p>
-          <p th:text="'할인가 ' + ${event.discountPrice} + '원'"></p>-->
-        </div>
-        <div class="event-map">
-          <div class="map-placeholder">
-            <div id="map"></div>
-            <script>
-              // Leaflet 초기화
-              var map = L.map("map").setView({ lon: 127.766, lat: 36.355 }, 13);
+                // '오픈스트리트맵 한국'에서 서비스하는 '군사 시설 없는 오픈스트리트맵 지도 타일'을 삽입
+                L.tileLayer("https://tiles.osm.kr/hot/{z}/{x}/{y}.png", {
+                  maxZoom: 19,
+                  attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap 기여자</a>',
+                }).addTo(map);
 
-              // 최대 범위 지정
-              map.setMaxBounds([
-                [32, 123],
-                [44, 132.5],
-              ]);
+                // 축척 막대를 지도 왼쪽 하단에 노출
+                L.control.scale({ imperial: true, metric: true }).addTo(map);
 
-              // '오픈스트리트맵 한국'에서 서비스하는 '군사 시설 없는 오픈스트리트맵 지도 타일'을 삽입
-              L.tileLayer("https://tiles.osm.kr/hot/{z}/{x}/{y}.png", {
-                maxZoom: 19,
-                attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap 기여자</a>',
-              }).addTo(map);
-
-              // 축척 막대를 지도 왼쪽 하단에 노출
-              L.control.scale({ imperial: true, metric: true }).addTo(map);
-
-              // 마커를 지도에 추가
-              L.marker({ lon: 127.766, lat: 36.355 }).bindPopup("@{event.address}").addTo(map);
-            </script>
+                // 마커를 지도에 추가
+                L.marker({ lon: 127.766, lat: 36.355 }).bindPopup("@{event.address}").addTo(map);
+              </script>
+            </div>
           </div>
-        </div>
-      </section>
-    </main>
+        </section>
+      </main>
 
-    <main class="container">
-      <section class="review-section">
-        <!-- <h2>관람 후기 (<span th:text="${reviews.size()}"></span>)</h2>
+      <main class="container">
+        <section class="review-section">
+          <h2>리뷰</h2>
+          <!-- <h2>관람 후기 (<span th:text="${reviews.size()}"></span>)</h2>
         <button class="review-write-btn">리뷰 작성</button>
         <div class="review-list">
           <div th:each="review : ${reviews}" class="review-item">
@@ -161,14 +180,14 @@
             <p class="review-text" th:text="${review.content}"></p>
           </div>
         </div> -->
-      </section>
-    </main>
+        </section>
+      </main>
 
-    <main class="container">
-      <section class="cancellation-info">
-        <h2>티켓 예매 및 취소/환불 안내</h2>
-        <div>
-          <pre class="info_text">
+      <main class="container">
+        <section class="cancellation-info">
+          <h2>티켓 예매 및 취소/환불 안내</h2>
+          <div>
+            <pre class="info_text">
 1. 예매 기간
   - 예매 오픈: 이벤트 당일 기준 1개월 전
   - 예매 마감: 이벤트 시작 직전까지
@@ -182,10 +201,13 @@
 4. 좌석 변경 안내
   - 동일 가격의 좌석으로 변경 가능합니다.
   - 기존 좌석은 취소 처리 후 새 좌석으로 즉시 배정됩니다.
-          </pre>
-        </div>
-      </section>
+          </pre
+            >
+          </div>
+        </section>
+      </main>
     </main>
+
     <!-------------------------------------------------------------------------------->
     <footer th:fragment="site-footer" class="footer" style="border: 1px solid #bfbfbf; margin: 0 auto; color: #bfbfbf; background: #eaeaea">
       <div class="ft_content" style="padding: 40px 100px">
@@ -207,5 +229,6 @@
         </div>
       </div>
     </footer>
+    <script th:src="@{/js/event_detail.js}"></script>
   </body>
 </html>
