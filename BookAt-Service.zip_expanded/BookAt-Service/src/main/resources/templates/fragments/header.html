@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>header</title>
+<link rel="stylesheet" th:href="@{/css/header.css}" />
+<script th:inline="javascript" th:src="@{/js/loginIsOk.js}"></script>
+</head>
+<body>
+	
+	<header th:fragment="main-header" class="main-header">
+	  <div class="header-top">
+	    <a th:href="@{/mainpage}">
+			<img th:src="@{/images/BookAt-Logo.png}" class="main-logo-img" />
+	    </a>
+	    <div class="auth-links">
+			<button id="logoutBtn" style="display:none;">로그아웃</button>
+			<button id="loginBtn">로그인</button>
+			<button id="signupBtn">회원가입</button>
+	    </div>
+	  </div>
+	  <div class="header-bottom">
+	    <nav class="nav-links">
+	      <a th:href="@{/books}" class="nav-item active">도서</a>
+	      <a th:href="@{/events}" class="nav-item">이벤트</a>
+	    </nav>
+	    <div class="search-bar">
+	      <form id="searchForm" th:action="@{/search}" method="get">
+	        <input
+	          type="text"
+	          name="search-query"
+	          placeholder="검색어를 입력하세요"
+	        />
+	        <span
+	          class="search-icon"
+	          onclick="document.getElementById('searchForm').submit();"
+	        ></span>
+	      </form>
+	    </div>
+	  </div>
+	</header>
+
+</body>
+</html>

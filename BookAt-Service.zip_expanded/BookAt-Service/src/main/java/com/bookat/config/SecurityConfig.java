@@ -2,30 +2,45 @@ package com.bookat.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import com.bookat.security.JwtAuthenticationFilter;
+
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Configuration
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
+    	
+    	log.info("-- securityFilterChain --");
+    	
         http
-            // 1. CSRF 보호 기능을 비활성화합니다. (POST 요청을 허용하기 위해)
-            .csrf(csrf -> csrf.disable())
-
-            // 2. 모든 HTTP 요청에 대해 접근을 허용합니다.
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/**").permitAll() 
-            );
-
-        return http.build();
-    }
-    
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-    	return new BCryptPasswordEncoder();
-    }
+        .csrf(csrf -> csrf.disable())
+        .formLogin(AbstractHttpConfigurer::disable)
+//        .httpBasic(Customizer.withDefaults())
+        .authorizeHttpRequests(auth -> auth
+        		.requestMatchers("/css/**", "/js/**", "/images/**").permitAll()	// 정적 리소스 접근 가능
+        		.requestMatchers("/", "/user/**", "/auth/**").permitAll()		// 로그인 전 접근 가능
+//        		.requestMatchers("/mainpage/**", "/books/**", "/events/**").permitAll()
+        		.requestMatchers("/pay/**").authenticated()
+                .anyRequest().denyAll()
+        ).addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+		
+		return http.build();
+	}
+	
+	@Bean
+	public PasswordEncoder passwordEncoder() {
+		return new BCryptPasswordEncoder();
+	}
+	
 }
