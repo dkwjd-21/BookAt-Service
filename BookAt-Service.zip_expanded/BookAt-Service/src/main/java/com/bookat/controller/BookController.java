@@ -34,7 +34,11 @@ public class BookController{
 	
 	// 메인 : /books
 	@GetMapping
-	public String books(@RequestParam(value = "category", required = false) String category, Model model) {
+	public String books(@RequestParam(value = "category", required = false) String category,
+			            @RequestParam(value="bPage", defaultValue="0") int bPage,
+                        @RequestParam(value="nPage", defaultValue="0") int nPage,
+                        @RequestParam(value="ePage", defaultValue="0") int ePage,
+			            Model model) {
 		
         List<BookDto> books = null;
         
@@ -51,10 +55,12 @@ public class BookController{
         }
         
 		//카테 고리 미선택 시 메인 섹션(베스트/신간/이벤트)
-		if(category == null) {
-		model.addAttribute("best", bookService.getBestSellers(6));
-		model.addAttribute("newest", bookService.getNewBooks(6));
-		model.addAttribute("events", bookService.getEventBooks(6));
+		
+        if(category == null) {
+        int SIZE = 60;
+		model.addAttribute("best",   bookService.getBestSellers(SIZE));
+		model.addAttribute("newest", bookService.getNewBooks   (SIZE));
+		model.addAttribute("events", bookService.getEventBooks (SIZE));
 		}
     
         model.addAttribute("books", books);
