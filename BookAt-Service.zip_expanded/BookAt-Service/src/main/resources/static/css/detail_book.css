@@ -1,0 +1,165 @@
+@charset "UTF-8";
+
+/* ========== 공통 패널(흰 배경, 라운드, 그림자) ========== */
+.panel {
+  background:#fff;
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.06);
+  padding: 20px;
+  margin:0 auto;max-width: 1200px;
+}
+
+/* 상단 카테고리 바 */
+.panel-crumb {
+  display:flex;
+  align-items:center;
+  gap: 10px;
+  margin-top:30px;
+}
+
+/* ========== 카테고리 라벨/링크 ========== */
+.crumb-label {
+  font-size: 18px;        
+  font-weight: 700;
+  color:#222;
+}
+
+.crumb-cat,
+.crumb-cat:link,
+.crumb-cat:visited {
+  font-size: 16px;        
+  font-weight: 600;
+  color:#6b7280;
+  text-decoration: none;   /* 밑줄 제거 */
+}
+.crumb-cat:hover { color:#222; text-decoration: none; }
+
+/* ========== 상세 상단 레이아웃 ========== */
+a.btn, a.btn:link, a.btn:visited, a.btn:hover, a.btn:active {
+  text-decoration: none;
+  color: #000;
+  display: inline-block; /* 필요 시 버튼 박스 형태 */
+}
+
+.detail-grid {
+  display:grid;
+  grid-template-columns: 340px 1fr;
+  gap: 28px;
+  align-items: start;
+}
+.detail-thumb {
+  width: 310px; height: 410px; object-fit: contain;
+  border-radius: 12px; background:#fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,.06);
+}
+
+/* 타이틀/메타/가격 */
+.detail-title {
+  font-size: 30px;         
+  font-weight: 800;
+  margin: 0 0 12px;
+}
+.detail-meta { color:#555; font-size: 20px; line-height: 1.8; }
+
+/* 가격 줄 */
+.detail-price-row {
+  display:flex; align-items: baseline; gap: 10px; margin: 18px 0 18px;
+}
+.price-number { color:#A8C66C; font-weight: 800; font-size: 24px; letter-spacing:.2px; }
+.ship-note { font-size: 14px; color:#9CA3AF; }
+
+/* 리뷰와 가격 사이 구분선 */
+.soft-divider {
+  height: 2px;
+  background: #d1d5db;  
+    margin: 18px 0;
+}
+
+/* 수량/버튼 줄 */
+.detail-qty-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 18px 0;
+  font-size: 16px;
+}
+
+.detail-qty {
+  width: 60px;              /* 원하는 고정 크기 */
+  height: 28px;             /* 버튼/입력 높이 맞춤 */
+  text-align: center;       /* 숫자 가운데 정렬 */
+  padding: 0;               /* 불필요한 여백 제거 */
+  border: 1px solid #D1D5DB;
+  border-radius: 8px;
+
+}
+
+/* 버튼 줄 */
+.detail-btn-row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin: 18px 0;
+  font-size: 16px;
+}
+
+/* 버튼 */
+.btn {
+  padding: 10px 16px;
+  border: 1px solid #D1D5DB;
+  border-radius: 12px;
+  background: #fff;
+  cursor: pointer;
+  color:#000;                 /* 글씨색은 항상 검정 */
+  font-size: 16px;
+}
+.btn--primary { border-color:#D1D5DB; }
+.btn:hover,
+.btn--primary:hover {
+  background:#B5D173;        /* 연두색 배경 */
+  border-color:#B5D173;
+  color:#000;                /* 글씨색 고정(검정) */
+  font-weight: 1000;          /* hover 시 조금 더 진하게 */
+}
+
+/* 위시리스트 하트 */
+.btn-heart {
+  display:inline-flex; align-items:center; gap:6px;
+  padding: 8px 12px;
+  border:1px solid #e5e7eb;
+  border-radius: 999px;
+  background:#fff;
+  cursor:pointer; color:#222;
+}
+.btn-heart .icon { font-size:16px; }
+.btn-heart.is-liked {        /* 채워진 상태 */
+  background:#ffeef2;
+  border-color:#ffd6e0;
+  color:#e34a6f;
+}
+.btn-heart:hover { background:#fff7fa; }
+
+.review-item { padding:12px 0; border-top:1px solid #eee; }
+.stars span { color:#d1d5db; }
+.stars span.on { color:#B5D173;}
+
+/* 취소/환불 규정 리스트 스타일 */
+.policy-list {
+  margin: 0;
+  padding-left: 20px;       /* 번호 여백 */
+  list-style: decimal;
+}
+
+.policy-list > li {
+  margin-bottom: 10px;
+}
+
+.policy-sub {
+  margin: 6px 0 0 16px;     /* 점 목록 들여쓰기 */
+  padding-left: 14px;
+  list-style: disc;         /* • 불릿 */
+}
+
+.policy-sub > li {
+  margin: 4px 0;
+}

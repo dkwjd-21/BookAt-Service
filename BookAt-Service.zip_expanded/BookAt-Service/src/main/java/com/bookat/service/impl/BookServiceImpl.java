@@ -45,19 +45,33 @@ public class BookServiceImpl implements BookService {
     return bookMapper.findEventBooks(limit).stream().map(BookServiceImpl::toRes).collect(Collectors.toList());
   }
   
+  //상세페이지
+  @Override
+  public BookDto selectOne(String bookId) {
+	  Book b = bookMapper.selectOne(bookId);
+	    return BookDto.builder()
+	            .bookId(b.getBookId())
+	            .title(b.getBookTitle())
+	            .author(b.getAuthor())
+	            .publisher(b.getPublisher())
+	            .price(b.getBookPrice())
+	            .imageUrl(b.getBookCover())   
+	            .category(b.getCategory())
+	            .pubdate(b.getPubdate())
+	            .description(b.getDescription())
+	            .build();
+  }
   
   
   // 카테고리 도서 조회
   private static BookDto toDto(Book b){
-	    String img = (b.getBookCover()==null || b.getBookCover().isBlank())
-	      ? "https://placehold.co/300x420?text=Book" : b.getBookCover();
 	    return BookDto.builder()
 	      .bookId(b.getBookId())
 	      .title(b.getBookTitle())
 	      .author(b.getAuthor())
 	      .publisher(b.getPublisher())
-	      .price(b.getBookPrice())   // ← 그대로(BigDecimal)
-	      .imageUrl(img)
+	      .price(b.getBookPrice())   
+	      .imageUrl(b.getBookCover())
 	      .category(b.getCategory())
 	      .build();
 	  }
