@@ -76,20 +76,10 @@ public class BookController{
 		//머지 후 삭제
 		model.addAttribute("events", java.util.Collections.emptyList());
 		
-		//머지 후 살려야됨
-        //List<ReviewDto> reviews = reviewService.findByBookId(bookId);
-        //int reviewCount = reviewService.countByBookId(bookId);
 		
-		//머지 후 삭제
-	    java.util.List<ReviewDto> reviews = java.util.Collections.emptyList();
-	    int reviewCount = 0;
-	    if (reviewService != null) {
-	        try {
-	            reviews = reviewService.findByBookId(bookId);
-	            reviewCount = reviewService.countByBookId(bookId);
-	        } catch (DataAccessException e) {
-	        }
-	    }
+        List<ReviewDto> reviews = reviewService.findByBookId(bookId);
+        int reviewCount = reviewService.countByBookId(bookId);
+		
 	    
 	    model.addAttribute("reviews", reviews);
 	    model.addAttribute("reviewCount", reviewCount);

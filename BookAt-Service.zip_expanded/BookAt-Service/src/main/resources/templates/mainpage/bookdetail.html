@@ -142,23 +142,26 @@
 </a>
     </form>
   </div>
+  <div class="soft-divider"></div>
 
   <!-- 리뷰 없을 때 -->
   <div th:if="${#lists.isEmpty(reviews)}" style="color:#6b7280">작성된 리뷰가 없습니다.</div>
 
   <!-- 리뷰 리스트 -->
-  <div th:each="rv : ${reviews}" style="padding:12px 0;border-top:1px solid #eee;">
+  <div th:each="rv : ${reviews}" style="padding:30px 0;border-bottom:2px solid #eee;">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
       <!-- 별점 표시: 가득★ 와 빈☆를 5개 기준으로 -->
-      <span>
-        <span th:each="i: ${#numbers.sequence(1, rv.rating)}">★</span>
-        <span th:each="i: ${#numbers.sequence(1, 5 - rv.rating)}" style="color:#d1d5db">★</span>
-      </span>
-      <span class="meta" th:text="${rv.userId}">user_id</span>
-      <span class="meta" style="margin-left:6px;"
-            th:text="${#temporals.format(rv.createdAt, 'yyyy.MM.dd')}">2025.09.01</span>
+<span>
+ <span class="stars">
+  <span th:each="i : ${#numbers.sequence(1,5)}"
+        th:text="${i <= rv.rating} ? '★' : '☆'"
+        th:classappend="${i <= rv.rating} ? 'on' : ''">★</span>
+</span>
+</span>
+      <span class="meta" th:text="${rv.userId}">user_id</span>&nbsp;&nbsp;|&nbsp;&nbsp;
+      <span class="meta"th:text="${#temporals.format(rv.createdAt, 'yyyy.MM.dd')}">2025.09.01</span>
     </div>
-    <div style="white-space:pre-line;color:#374151;" th:text="${rv.content}">리뷰 내용</div>
+    <div style="white-space:pre-line;color:#374151;margin-top:20px;margin-left:90px;" th:text="${rv.content}">리뷰 내용</div>
   </div>
 </section>
 

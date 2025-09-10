@@ -140,6 +140,8 @@ a.btn, a.btn:link, a.btn:visited, a.btn:hover, a.btn:active {
 .btn-heart:hover { background:#fff7fa; }
 
 .review-item { padding:12px 0; border-top:1px solid #eee; }
+.stars span { color:#d1d5db; }
+.stars span.on { color:#B5D173;}
 
 /* 취소/환불 규정 리스트 스타일 */
 .policy-list {
