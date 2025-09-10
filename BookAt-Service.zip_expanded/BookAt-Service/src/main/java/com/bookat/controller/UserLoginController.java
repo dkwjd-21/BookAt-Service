@@ -11,7 +11,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
 import com.bookat.dto.UserLoginRequest;
@@ -34,13 +32,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Controller
-//@RestController
 @RequestMapping("/user")
 @RequiredArgsConstructor
 public class UserLoginController {
@@ -48,6 +44,7 @@ public class UserLoginController {
     private final JwtTokenProvider jwtTokenProvider;
 	private final UserLoginServiceImpl loginService;
 	
+	// 아이디 찾기 간편인증 정보
     @Value("${portone.public.store-id}")
     private String portoneStoreId;
     @Value("${portone.public.channel-key}")
@@ -55,33 +52,31 @@ public class UserLoginController {
 	@Value("${portone.api_secret}")
 	private String portoneApiSecret;
 	
-	// 로그인
+	// 로그인 페이지로 이동
 	@GetMapping("/login")
-	public String loginForm(Model model) {
-		
-		model.addAttribute("userLogin", new UserLoginRequest());
+	public String loginForm() {
 		
 		return "user/loginForm";
 	}
 	
+	// 로그인 처리
 	@PostMapping("/login")
 	public ResponseEntity<?> login(@RequestBody UserLoginRequest userLoginRequest, HttpServletResponse response) {
 		
 		try {
-			// refreshToken 서비스에서 디비에 저장 (지금은 비활성화)
+			// refresh token 은 Service 에서 디비에 저장 (지금은 비활성화)
 			UserLoginResponse tokens = loginService.login(userLoginRequest);
 			
-			// refreshToken 쿠키 저장
+			// refresh token 쿠키 저장
 			Cookie refreshCookie  = new Cookie("refreshToken", tokens.getRefreshToken());
 			refreshCookie .setHttpOnly(true);
 //			refreshCookie .setSecure(true);
 			refreshCookie .setPath("/");
-			refreshCookie .setMaxAge(60 * 60 * 24 * 7);	// 7일
+			refreshCookie .setMaxAge(60 * 60 * 24 * 7);		// 7일
 			response.addCookie(refreshCookie);
 			
 			return ResponseEntity.ok(new UserLoginResponse(tokens.getAccessToken(), null));
 		} catch (LoginException le) {
-			
 			// 사용자가 없거나 비밀번호 불일치
 		    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(le.getMessage());
 		}
@@ -95,20 +90,22 @@ public class UserLoginController {
 		if(accessToken != null && accessToken.startsWith("Bearer ")) {
 	        try {
 	            String token = accessToken.replace("Bearer ", "");
-	            userId = jwtTokenProvider.getUserIdFromToken(token); // 만료 토큰도 파싱 가능하도록 구현
+	            userId = jwtTokenProvider.getUserIdFromToken(token);
 	        } catch(Exception e) {
-	            log.warn("Access Token 파싱 실패, 로그아웃 계속 진행");
+	            log.warn("access token 파싱 실패, 로그아웃 계속 진행");
 	        }
 	    }
 		
 		// 디비에서도 삭제하기 위함
+		/*
 		if(userId != null) {
-//	        User user = loginService.findUserById(userId);
-//	        if(user != null) {
-//	            user.setRefreshToken(null);
-//	            loginService.refreshTokenUpdate(user.getRefreshToken(), user.getUserId());
-//	        }
+	        User user = loginService.findUserById(userId);
+	        if(user != null) {
+	            user.setRefreshToken(null);
+	            loginService.updateRefreshToken(user.getRefreshToken(), user.getUserId());
+	        }
 	    }
+	    */
 
 		// 쿠키 삭제
 	    Cookie refreshCookie = new Cookie("refreshToken", null);
@@ -120,7 +117,7 @@ public class UserLoginController {
 	    return ResponseEntity.ok("로그아웃 성공");
 	}
 	
-	// 아이디 찾기
+	// 아이디 찾기 페이지로 이동
 	@GetMapping("/findId")
 	public String findIdForm(Model model) {
 		
@@ -131,6 +128,7 @@ public class UserLoginController {
 		return "user/findIdForm";
 	}
 	
+	// 간편인증으로 사용자 검증
 	@PostMapping("/verify")
 	@ResponseBody
     public ResponseEntity<Map<String, Object>> verifyIdentity(
@@ -154,11 +152,10 @@ public class UserLoginController {
             
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode root = objectMapper.readTree(response.getBody());
-            
            
             String status = root.path("status").asText();
 
-            System.out.println("PortOne 응답 데이터: "+response.getBody());
+            log.info("PortOne 응답 데이터: {}", response.getBody());
             
             if ("VERIFIED".equals(status)) {
                 // 인증 성공
@@ -170,6 +167,7 @@ public class UserLoginController {
                 String birth = customerNode.path("birthDate").asText();
                 
                 try {
+                	// 이름, 전화번호, 생년월일로 사용자 조회
                 	User user = loginService.findIdBySimpleAuth(name, phone, birth);
                     responseBody.put("status", "success");
                     responseBody.put("userId", user.getUserId());
@@ -198,7 +196,7 @@ public class UserLoginController {
         }
     }
 	
-	// 비밀번호 찾기
+	// 비밀번호 찾기 페이지로 이동
 	@GetMapping("/findPw")
 	public String findPwCheckForm() {
 		return "user/findPasswordForm";
@@ -218,12 +216,14 @@ public class UserLoginController {
         
     }
 
+	// 비밀번호 변경
     @PostMapping("/changePassword")
     @ResponseBody
     public Map<String,Object> changePassword(@RequestParam String userId, @RequestParam String password) {
         Map<String,Object> result = new HashMap<>();
 
         User user = loginService.findUserById(userId);
+        
         if(user == null) {
             result.put("success", false);
             result.put("message", "존재하지 않는 아이디입니다.");

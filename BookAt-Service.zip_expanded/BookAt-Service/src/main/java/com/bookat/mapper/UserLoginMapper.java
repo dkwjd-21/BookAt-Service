@@ -7,7 +7,7 @@ import org.apache.ibatis.annotations.Mapper;
 import com.bookat.entity.User;
 
 @Mapper
-public interface UserMapper {
+public interface UserLoginMapper {
 	
 	User findUserById(String userId);
 	void updateUserRefreshToken(Map<String, String> values);

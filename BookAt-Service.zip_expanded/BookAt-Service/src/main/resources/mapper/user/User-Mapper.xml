@@ -3,7 +3,7 @@
   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
   "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
   
-<mapper namespace="com.bookat.mapper.UserMapper">
+<mapper namespace="com.bookat.mapper.UserLoginMapper">
 	
 	<select id="findUserById" resultType="User">
 		SELECT * FROM USERS WHERE USER_ID = #{userId}

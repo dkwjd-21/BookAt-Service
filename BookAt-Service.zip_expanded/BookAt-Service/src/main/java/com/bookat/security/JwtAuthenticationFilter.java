@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.bookat.entity.User;
-import com.bookat.mapper.UserMapper;
+import com.bookat.mapper.UserLoginMapper;
 import com.bookat.util.JwtTokenProvider;
 
 import jakarta.servlet.FilterChain;
@@ -24,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	
     private final JwtTokenProvider jwtTokenProvider;
-    private final UserMapper userMapper;
+    private final UserLoginMapper userMapper;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,

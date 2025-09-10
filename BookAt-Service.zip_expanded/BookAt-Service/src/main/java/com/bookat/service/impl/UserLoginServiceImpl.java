@@ -10,7 +10,7 @@ import com.bookat.dto.UserLoginRequest;
 import com.bookat.dto.UserLoginResponse;
 import com.bookat.entity.User;
 import com.bookat.exception.LoginException;
-import com.bookat.mapper.UserMapper;
+import com.bookat.mapper.UserLoginMapper;
 import com.bookat.service.UserLoginService;
 import com.bookat.util.JwtTokenProvider;
 
@@ -22,10 +22,11 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class UserLoginServiceImpl implements UserLoginService {
 	
-	private final UserMapper userMapper;
+	private final UserLoginMapper userMapper;
 	private final PasswordEncoder passwordEncoder;
 	private final JwtTokenProvider jwtTokenProvider;
 	
+	// 로그인
 	@Override
 	public UserLoginResponse login (UserLoginRequest userLoginRequest) {
 		
@@ -53,11 +54,13 @@ public class UserLoginServiceImpl implements UserLoginService {
 		return new UserLoginResponse(accessToken, refreshToken);
 	}
 	
+	// userId 로 사용자 조회
 	@Override
 	public User findUserById(String userId) {
 		return userMapper.findUserById(userId);
 	}
 	
+	// 비밀번호 변경 : 아이디와 전화번호로 사용자 조회
 	@Override
 	public User findPwByIdPhone(String userId, String phone) {
 		User user = userMapper.findUserById(userId);
@@ -66,6 +69,7 @@ public class UserLoginServiceImpl implements UserLoginService {
 			throw new LoginException("존재하지 않는 아이디입니다.");
 		}
 		
+		// DB에 저장된 전화번호의 '-' 제거
 		String dbPhone = user.getPhone() != null ? user.getPhone().replaceAll("-", "") : "";
 		
 		if(!phone.equals(dbPhone)) {
@@ -75,6 +79,7 @@ public class UserLoginServiceImpl implements UserLoginService {
 		return user;
 	}
 	
+	// refresh token DB에 저장
 	@Override
 	public void updateRefreshToken(String refreshToken, String userId) {
 		Map<String, String> values = new HashMap<>();
@@ -83,6 +88,7 @@ public class UserLoginServiceImpl implements UserLoginService {
 		userMapper.updateUserRefreshToken(values);
 	}
 	
+	// 비밀번호 변경
 	@Override
 	public void updatePassword(String password, String userId) {
 		Map<String, String> values = new HashMap<>();
@@ -91,9 +97,11 @@ public class UserLoginServiceImpl implements UserLoginService {
 		userMapper.updatePassword(values);
 	}
 	
+	// 간편인증 후 얻은 정보로 userId 조회
 	@Override
 	public User findIdBySimpleAuth(String userName, String phone, String birth) {
 
+		// '-' 없이 넘어온 전화번호에 '-' 추가시키기
 		if(phone != null && phone.length() == 11) {
 			phone = phone.replaceFirst("(\\d{3})(\\d{4})(\\d{4})", "$1-$2-$3");
 		}

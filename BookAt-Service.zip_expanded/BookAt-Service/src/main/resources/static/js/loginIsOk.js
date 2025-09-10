@@ -12,7 +12,7 @@ $(document).ready(async function() {
 	        const payload = JSON.parse(atob(token.split(".")[1]));
 	        const exp = payload.exp * 1000;
 			const timeLeft = exp - Date.now();
-			console.log("Access token 남은 시간(ms):", timeLeft);
+			console.log("access token 남은 시간(ms):", timeLeft);
 	        return timeLeft < ACCESS_TOKEN_REFRESH_THRESHOLD; // 15초 전 갱신
 	    } catch(e) {
 	        return true;
@@ -72,7 +72,7 @@ $(document).ready(async function() {
                     token = res.accessToken;
                 }
             } catch(err) {
-                console.log("refresh 토큰 만료, 로그인 실패, access token 발급 불가");
+                console.log("refresh token 만료, 로그인 실패, access token 발급 불가");
 				// 리프레시 토큰 만료되면 자동 로그아웃
 				await handleLogout();
                 token = null;
@@ -101,6 +101,7 @@ $(document).ready(async function() {
 				$("#logoutBtn").hide();
 			}
         } else {
+			// 리프레시 토큰 null
             $("#loginBtn, #signupBtn").show();
             $("#logoutBtn").hide();
         }

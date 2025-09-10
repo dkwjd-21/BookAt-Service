@@ -19,6 +19,7 @@
 		    $("#user-id-error, #user-pw-error").hide().text("");
 		    $("#userId, #userPw").removeClass("input-error");
 			
+			// 공란 검증은 프론트에서만 진행
 			if(userId === "") {
 			    $("#user-id-error").text("아이디를 입력해주세요.").show();
 				userId.focus();
@@ -37,7 +38,7 @@
                 contentType: "application/json",
                 data: JSON.stringify({ userId, userPw }),
                 success: function(data) {
-                    // accessToken localStorage 저장
+                    // access token 은 localStorage 저장
                     localStorage.setItem(accessToken, data.accessToken);
                     window.location.href = "/";
                 },
@@ -69,7 +70,7 @@
 		<h1>로그인</h1>
 		
 		<div class="login-container">
-			<form id="input-form" class="input-form" th:object="${userLogin}">
+			<form id="input-form" class="input-form">
 			    <div>
 			        <label for="userId">아이디</label>
 			        <input type="text" id="userId" name="userId" placeholder="아이디를 입력해주세요.">
@@ -84,6 +85,7 @@
 			</form>
 			
 			<div class="links">
+				<a href="/">메인으로</a><span>|</span>
 				<a href="/user/findId">아이디 찾기</a><span>|</span>
 				<a href="/user/findPw">비밀번호 찾기</a><span>|</span>
 				<a href="/user/signup">회원가입</a>
