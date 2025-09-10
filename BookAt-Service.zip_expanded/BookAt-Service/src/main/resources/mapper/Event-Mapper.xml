@@ -24,5 +24,26 @@
     <select id="selectByLocalCodeAndCloseTime" resultType="com.bookat.dto.EventResDto">
         SELECT * FROM EVENT WHERE LOCAL_CODE=#{local_code} AND EVENT_DATE > SYSDATE ORDER BY EVENT_DATE ASC
     </select>
+    
+    
+    <!-- bookId로 이벤트 조회 -->
+    <select id="selectByBookId" parameterType="string"
+          resultType="com.bookat.dto.EventResDto">
+    SELECT
+      e.EVENT_ID           AS eventId,
+      e.BOOK_ID            AS bookId,
+      e.TICKET_TYPE        AS ticketType,
+      e.EVENT_NAME         AS eventName,
+      e.EVENT_DESCRIPTION  AS eventDescription,
+      e.EVENT_PRICE        AS eventPrice,
+      e.EVENT_IMAGE        AS eventImage,
+      e.LOCAL_CODE         AS localCode,
+      e.ADDRESS            AS address,
+      e.EVENT_DATE         AS eventDate
+    FROM EVENT e
+    WHERE e.BOOK_ID = #{bookId}
+  </select>
+
 
 </mapper>
+

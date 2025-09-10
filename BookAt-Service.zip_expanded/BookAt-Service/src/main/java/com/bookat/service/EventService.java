@@ -14,4 +14,6 @@ public interface EventService {
 	public int insert(EventResDto dto);	//아직 사용 안함
 	public int udpate(EventResDto dto);
 	public int delete(int event_id);
+	
+	public List<EventResDto> selectByBookId(String bookId);
 }

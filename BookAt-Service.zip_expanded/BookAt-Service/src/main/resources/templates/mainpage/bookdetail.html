@@ -9,6 +9,7 @@
   <!-- 기존 공통 CSS -->
   <link rel="stylesheet" th:href="@{/css/main_header.css}">
   <link rel="stylesheet" th:href="@{/css/main_book.css}">
+  <link rel="stylesheet" th:href="@{/css/event_mainpage.css}">
   <!-- 상세 전용 CSS -->
   <link rel="stylesheet" th:href="@{/css/detail_book.css}">
 </head>
@@ -107,21 +108,24 @@
   </div>
 </section>
 
-<!-- 리뷰 패널(지금은 껍데기만) -->
 <!-- 1) '도서 관련 이벤트' 패널 -->
 <section class="panel" style="margin-top:16px;">
   <h3 class="section-title" style="margin:0 0 12px 0;">관련 이벤트</h3>
 
-  <div th:if="${#lists.isEmpty(events)}" style="color:#6b7280">진행 중인 이벤트가 없습니다.</div>
+  <div th:if="${events == null or #lists.isEmpty(events)}" style="color:#6b7280">
+    진행 중인 이벤트가 없습니다.
+  </div>
 
-  <div th:if="${!#lists.isEmpty(events)}" class="grid" style="grid-template-columns:repeat(6,1fr);gap:14px;">
-    <a th:each="ev : ${events}" class="card card-link"
-       th:href="@{|/events/${ev.eventId}|}">
-      <img th:src="${ev.imageUrl != null ? ev.imageUrl : 'https://placehold.co/300x420?text=Event'}" alt="event">
-      <div class="body">
-        <div class="title" th:text="${ev.title}">이벤트 제목</div>
-        <div class="meta" th:text="${ev.badge}">진행중</div>
-      </div>
+  <div th:if="${events != null and !#lists.isEmpty(events)}" class="event-list">
+    <!-- 상세페이지 merge 후 수정 -->
+    <a th:each="event : ${events}"
+       th:href="@{/event/selectOne(event_id=${event.eventId})}"
+       class="event-card">
+      <img class="event-cover"
+           th:src="${event.eventImage != null ? event.eventImage : 'https://placehold.co/300x420?text=Event'}"
+           alt="event Cover" />
+      <p class="event-title" th:text="${event.eventName}">이벤트 이름</p>
+      <p th:text="${#strings.substring(#strings.substringAfter(event.address, ' '), 0, 2)}">지역</p>
     </a>
   </div>
 </section>

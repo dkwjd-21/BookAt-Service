@@ -63,6 +63,13 @@ public class EventServiceImpl implements EventService{
 
 		return 0;	//미완
 	}
+	
+	
+	//도서 상세페이지 이벤트 연동용
+    public List<EventResDto> selectByBookId(String bookId) {
+        List<EventResDto> list = mapper.selectByBookId(bookId);
+        return (list != null) ? list : java.util.List.of();
+    }
 
 	
 

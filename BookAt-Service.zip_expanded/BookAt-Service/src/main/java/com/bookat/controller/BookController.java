@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,8 +15,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 
 import com.bookat.service.BookService;
 import com.bookat.service.ReviewService;
-//import com.bookat.service.EventService;
-//import com.bookat.dto.EventDto;
+import com.bookat.service.EventService;
+import com.bookat.dto.EventResDto;
 import com.bookat.dto.*;
 import lombok.RequiredArgsConstructor;
 
@@ -30,7 +29,7 @@ public class BookController{
 
 	private final BookService bookService;
 	private final ReviewService reviewService;
-    //private final EventService eventService;
+    private final EventService eventService;
 	
 	// 메인 : /books
 	@GetMapping
@@ -69,12 +68,8 @@ public class BookController{
 		BookDto book = bookService.selectOne(bookId);
 		model.addAttribute("book", book);
 
-		//머지 후 살려야됨
-		//List<EventCardDto> events = eventService.findByBookId(bookId);
-		//model.addAttribute("events", events);
-		
-		//머지 후 삭제
-		model.addAttribute("events", java.util.Collections.emptyList());
+	    List<EventResDto> events = eventService.selectByBookId(bookId); 
+	    model.addAttribute("events", events != null ? events : java.util.List.of());
 		
 		
         List<ReviewDto> reviews = reviewService.findByBookId(bookId);

@@ -9,6 +9,8 @@
   margin:0 auto;max-width: 1200px;
 }
 
+.panel .section-title { font-size: 20px; font-weight: 700; }
+
 /* 상단 카테고리 바 */
 .panel-crumb {
   display:flex;
@@ -142,6 +144,31 @@ a.btn, a.btn:link, a.btn:visited, a.btn:hover, a.btn:active {
 .review-item { padding:12px 0; border-top:1px solid #eee; }
 .stars span { color:#d1d5db; }
 .stars span.on { color:#B5D173;}
+
+/* 상세 페이지 패널 안의 이벤트 카드 레이아웃 고정 */
+.panel .event-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 180px); /* 칼럼 폭 고정 */
+  gap: 20px;
+  justify-content: flex-start; /* 왼쪽 정렬 */
+}
+
+/* 카드 자체도 고정 폭 */
+.panel a.event-card {
+  width: 180px;
+}
+.panel .event-cover {
+  height: 180px;
+  object-fit: contain;
+}
+a.event-card,
+a.event-card:link,
+a.event-card:visited,
+a.event-card:hover,
+a.event-card:active {
+  text-decoration: none;
+  color: inherit;
+}
 
 /* 취소/환불 규정 리스트 스타일 */
 .policy-list {
