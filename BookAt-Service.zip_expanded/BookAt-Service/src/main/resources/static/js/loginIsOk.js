@@ -1,7 +1,7 @@
 $(document).ready(async function() {
     const accessTokenKey = "accessToken";
-	
 	const ACCESS_TOKEN_REFRESH_THRESHOLD = 15000; // access token 만료 15초 전 갱신
+	let refreshPromise = null;
 
 	// 엑세스 토큰 만료 15초 전인지 판단
 	function isTokenNearExpiry(token) {
@@ -46,68 +46,60 @@ $(document).ready(async function() {
             });
         } catch(err) {
             console.error("서버 로그아웃 실패", err);
-        }
-		
-        localStorage.removeItem(accessTokenKey);
-		$("#loginBtn, #signupBtn").show();
-		$("#logoutBtn").hide();
+        } finally {
+			localStorage.removeItem(accessTokenKey);
+			window.location.href = "/";
+		}
     }
 	
 	// 엑세스 토큰 만료 됐으면 리프레시토큰이 유효한 동안 갱신
-    async function refreshAccessTokenIfNeeded() {
-        let token = localStorage.getItem(accessTokenKey);
-        console.log("현재 access token:", token);
+	async function refreshAccessTokenIfNeeded() {
+	    let token = localStorage.getItem(accessTokenKey);
+	    console.log("현재 access token:", token);
 
-//        if (!token || isTokenNearExpiry(token)) {
-		if (!token || isTokenExpired(token)) {
-            try {
-                const res = await $.ajax({
-                    url: "/auth/refresh",
-                    type: "POST",
-                    xhrFields: { withCredentials: true } // HttpOnly 쿠키 전송
-                });
-                console.log("new access token:", res.accessToken);
-                if (res.accessToken) {
-                    localStorage.setItem(accessTokenKey, res.accessToken);
-                    token = res.accessToken;
-                }
-            } catch(err) {
-                console.log("refresh token 만료, 로그인 실패, access token 발급 불가");
-				// 리프레시 토큰 만료되면 자동 로그아웃
-				await handleLogout();
-                token = null;
-            }
-        }
+	    if (!token || isTokenExpired(token)) {
+	        if (!refreshPromise) {
+	            refreshPromise = $.ajax({
+	                url: "/auth/refresh",
+	                type: "POST",
+	                xhrFields: { withCredentials: true }
+	            })
+	            .done(res => {
+	                if (res.accessToken) {
+	                    localStorage.setItem(accessTokenKey, res.accessToken);
+	                    token = res.accessToken;
+	                }
+	            })
+	            .fail(async () => {
+	                console.log("refresh token 만료, 자동 로그아웃 처리");
+	                await handleLogout();
+	            })
+	            .always(() => { refreshPromise = null; });
+	        }
+	        await refreshPromise;
+	    }
 
-        return token;
-    }
-
-    async function updateAuthUI() {
-		const token = await refreshAccessTokenIfNeeded();
+	    return token;
+	}
+	
+	async function apiAjax(options) {
+		let token = await refreshAccessTokenIfNeeded();
+		if (!token) return;
 		
-        if(token) {
-			try {
-                const res = await $.ajax({
-                    url: "/auth/validate",
-                    type: "POST",
-                    headers: { "Authorization": "Bearer " + token }
-                });
-                console.log("토큰 검증 성공:", res);
-                $("#loginBtn, #signupBtn").hide();
-                $("#logoutBtn").show();
-            } catch (xhr) {
-				console.warn("토큰 검증 실패:", xhr.responseText);
-				$("#loginBtn, #signupBtn").show();
-				$("#logoutBtn").hide();
+		options.headers = options.headers || {};
+		options.headers["Authorization"] = "Bearer " + token;
+		try {
+			return await $.ajax(options);
+		} catch(err) {
+			if (err.status === 401 && !options._retry) {
+				options._retry = true;
+				await refreshAccessTokenIfNeeded();
+				return apiAjax(options);
+			} else {
+				throw err;
 			}
-        } else {
-			// 리프레시 토큰 null
-            $("#loginBtn, #signupBtn").show();
-            $("#logoutBtn").hide();
-        }
-    }
-
-	await updateAuthUI();
+		}
+	}
 	
     $("#loginBtn").click(() => window.location.href = "/user/login");
 	$("#signupBtn").click(() => window.location.href = "/user/signup");
@@ -117,5 +109,20 @@ $(document).ready(async function() {
 
         await handleLogout();
     });
+	
+	async function loadMainPage() {
+	    try {
+	        const pageHtml = await apiAjax({
+	            url: "/mainPage",
+	            type: "GET"
+	        });
+	        $("body").html(pageHtml);
+	        history.pushState(null, null, "/mainPage");
+	    } catch (err) {
+	        console.error("mainPage 로드 실패:", err);
+	    }
+	}
+	
+	//await loadMainPage();
 });
 

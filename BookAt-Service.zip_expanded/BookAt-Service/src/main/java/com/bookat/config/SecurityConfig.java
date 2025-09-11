@@ -30,8 +30,7 @@ public class SecurityConfig {
         .authorizeHttpRequests(auth -> auth
         		.requestMatchers("/css/**", "/js/**", "/images/**").permitAll()	// 정적 리소스 접근 가능
         		.requestMatchers("/", "/user/**", "/auth/**").permitAll()		// 로그인 전 접근 가능
-//        		.requestMatchers("/mainpage/**", "/books/**", "/events/**").permitAll()
-        		.requestMatchers("/pay/**").authenticated()
+        		.requestMatchers("/mainPage").authenticated()
                 .anyRequest().denyAll()
         ).addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 		

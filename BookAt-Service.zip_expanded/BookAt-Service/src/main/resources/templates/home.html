@@ -13,8 +13,15 @@
 	<div th:replace="fragments/header :: main-header"></div>
 	
 	<h1>BookAt MainPage</h1>
+	<th:block th:if="${userName != null}">	
+		<h2>[[${userName}]] 님</h2>
+	</th:block>
 	
 	<div th:replace="fragments/footer :: main-footer"></div>
 
+	<!--
+		axios 사용할때 cdn
+		<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+	-->
 </body>
 </html>

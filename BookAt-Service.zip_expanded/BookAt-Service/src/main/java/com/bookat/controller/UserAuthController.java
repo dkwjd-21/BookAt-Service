@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import com.bookat.dto.UserLoginResponse;
 import com.bookat.entity.User;
 import com.bookat.service.impl.UserLoginServiceImpl;
+import com.bookat.util.CookieUtil;
 import com.bookat.util.JwtTokenProvider;
 
 import jakarta.servlet.http.Cookie;
@@ -26,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 public class UserAuthController {
 	
     private final JwtTokenProvider jwtTokenProvider;
+    private final CookieUtil cookieUtil;
     private final UserLoginServiceImpl service;
 
 	// access token 검증 후 userId 전달
@@ -64,13 +66,7 @@ public class UserAuthController {
 		String refreshToken = null;
 		
 		// 쿠키에서 refresh token 찾아 저장
-	    if (request.getCookies() != null) {
-	        for (Cookie cookie : request.getCookies()) {
-	            if (cookie.getName().equals("refreshToken")) {
-	                refreshToken = cookie.getValue();
-	            }
-	        }
-	    }
+		refreshToken = cookieUtil.getCookieValue(request, "refreshToken");
 	    
 	    if(refreshToken == null || !jwtTokenProvider.validateToken(refreshToken)) {
 	    	// refresh token 만료
@@ -83,11 +79,6 @@ public class UserAuthController {
 	    if(user == null) {
 	    	return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("사용자 없음");
 	    }
-
-//	    if (!refreshToken.equals(user.getRefreshToken())) {
-//	    	// 디비에 저장된 refresh token 이랑 일치하는지 확인.
-//	        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("서버에 저장된 리프레시 토큰과 다름");
-//	    }
 
 	    // refresh token 이 유효하다면 새로운 access token 발급
 	    String newAccessToken = jwtTokenProvider.generateAccessToken(userId);

@@ -13,11 +13,15 @@
 	    <a th:href="@{/mainpage}">
 			<img th:src="@{/images/BookAt-Logo.png}" class="main-logo-img" />
 	    </a>
-	    <div class="auth-links">
-			<button id="logoutBtn" style="display:none;">로그아웃</button>
-			<button id="loginBtn">로그인</button>
-			<button id="signupBtn">회원가입</button>
-	    </div>
+		<div class="auth-links">
+			<div sec:authorize="isAuthenticated()">
+				<button id="logoutBtn">로그아웃</button>
+			</div>
+			<div sec:authorize="isAnonymous()">
+				<button id="loginBtn">로그인</button>
+				<button id="signupBtn">회원가입</button>
+			</div>
+		</div>
 	  </div>
 	  <div class="header-bottom">
 	    <nav class="nav-links">

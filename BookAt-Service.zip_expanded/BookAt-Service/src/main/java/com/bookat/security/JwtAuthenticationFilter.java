@@ -1,7 +1,10 @@
 package com.bookat.security;
 
 import java.io.IOException;
+import java.util.Map;
 
+import org.springframework.data.redis.core.HashOperations;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -9,6 +12,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.bookat.entity.User;
 import com.bookat.mapper.UserLoginMapper;
+import com.bookat.util.CookieUtil;
 import com.bookat.util.JwtTokenProvider;
 
 import jakarta.servlet.FilterChain;
@@ -24,7 +28,9 @@ import lombok.extern.slf4j.Slf4j;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	
     private final JwtTokenProvider jwtTokenProvider;
+    private final CookieUtil cookieUtil;
     private final UserLoginMapper userMapper;
+    private final RedisTemplate<String, String> redisTemplate;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -33,18 +39,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String path = request.getRequestURI();
-        log.info("-- JwtAuthenticationFilter: {} --", path);
-
-        // permitAll 경로는 그냥 통과
-        if (path.startsWith("/api/user/") ||
-        		path.startsWith("/user/") ||
-            path.startsWith("/css/") ||
-            path.startsWith("/js/") ||
-            path.startsWith("/images/") ||
-            path.equals("/")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
+        log.info("JwtAuthenticationFilter: {}", path);
 
         // 토큰 추출
         String token = resolveToken(request);
@@ -56,6 +51,26 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             if (user != null) {
                 log.info("인증 성공: {}", user.getUserId());
+                
+                // 동시 로그인 필터
+                String refreshToken = cookieUtil.getCookieValue(request, "refreshToken");
+                String loginTime = cookieUtil.getCookieValue(request, "loginTime");
+                
+                HashOperations<String, String, String> hashOps = redisTemplate.opsForHash();
+                Map<String, String> redisValue = hashOps.entries(userId);
+                String redisRefreshToken = redisValue.get("refreshToken");
+                String redisLoginTime = redisValue.get("loginTime");
+                
+                if (redisRefreshToken != null && redisLoginTime != null) {
+                    if (!refreshToken.equals(redisRefreshToken) || !loginTime.equals(redisLoginTime)) {
+                        log.info("다른 기기에서 로그인됨 → 강제 로그아웃");
+                        cookieUtil.deleteCookie(response, "accessToken");
+                        cookieUtil.deleteCookie(response, "refreshToken");
+                        cookieUtil.deleteCookie(response, "loginTime");
+                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                        return;
+                    }
+                }
 
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(user, null, null);
@@ -75,7 +90,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
 
         // 필터 제외할 API
-        if (path.equals("/api/user/refresh") || path.equals("/api/user/logout")) {
+        if (path.equals("/user/refresh") || path.equals("/user/logout")) {
             return true;
         }
 
