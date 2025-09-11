@@ -49,7 +49,7 @@ public class EventServiceImpl implements EventService{
 	@Override
 	public List<EventResDto> selectForMain() {	//메인인기카테고리에 출력될 이벤트 6개 불러오기
 		
-		return mapper.selectForMain();
+		return mapper.selectForMain(); 
 	}
 	
 	@Override

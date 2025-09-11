@@ -1,18 +1,126 @@
-// 페이지의 모든 HTML 요소가 완전히 로드된 후 스크립트를 실행합니다.
+// 페이지의 모든 HTML 요소가 완전히 로드된 후 모든 스크립트를 실행합니다.
 document.addEventListener("DOMContentLoaded", function () {
-  // 기능 1: 동적 예약 버튼 상태 업데이트 함수 호출
+  // 1. 리뷰 모달 기능 초기화
+  initializeReviewModal();
+
+  // 2. 예약 버튼 기능 초기화
   initializeReserveButton();
 
-  // 기능 2: 이벤트 위치를 표시하는 동적 지도 생성 함수 호출
-  initializeLeafletMap();
+  // 3. 카카오맵 기능 초기화
+  initializeKakaoMap();
 });
+
+/**
+ * 리뷰 작성 모달의 이벤트를 처리하는 함수
+ */
+function initializeReviewModal() {
+  // 모달 관련 요소 가져오기
+  const openModalBtn = document.getElementById("openReviewModalBtn");
+  const modal = document.getElementById("reviewModal");
+
+  // 요소가 페이지에 없을 경우 오류를 방지하기 위해 존재 여부 확인
+  if (!openModalBtn || !modal) {
+    console.warn("리뷰 모달 관련 요소를 찾을 수 없습니다.");
+    return;
+  }
+
+  const closeModalBtn = modal.querySelector(".close-btn");
+
+  // 리뷰 작성 폼 관련 요소
+  const reviewForm = document.getElementById("reviewForm");
+  const stars = modal.querySelectorAll(".stars-input .star");
+  const ratingInput = document.getElementById("rating");
+
+  // '리뷰 작성' 버튼 클릭 시 모달 열기
+  openModalBtn.addEventListener("click", () => {
+    modal.style.display = "flex";
+  });
+
+  // 'X' 버튼 클릭 시 모달 닫기
+  closeModalBtn.addEventListener("click", () => {
+    modal.style.display = "none";
+  });
+
+  // 모달 바깥 영역 클릭 시 모달 닫기
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) {
+      modal.style.display = "none";
+    }
+  });
+
+  // --- 별점 로직 ---
+  let currentRating = 0;
+
+  stars.forEach((star) => {
+    // 마우스 올렸을 때 임시로 별 채우기
+    star.addEventListener("mouseover", () => {
+      resetStarsVisual();
+      const value = star.dataset.value;
+      for (let i = 0; i < value; i++) {
+        stars[i].style.color = "#f9d849";
+      }
+    });
+
+    // 마우스 뗐을 때 선택된 별점으로 복원
+    star.addEventListener("mouseout", resetStarsVisual);
+
+    // 별 클릭 시 평점 고정
+    star.addEventListener("click", () => {
+      currentRating = star.dataset.value;
+      ratingInput.value = currentRating; // 숨겨진 input에 값 설정
+      resetStarsVisual();
+    });
+  });
+
+  function resetStarsVisual() {
+    stars.forEach((star, index) => {
+      if (index < currentRating) {
+        star.style.color = "#f9d849"; // 선택된 별점
+      } else {
+        star.style.color = "#ddd"; // 비선택 별점
+      }
+    });
+  }
+
+  // --- 폼 제출 (AJAX) 로직 ---
+  reviewForm.addEventListener("submit", function (e) {
+    e.preventDefault(); // 기본 폼 제출 동작 방지
+
+    // 폼 데이터 가져오기
+    const formData = new FormData(reviewForm);
+    const data = Object.fromEntries(formData.entries());
+
+    // [주의!] action URL은 실제 리뷰를 저장하는 Controller의 주소로 변경해야 합니다.
+    fetch("/api/reviews", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("리뷰 등록에 실패했습니다.");
+        }
+        return response.json();
+      })
+      .then((result) => {
+        alert("리뷰가 성공적으로 등록되었습니다!");
+        modal.style.display = "none"; // 모달 닫기
+        window.location.reload(); // 페이지 새로고침하여 새 리뷰 확인
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        alert(error.message);
+      });
+  });
+}
 
 /**
  * 예약 버튼의 상태를 날짜에 따라 동적으로 설정하는 함수
  */
 function initializeReserveButton() {
   const reserveBtn = document.getElementById("reserve-btn");
-  // 버튼이 없으면 오류 방지를 위해 함수를 종료합니다.
   if (!reserveBtn) {
     console.error("예약 버튼(id='reserve-btn')을 찾을 수 없습니다.");
     return;
@@ -33,7 +141,7 @@ function initializeReserveButton() {
 
   const ticketingOpenDate = new Date(eventDate);
   ticketingOpenDate.setDate(ticketingOpenDate.getDate() - 30);
-  ticketingOpenDate.setHours(18, 0, 0, 0); //예매일 당일 오픈 시간 설정하는 부분
+  ticketingOpenDate.setHours(18, 0, 0, 0); //예매일 당일 오픈 시간 설정
 
   let countdownInterval;
 
@@ -52,7 +160,7 @@ function initializeReserveButton() {
       reserveBtn.disabled = false;
       reserveBtn.onclick = function () {
         alert("예매 페이지로 이동합니다.");
-        // window.location.href = '/reservation-page';//여기에 url을 넣어버리면 사용자가 url보고 그냥 들어와버릴 수 있음... 컨트롤러에서 한번 더 막는 로직 필요
+        window.location.href = `/event/${eventId}/reservation`;// 예매 페이지 이동 로직
       };
       if (countdownInterval) clearInterval(countdownInterval);
       return;
@@ -65,53 +173,66 @@ function initializeReserveButton() {
       reserveBtn.disabled = true;
       countdownInterval = setInterval(() => {
         const timeLeft = ticketingOpenDate.getTime() - new Date().getTime();
-
         if (timeLeft <= 0) {
           clearInterval(countdownInterval);
           updateButtonState();
           return;
         }
-
         const hours = Math.floor(timeLeft / (1000 * 60 * 60));
         const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
-
-        const formattedHours = String(hours).padStart(2, "0");
-        const formattedMinutes = String(minutes).padStart(2, "0");
-        const formattedSeconds = String(seconds).padStart(2, "0");
-
-        reserveBtn.textContent = `예매 오픈까지 ${formattedHours}시간 ${formattedMinutes}분 ${formattedSeconds}초`;
+        reserveBtn.textContent = `예매 오픈 까지 ${String(hours).padStart(2, "0")}시간 ${String(minutes).padStart(2, "0")}분 ${String(seconds).padStart(2, "0")}초`;
       }, 1000);
     } else {
-      const openDate = ticketingOpenDate.getDate();
-      const openMonth = ticketingOpenDate.getMonth() + 1;
-      const openYear = ticketingOpenDate.getFullYear();
-
-      reserveBtn.textContent = `${openYear}년 ${openMonth}월 ${openDate}일 18:00 오픈예정`;
+      const openDate = ticketingOpenDate.toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" });
+      reserveBtn.textContent = `${openDate} 18:00 오픈예정`;
       reserveBtn.disabled = true;
     }
   }
-  // 페이지 로드 시 버튼 상태를 즉시 업데이트합니다.
   updateButtonState();
 }
 
-// Leaflet 초기화
-var map = L.map("map").setView({ lon: 127.766, lat: 36.355 }, 13);
+/**
+ * eventAddress 변수를 기반으로 카카오맵을 생성하고 마커를 표시하는 함수
+ */
+function initializeKakaoMap() {
+  if (typeof eventAddress === "undefined" || !eventAddress) {
+    console.error("이벤트 주소(eventAddress)를 찾을 수 없습니다. HTML 파일에 inline script가 있는지 확인하세요.");
+    return;
+  }
 
-// 최대 범위 지정
-map.setMaxBounds([
-  [32, 123],
-  [44, 132.5],
-]);
+  const mapContainer = document.getElementById("map");
+  if (!mapContainer) {
+    console.error("지도를 표시할 컨테이너(id='map')를 찾을 수 없습니다.");
+    return;
+  }
 
-// '오픈스트리트맵 한국'에서 서비스하는 '군사 시설 없는 오픈스트리트맵 지도 타일'을 삽입
-L.tileLayer("https://tiles.osm.kr/hot/{z}/{x}/{y}.png", {
-  maxZoom: 19,
-  attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap 기여자</a>',
-}).addTo(map);
+  const mapOption = {
+    center: new kakao.maps.LatLng(37.566826, 126.9786567), // 기본 중심: 서울 시청
+    level: 5,
+  };
+  const map = new kakao.maps.Map(mapContainer, mapOption);
+  const ps = new kakao.maps.services.Places();
 
-// 축척 막대를 지도 왼쪽 하단에 노출
-L.control.scale({ imperial: true, metric: true }).addTo(map);
+  ps.keywordSearch(eventAddress, function (data, status) {
+    if (status === kakao.maps.services.Status.OK) {
+      const firstResult = data[0];
+      const coords = new kakao.maps.LatLng(firstResult.y, firstResult.x);
 
-// 마커를 지도에 추가
-L.marker({ lon: 127.766, lat: 36.355 }).bindPopup("대한민국의 중심지, 장연리마을").addTo(map);
+      const marker = new kakao.maps.Marker({
+        map: map,
+        position: coords,
+      });
+
+      const infowindow = new kakao.maps.InfoWindow({
+        content: `<div style="padding:5px;font-size:12px;width:max-content;">${firstResult.place_name}</div>`,
+      });
+      infowindow.open(map, marker);
+
+      map.setCenter(coords);
+    } else {
+      console.warn(`'${eventAddress}'에 대한 검색 결과가 없습니다.`);
+      mapContainer.innerHTML = '<div style="display:flex; align-items:center; justify-content:center; height:100%;">장소 정보를 찾을 수 없습니다.</div>';
+    }
+  });
+}

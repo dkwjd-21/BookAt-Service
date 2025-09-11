@@ -5,48 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title th:text="${event.eventName}"></title>
     <link rel="stylesheet" th:href="@{/css/event_detail.css}" />
-    <!-- Leaflet 라이브러리 가져오기(여기서는 1.9.4를 사용했지만, 원하는 버전으로 바꿔도 무방 -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
-    <style>
-      html,
-      body {
-        height: 100%;
-        padding: 0;
-        margin: 0;
-      }
-      #map {
-        /* 지도의 크기를 설정 */
-        width: 400px;
-        height: 240px;
-        border-radius: 10px;
-      }
-    </style>
+    <style></style>
   </head>
   <body>
     <header class="main-header">
       <div class="header-top">
         <a th:href="@{/event}"><img th:src="@{/images/BookAt-Logo.png}" class="main-logo-img" /></a>
-
         <div class="auth-links">
-          <!--<th:block th:if="${isLoggedIn == null}">-->
           <a href="#">회원가입</a>
           <a href="#">로그인</a>
-          <!--</th:block>-->
-
-          <!-- <th:block th:if="${isLoggedIn}">
-            <a th:href="@{/mypage}">마이페이지</a>
-            <a th:href="@{/logout}">로그아웃</a>
-          </th:block> -->
-          <!-- 로그인 구현 후 로그인 시 바뀌는 부분 -->
         </div>
       </div>
-
       <div class="header-bottom">
         <nav class="nav-links">
           <a href="#" class="nav-item">도서</a>
-          <!--타임리프 제거해놨음-->
           <a href="#" class="nav-item active">이벤트</a>
         </nav>
         <div class="search-bar">
@@ -57,7 +30,6 @@
         </div>
       </div>
     </header>
-    <!------------------------------------------------------------>
     <main class="main_container">
       <main class="container">
         <div class="breadcrumb">
@@ -85,14 +57,11 @@
               <h2>날짜</h2>
               <p class="date" th:text="${#dates.format(event.eventDate, 'yyyy년 MM월 dd일')}"></p>
               <h2>주소</h2>
-              <p class="location" th:text="${event.address} + '원'"></p>
-              <div class="rating">
-                <!-- <span th:text="${event.rating}"></span> -->
-              </div>
+              <p class="location" th:text="${event.address}"></p>
             </div>
             <hr />
             <div class="price-info">
-              <span class="price" th:text="${event.eventPrice} + '원'"></span>
+              <span class="price" th:text="${#numbers.formatDecimal(event.eventPrice, 0, 'COMMA', 0, 'POINT')} + '원'"></span>
               <span class="price-inform">표시된 금액은 기준가이며,<br />선택 옵션 또는 할인/추가 요금에 따라 실제 결제 금액이 달라질 수 있습니다.</span>
             </div>
             <div class="actions">
@@ -108,8 +77,10 @@
         <section class="related-books">
           <h2>관련 도서</h2>
           <div class="related-book-item">
-            <img th:src="${book.bookCover}" alt="Book Cover" class="related-book-image" />
-            <p th:text="${book.bookTitle}"></p>
+            <th:block th:if="${book != null}">
+              <img th:src="${book.bookCover}" alt="Book Cover" class="related-book-image" />
+              <p th:text="${book.bookTitle}"></p>
+            </th:block>
           </div>
         </section>
       </main>
@@ -119,9 +90,10 @@
           <div class="event-description">
             <h2>이벤트 소개</h2>
             <p th:text="${event.eventDescription}"></p>
+            <br />
             <h2>장소</h2>
             <p th:text="${event.address}"></p>
-            <!--<p th:text="'정원 ' + ${event.maxAttendees} + '명'"></p>-->
+            <br />
             <h2>참가 금액</h2>
             <table>
               <tr>
@@ -139,31 +111,7 @@
             </table>
           </div>
           <div class="event-map">
-            <div class="map-placeholder">
-              <div id="map"></div>
-              <script>
-                // Leaflet 초기화
-                var map = L.map("map").setView({ lon: 127.766, lat: 36.355 }, 13);
-
-                // 최대 범위 지정
-                map.setMaxBounds([
-                  [32, 123],
-                  [44, 132.5],
-                ]);
-
-                // '오픈스트리트맵 한국'에서 서비스하는 '군사 시설 없는 오픈스트리트맵 지도 타일'을 삽입
-                L.tileLayer("https://tiles.osm.kr/hot/{z}/{x}/{y}.png", {
-                  maxZoom: 19,
-                  attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap 기여자</a>',
-                }).addTo(map);
-
-                // 축척 막대를 지도 왼쪽 하단에 노출
-                L.control.scale({ imperial: true, metric: true }).addTo(map);
-
-                // 마커를 지도에 추가
-                L.marker({ lon: 127.766, lat: 36.355 }).bindPopup("@{event.address}").addTo(map);
-              </script>
-            </div>
+            <div id="map"></div>
           </div>
         </section>
       </main>
@@ -171,15 +119,34 @@
       <main class="container">
         <section class="review-section">
           <h2>리뷰</h2>
-          <!-- <h2>관람 후기 (<span th:text="${reviews.size()}"></span>)</h2>
-        <button class="review-write-btn">리뷰 작성</button>
-        <div class="review-list">
-          <div th:each="review : ${reviews}" class="review-item">
-            <p class="user-info" th:text="${review.author} + ' | ' + ${review.date}"></p>
-            <p class="review-rating" th:text="${review.rating}"></p>
-            <p class="review-text" th:text="${review.content}"></p>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px">
+            <h3 class="section-title" style="margin: 0">전체 리뷰 (<span th:text="${reviewCount}">0</span>)</h3>
+            <form th:action="@{|/books/${book.bookId}/reviews/new|}" method="get">
+              <a class="review-write-btn" role="button" id="openReviewModalBtn"> 리뷰 작성 </a>
+            </form>
           </div>
-        </div> -->
+          <div class="soft-divider"></div>
+		  <br>
+		  <hr>
+		  <br>
+
+          <!-- 리뷰 없을 때 -->
+          <div th:if="${#lists.isEmpty(reviews)}" style="color: #6b7280">작성된 리뷰가 없습니다.</div>
+
+          <!-- 리뷰 리스트 -->
+          <div th:each="rv : ${reviews}" style="padding: 30px 0; border-bottom: 2px solid #eee">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px">
+              <!-- 별점 표시: 가득★ 와 빈☆를 5개 기준으로 -->
+              <span>
+                <span class="stars">
+                  <span th:each="i : ${#numbers.sequence(1,5)}" th:text="${i <= rv.rating} ? '★' : '☆'" th:classappend="${i <= rv.rating} ? 'on' : ''">★</span>
+                </span>
+              </span>
+              <span class="meta" th:text="${rv.userId}">user_id</span>&nbsp;&nbsp;|&nbsp;&nbsp;
+              <span class="meta" th:text="${#temporals.format(rv.reviewDate, 'yyyy.MM.dd')}">2025.09.01</span>
+            </div>
+            <div style="white-space: pre-line; color: #374151; margin-top: 20px; margin-left: 90px" th:text="${rv.reviewContent}">리뷰 내용</div>
+          </div>
         </section>
       </main>
 
@@ -201,34 +168,67 @@
 4. 좌석 변경 안내
   - 동일 가격의 좌석으로 변경 가능합니다.
   - 기존 좌석은 취소 처리 후 새 좌석으로 즉시 배정됩니다.
-          </pre
-            >
+            </pre>
           </div>
         </section>
       </main>
     </main>
 
-    <!-------------------------------------------------------------------------------->
     <footer th:fragment="site-footer" class="footer" style="border: 1px solid #bfbfbf; margin: 0 auto; color: #bfbfbf; background: #eaeaea">
       <div class="ft_content" style="padding: 40px 100px">
         <div class="ft_logo">
           <img th:src="@{/images/BookAt-LogoTypo.png}" alt="eventAt" style="width: 120.645px; height: 26.525px" />
         </div>
-
         <div class="ft__left" style="float: left">
           <div style="margin-top: 6px; font-size: 18px; font-style: normal; font-weight: 400; line-height: 28px">
             (주) 북캣 | 현대이지웰 Java 풀스택 개발자 5회차<br />
             책읽는고양이 송아정 김명주 박태욱 서지나
           </div>
         </div>
-
         <div class="ft__right" style="text-align: right; font-size: 18px; font-style: normal; font-weight: 400; line-height: 28px">
           <div>Copyright ⓒ BookAt. ALL RIGHTS RESERVED</div>
           <div><a href="">관리자로그인</a></div>
-          <!--관리자페이지 이동 추가해야함-->
         </div>
       </div>
     </footer>
+
+    <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=6f894eb134a6be62111b7e20331512d9&libraries=services"></script>
+
+    <script th:inline="javascript">
+      /*<![CDATA[*/
+      var eventAddress = /*[[${event.address}]]*/ "주소 정보 없음";
+      /*]]>*/
+    </script>
+
     <script th:src="@{/js/event_detail.js}"></script>
   </body>
+  <!-- 리뷰 작성 모달창 -->
+  <div id="reviewModal" class="modal-overlay">
+    <div class="modal-content">
+      <span class="close-btn">&times;</span>
+      <h2>리뷰 작성</h2>
+      <form id="reviewForm">
+        <input type="hidden" name="eventId" th:value="${event.eventId}" />
+
+        <div class="form-group">
+          <label>별점</label>
+          <div class="stars-input">
+            <span class="star" data-value="1">★</span>
+            <span class="star" data-value="2">★</span>
+            <span class="star" data-value="3">★</span>
+            <span class="star" data-value="4">★</span>
+            <span class="star" data-value="5">★</span>
+          </div>
+          <input type="hidden" id="rating" name="rating" value="0" required />
+        </div>
+
+        <div class="form-group">
+          <label for="reviewContent">리뷰 내용</label>
+          <textarea id="reviewContent" name="content" rows="6" placeholder="리뷰 내용을 입력해주세요." required></textarea>
+        </div>
+
+        <button type="submit" class="submit-btn">등록하기</button>
+      </form>
+    </div>
+  </div>
 </html>

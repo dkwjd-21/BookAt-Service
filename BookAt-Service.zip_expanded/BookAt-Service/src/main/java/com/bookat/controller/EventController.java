@@ -15,11 +15,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import com.bookat.dto.BookDto;
 import com.bookat.dto.EventResDto;
 import com.bookat.entity.Book;
-import com.bookat.entity.Event;
+import com.bookat.entity.Review;
 import com.bookat.service.impl.EventServiceImpl;
+import com.bookat.service.impl.ReviewServiceImpl;
 
 @Controller
 @RequestMapping("/event")
@@ -27,6 +27,9 @@ public class EventController {
 	
 	@Autowired
 	private EventServiceImpl eventService;
+	
+	@Autowired
+	private ReviewServiceImpl reviewService;
 	
 	
 	@GetMapping("/selectAll")	//전체 리스트 불러오기
@@ -95,8 +98,14 @@ public class EventController {
         model.addAttribute("event", event);
         
         Book book = eventService.selectBookOne(event.getBookId());
-        System.out.println("res " + book);
         model.addAttribute("book", book);
+        
+        List<Review> reviews = reviewService.findByEventId(event.getEventId());
+        model.addAttribute("reviews",reviews);
+        System.out.println("불러온 리뷰 : "+reviews);
+        
+        int reviewCount = reviewService.countByEventId(event.getEventId());
+        model.addAttribute("reviewCount",reviewCount);
 
         // 상세 페이지 뷰를 반환 
         return "mainpage/event_detail";
@@ -136,7 +145,7 @@ public class EventController {
 
 	    // 예매 가능 시간일 경우, 정상적으로 예매 페이지로 이동
 	    model.addAttribute("event", event);
-	    return "mainpage/reservation_page" ; // 템플릿 경로 추가해야함
+	    return "mainpage/reservation_page" ; // 템플릿 경로 추가해야함 
 	}
 	
 	
