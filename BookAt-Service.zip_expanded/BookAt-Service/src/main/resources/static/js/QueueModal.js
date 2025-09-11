@@ -16,17 +16,25 @@ async function onModal() {
   if (modal.style.display === "none") {
     // 모달 보여주기
     modal.style.display = "flex";
-	
-	// eventId & userId를 랜덤으로 생성
-	const userId = generateRandomUserId();
-	console.log("랜덤 유저 ID:", userId);
-	const eventId = "21";
-	
+
+    // eventId & userId를 랜덤으로 생성
+    const userId = generateRandomUserId();
+    console.log("랜덤 유저 ID:", userId);
+    const eventId = "21";
+
+    // (테스트용 코드) eventId & userId를 세션스토리지에 임시 저장 (탭마다 저장)
+    // 실제로는 쿠키에서 가져와서 사용
+    sessionStorage.setItem("userId", userId);
+    sessionStorage.setItem("eventId", eventId);
+
     try {
       // 먼저 큐에 진입 (서버에 유저 등록)
-      const res = await fetch(`/queue/enter?eventId=${eventId}&userId=${encodeURIComponent(userId)}`, {
-        method: "POST",
-      });
+      const res = await fetch(
+        `/queue/enter?eventId=${eventId}&userId=${encodeURIComponent(userId)}`,
+        {
+          method: "POST",
+        }
+      );
       const data = await res.json();
 
       if (data.status === "success") {
@@ -66,14 +74,17 @@ function startQueuePolling(immediate = false, userId) {
   }
 
   // 2초 간격으로 performFetchAndUpdate 실행
-  queueInterval = setInterval(() => performFetchAndUpdate(numberElement, userId), 2000);
+  queueInterval = setInterval(
+    () => performFetchAndUpdate(numberElement, userId),
+    2000
+  );
 }
 
 // 실제 fetch 수행 함수
 // isFetching 플래그로 중복 요청 방지
 // AbortController를 새로 만들고 이전 컨트롤러는 필요시 취소
 // 서버에서 오는 data.rank 타입 검사
-async function performFetchAndUpdate(numberElement, userId) {
+async function performFetchAndUpdate(numberElement) {
   // 이미 요청이 진행중이면 새로운 요청을 하지 않음 (중복 방지)
   if (isFetching) return;
 
@@ -83,19 +94,28 @@ async function performFetchAndUpdate(numberElement, userId) {
   if (fetchAbortController) {
     try {
       fetchAbortController.abort();
-    } catch (e) {
-    }
+    } catch (e) {}
   }
   fetchAbortController = new AbortController();
   const signal = fetchAbortController.signal;
 
   try {
-    // 실제로는 eventId, userId를 하드코딩 하지 말고 data- 속성 혹은 인증 토큰에서 가져와야 함
-    const eventId = encodeURIComponent("21");
+    // 세션스토리지에서 userId, eventId 가져오기
+    // 실제로는 쿠키 또는 인증 토큰에서 가져와야 함
+    const userId = encodeURIComponent(sessionStorage.getItem("userId"));
+    const eventId = encodeURIComponent(sessionStorage.getItem("eventId"));
+
+    if (!userId || !eventId) {
+      console.error(
+        "세션스토리지에서 userId 또는 eventId를 가져오지 못했습니다."
+      );
+      isFetching = false;
+      return;
+    }
 
     // fetch에 signal을 넣으면 stopQueuePolling()에서 abort로 요청을 취소할 수 있음
     const res = await fetch(
-      `/queue/status?eventId=${eventId}&userId=${encodeURIComponent(userId)}`,
+      `/queue/status?eventId=${eventId}&userId=${userId}`,
       { signal }
     );
 
@@ -107,6 +127,7 @@ async function performFetchAndUpdate(numberElement, userId) {
     }
 
     const data = await res.json();
+    console.log("서버 응답 data:", data);
 
     if (data.status === "success") {
       // 서버에서 숫자나 null을 보내는 경우를 대비해 안전하게 파싱
@@ -123,14 +144,10 @@ async function performFetchAndUpdate(numberElement, userId) {
         parsedRank !== null ? String(parsedRank) : "-";
 
       // 사용자의 예약 가능 판단:
-      // - parsedRank가 1보다 작거나 0이면 예약 가능으로 간주(서비스 규칙에 따라 조정)
-      // - parsedRank === null 은 큐에 없음 또는 서버가 null 반환한 경우 (처리 정책에 따라 다른 동작 필요)
-      if (parsedRank !== null && parsedRank <= 0) {
-        stopQueuePolling();
-        closeModal();
-        // 실제 앱에서는 alert 보다는 사용자 흐름을 다음 화면으로 전환하거나 버튼 활성화 권장
-        alert("예약 가능 상태가 되었습니다!");
-      }
+      // - parsedRank가 1보다 작거나 같으면 예약 가능으로 간주
+      // - parsedRank === null 은 큐에 없음 또는 서버가 null 반환한 경우
+
+      updateEnterButton(parsedRank);
     } else {
       // 서버가 success가 아닌 경우(error 등)에 대한 로깅/처리
       console.error("서버 응답 에러:", data);
@@ -149,11 +166,9 @@ async function performFetchAndUpdate(numberElement, userId) {
   }
 }
 
-/**
- * 폴링 중지
- * - setInterval 제거
- * - 진행중인 fetch 요청이 있으면 Abort
- */
+// 폴링 중지
+// setInterval 제거
+// 진행중인 fetch 요청이 있으면 Abort
 function stopQueuePolling() {
   if (queueInterval !== null) {
     clearInterval(queueInterval);
@@ -179,43 +194,81 @@ function closeModal() {
   modal.style.display = "none";
 }
 
-// 1부터 30까지 임의의 수를 지정하여 카운트다운 후 모달 없애기
-function startCountdown() {
-  const modal = document.getElementsByClassName("queueModal-overlay")[0];
-  // 대기번호 요소
-  const numberElement = document.getElementsByClassName("modal-waitingNum")[0];
-
-  // 현재 대기 순번 저장
-  let currentNumber = parseInt(numberElement.textContent);
-
-  if (currentNumber > 0) {
-    // 0.5초마다 반복 실행으로 대기 순번 앞당기기
-    const interval = setInterval(function () {
-      // 번호 앞당기기
-      currentNumber -= 5;
-
-      // 앞당긴 번호 화면에 표시하기
-      numberElement.textContent = currentNumber;
-
-      // 번호가 0 이하가 되면 멈춘다
-      if (currentNumber <= 0) {
-        clearInterval(interval);
-
-        // 대기열 모달 화면에서 숨기기
-        numberElement.textContent = 0;
-        modal.style.display = "none";
-
-        // 1부터 30까지 랜덤 수로 대기번호 초기화 (테스트용)
-        const randomNumber = Math.floor(Math.random() * 30);
-        numberElement.textContent = randomNumber;
-      }
-    }, 500);
-  }
-}
-
 // 랜덤 유저 아이디 생성 함수
 function generateRandomUserId() {
   const prefix = "user"; // 접두사
   const randomNum = Math.floor(Math.random() * 100000); // 0 ~ 99999
   return prefix + randomNum;
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+  const enterButton = document.querySelector('.modal-enter');
+
+  // 초기 상태
+  enterButton.disabled = true;
+  enterButton.style.opacity = 0.5;
+
+  // 클릭 이벤트
+  enterButton.addEventListener("click", async () => {
+    const userId = encodeURIComponent(sessionStorage.getItem("userId"));
+    const eventId = encodeURIComponent(sessionStorage.getItem("eventId"));
+
+    if (!userId || !eventId) {
+      alert("유저 정보가 없습니다.");
+      return;
+    }
+
+    try {
+      const res = await fetch(`/queue/leave?eventId=${eventId}&userId=${userId}`, {
+        method: "POST",
+      });
+
+      const data = await res.json();
+
+      if (data.status === "success") {
+        alert("대기열에서 제거되고 예매창으로 이동합니다!");
+        closeModal();
+        stopQueuePolling();
+        // 팝업창 띄우기
+        window.open("/queue/reservation", "_blank", "width=1000,height=700");
+      } else {
+        alert("대기열 제거 실패: " + data.message);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("대기열 제거 중 오류 발생");
+    }
+  });
+
+  // 대기번호에 따라 버튼 활성화 업데이트
+  window.updateEnterButton = function(parsedRank) {
+    if (parsedRank === 1) {
+      enterButton.disabled = false;
+      enterButton.style.opacity = 1;
+    } else {
+      enterButton.disabled = true;
+      enterButton.style.opacity = 0.5;
+    }
+  };
+});
+
+// 탭/창 종료, 새로고침 시 실행
+window.addEventListener("beforeunload", async (event) => {
+    const userId = encodeURIComponent(sessionStorage.getItem("userId"));
+    const eventId = encodeURIComponent(sessionStorage.getItem("eventId"));
+
+    if (!userId || !eventId) return;
+
+    try {
+        // navigator.sendBeacon는 브라우저 종료 시에도 서버에 안전하게 요청 보낼 수 있음
+        const url = `/queue/leave?eventId=${eventId}&userId=${userId}`;
+        const data = new Blob([], { type: "application/json" });
+        navigator.sendBeacon(url, data);
+
+        // fetch로도 시도 가능하지만 탭 종료 시 요청이 끊길 수 있음
+        // await fetch(url, { method: "POST" });
+    } catch (err) {
+        console.error("탭 종료 시 대기열 제거 실패:", err);
+    }
+});
+

@@ -1,5 +1,6 @@
 package com.bookat.controller;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,4 +56,37 @@ public class QueueController {
 				"rank", rank!=null? rank : null)
 		);
 	}
+	
+	// 대기열에서 삭제 & 예매팝업으로 이동 API 
+	@PostMapping("/leave")
+	public ResponseEntity<Map<String, Object>> leaveQueue(
+			@RequestParam("eventId") String eventId, 
+			@RequestParam("userId") String userId){
+		
+		Map<String, Object> response = new HashMap<>();
+		
+		try {
+			boolean removed = queueService.leaveQueue(eventId, userId);
+			
+			if(removed) {
+				response.put("status", "success");
+				response.put("message", "대기열에서 제거되었습니다.");
+			} else {
+				response.put("status", "fail");
+				response.put("message", "대기열에서 사용자를 찾을 수 없습니다.");
+			}
+		} catch (Exception e) {
+			response.put("status", "error");
+			response.put("message", "대기열 제거 중 오류 발생 : "+e.getMessage());
+		}
+		
+		return ResponseEntity.ok(response);
+	}
+	
+	// 임시 티켓팅 팝업 오픈 --> 이후 ReservationController로 이동 
+	@GetMapping("/reservation")
+	public String reservation() {
+		return "reservation/ReservationPopup";
+	}
+	
 }

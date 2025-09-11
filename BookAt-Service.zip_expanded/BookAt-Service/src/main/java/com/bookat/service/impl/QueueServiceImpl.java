@@ -39,4 +39,12 @@ public class QueueServiceImpl implements QueueService{
 		return (rank != null)? rank+1 : null;
 	}
 
+	@Override
+	public boolean leaveQueue(String eventId, String userId) {
+		String key = QUEUE_KEY_PREFIX + eventId;
+		Long removed = redisTemplate.opsForZSet().remove(key, userId);
+		
+		return removed!=null && removed > 0;
+	}
+
 }
