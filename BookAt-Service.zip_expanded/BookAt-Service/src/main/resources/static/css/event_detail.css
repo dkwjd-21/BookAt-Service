@@ -22,7 +22,7 @@ body {
   margin: 0;
   padding: 0;
   color: #333;
-  background-color: #f4f4f4;
+  background-color: #f7f8fa;
 }
 
 .main-header {
@@ -51,6 +51,18 @@ body {
 
 a {
   text-decoration: none;
+}
+a:link {
+  color: #6b7280;
+}
+a:visited {
+  color: #6b7280;
+}
+a:hover {
+  color: #6b7280;
+}
+a:active {
+  color: #6b7280;
 }
 
 .auth-links a {
@@ -129,7 +141,7 @@ a {
   max-width: 1200px;
   margin: 20px auto;
   margin-top: 0;
-  background-color: #f0f2f5;
+  background-color: #f7f8fa;
   padding: 20px;
 
   /* padding-right: 30px; */
@@ -147,13 +159,24 @@ a {
 }
 
 .breadcrumb {
-  color: #888;
+  font-size: 16px;
+  font-weight: 600;
+  color: #6b7280;
+  text-decoration: none;
+  gap: 10px;
+}
+
+.crumb-label {
+  font-size: 18px;
+  font-weight: 700;
+  color: #222;
+  padding-right: 10px;
 }
 
 .event-header {
   display: flex;
   gap: 30px;
-  border-bottom: 1px solid #e0e0e0;
+  /* border-bottom: 1px solid #e0e0e0; */
   padding-bottom: 20px;
   margin-bottom: 20px;
 }
@@ -226,6 +249,10 @@ a {
   /* background-color: #f9d849; */
   color: rgb(0, 0, 0);
   border: none;
+}
+
+.wishlist-btn:hover {
+  background-color: #f9d849;
 }
 
 .related-books {
@@ -350,8 +377,8 @@ a {
 }
 
 .cancellation-info {
-  margin-top: 30px;
-  padding-left: 20px;
+  /* margin-top: 30px; */
+  /* padding-left: 20px; */
 }
 
 .info_text {
