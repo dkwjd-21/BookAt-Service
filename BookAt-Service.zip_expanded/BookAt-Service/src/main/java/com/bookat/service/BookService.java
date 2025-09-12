@@ -9,7 +9,7 @@ public interface BookService {
   List<BookListRes> getBestSellers(int limit);
   List<BookListRes> getNewBooks(int limit);
   List<BookListRes> getEventBooks(int limit);
-  
+
   List<BookDto> findAll();
   List<BookDto> findByCategory(String category);
   List<BookDto> findByCategories(List<String> categories);

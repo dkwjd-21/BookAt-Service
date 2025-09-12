@@ -32,18 +32,15 @@ public class BookServiceImpl implements BookService {
   }
 
   //메인
-  @Override
-  public List<BookListRes> getBestSellers(int limit){
-    return bookMapper.findBestSellers(limit).stream().map(BookServiceImpl::toRes).collect(Collectors.toList());
-  }
-  @Override
-  public List<BookListRes> getNewBooks(int limit){
-    return bookMapper.findNewBooks(limit).stream().map(BookServiceImpl::toRes).collect(Collectors.toList());
-  }
-  @Override
-  public List<BookListRes> getEventBooks(int limit){
-    return bookMapper.findEventBooks(limit).stream().map(BookServiceImpl::toRes).collect(Collectors.toList());
-  }
+  @Override public List<BookListRes> getBestSellers(int limit){
+	  return bookMapper.findBestSellers(limit).stream().map(BookServiceImpl::toRes).toList();
+	}
+	@Override public List<BookListRes> getNewBooks(int limit){
+	  return bookMapper.findNewBooks(limit).stream().map(BookServiceImpl::toRes).toList();
+	}
+	@Override public List<BookListRes> getEventBooks(int limit){
+	  return bookMapper.findEventBooks(limit).stream().map(BookServiceImpl::toRes).toList();
+	}
   
   //상세페이지
   @Override
