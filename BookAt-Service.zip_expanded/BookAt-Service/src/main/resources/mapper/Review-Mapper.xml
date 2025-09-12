@@ -17,5 +17,13 @@
   <select id="countByBookId" parameterType="string" resultType="int">
     SELECT COUNT(*) FROM review WHERE book_id = #{bookId}
   </select>
+  
+  <select id="findByEventId" parameterType="int" resultType="com.bookat.entity.Review">
+  		SELECT * FROM REVIEW WHERE EVENT_ID = #{eventId}
+  </select>
+  
+  <select id="countByEventId" parameterType="int" resultType="int">
+  		SELECT COUNT(*) FROM REVIEW WHERE EVENT_ID = #{eventId}
+  </select>
 
 </mapper>

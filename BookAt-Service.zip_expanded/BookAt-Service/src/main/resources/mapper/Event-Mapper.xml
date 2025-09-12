@@ -14,18 +14,33 @@
     </select>
     
     <select id="selectByLocalCode" resultType="com.bookat.dto.EventResDto">
-        SELECT * FROM EVENT WHERE LOCAL_CODE=#{local_code}
+        SELECT * FROM EVENT WHERE LOCAL_CODE=#{local_code} ORDER BY EVENT_ID ASC
     </select>
 
     <select id="selectByLocalCodeAndStartTime" resultType="com.bookat.dto.EventResDto">
-        SELECT * FROM EVENT WHERE LOCAL_CODE=#{local_code} AND EVENT_DATE > SYSDATE + 30 ORDER BY EVENT_DATE ASC
+       SELECT * FROM (SELECT * FROM EVENT WHERE LOCAL_CODE=#{local_code} AND EVENT_DATE > SYSDATE + 30 ORDER BY EVENT_DATE ASC) WHERE ROWNUM &lt;= 6
     </select>
 
     <select id="selectByLocalCodeAndCloseTime" resultType="com.bookat.dto.EventResDto">
-        SELECT * FROM EVENT WHERE LOCAL_CODE=#{local_code} AND EVENT_DATE > SYSDATE ORDER BY EVENT_DATE ASC
+        SELECT * FROM (SELECT * FROM EVENT WHERE LOCAL_CODE=#{local_code} AND EVENT_DATE > SYSDATE ORDER BY EVENT_DATE ASC) WHERE ROWNUM &lt;= 6
     </select>
     
+    <select id="selectForMain" resultType="com.bookat.dto.EventResDto">
+    	SELECT * FROM (SELECT * FROM EVENT) WHERE ROWNUM &lt; = 6
+    </select>
     
+    <select id="selectByStartTime" resultType="com.bookat.dto.EventResDto">
+    	SELECT * FROM (SELECT * FROM EVENT WHERE EVENT_DATE > SYSDATE + 30 ORDER BY EVENT_DATE ASC) WHERE ROWNUM &lt;= 6
+    </select>
+    
+    <select id="selectByCloseTime" resultType="com.bookat.dto.EventResDto">
+        SELECT * FROM (SELECT * FROM EVENT WHERE EVENT_DATE > SYSDATE ORDER BY EVENT_DATE ASC) WHERE ROWNUM &lt;= 6
+    </select>
+
+	<select id="selectBookOne"  parameterType="string" resultType="Book">
+		SELECT * FROM BOOK WHERE BOOK_ID = #{book_id}
+	</select>
+  
     <!-- bookId로 이벤트 조회 -->
     <select id="selectByBookId" parameterType="string"
           resultType="com.bookat.dto.EventResDto">
@@ -44,6 +59,6 @@
     WHERE e.BOOK_ID = #{bookId}
   </select>
 
-
 </mapper>
+
 

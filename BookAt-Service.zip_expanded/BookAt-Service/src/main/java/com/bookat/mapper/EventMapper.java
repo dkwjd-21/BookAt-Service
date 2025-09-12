@@ -3,11 +3,15 @@ package com.bookat.mapper;
 import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
+
+
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 
 
+
 import com.bookat.dto.EventResDto;
+import com.bookat.entity.Book;
 
 @Mapper
 public interface EventMapper {
@@ -29,8 +33,18 @@ public interface EventMapper {
 
 	List<EventResDto> selectByLocalCodeAndCloseTime(String local_code);
 	
+
+	List<EventResDto> selectForMain();
+	
+	List<EventResDto> selectByStartTime();
+
+	List<EventResDto> selectByCloseTime();
+	
+	Book selectBookOne(String book_id);
+
 	List<EventResDto> selectByBookId(@Param("bookId") String bookId);
 	
 	
+
 	
 }

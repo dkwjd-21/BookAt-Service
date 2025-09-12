@@ -7,7 +7,7 @@
     <link rel="stylesheet" th:href="@{/css/event_mainpage.css}" />
 
     <style>
-      /* 이미지 없을 때 빈 자리 모두 회색빈칸 처리 */
+      /* 이미지 없을 때 빈 자리 모두 회색빈칸 처리해두기 */
       .header-banner img,
       .event-cover {
         background-color: #cccccc;
@@ -29,7 +29,7 @@
     <script th:src="@{/js/event_mainpage.js}"></script>
     <header class="main-header">
       <div class="header-top">
-        <a th:href="@{/event}"><img th:src="@{/images/BookAt-Logo.png}" class="main-logo-img" /></a>
+        <a th:href="@{/event/main}"><img th:src="@{/images/BookAt-Logo.png}" class="main-logo-img" /></a>
 
         <div class="auth-links">
           <!--<th:block th:if="${isLoggedIn == null}">-->
@@ -62,6 +62,7 @@
 
     <main class="container">
       <section class="header-banner">
+        <!--상단 메인 배너-->
         <div>
           <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1200&auto=format&fit=crop" alt="Promotion Banner" style="background-color: #cccccc" />
 
@@ -77,8 +78,9 @@
         </div>
       </section>
 
+      <!--카테고리 nav-->
       <div class="chip-row" style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px">
-        <a class="chip" th:href="@{/event}" style="background-color: #f9d849; color: #fff; border-color: #f9d849">전체</a>
+        <a class="chip" th:href="@{/event}">전체</a>
         <a class="chip" th:href="@{/event/category(local_code='SEOUL')}" th:classappend="${currentLocalCode == 'SEOUL'} ? 'active' : ''">서울</a>
         <a class="chip" th:href="@{/event/category(local_code='GYEONGGI_INCHEON')}" th:classappend="${currentLocalCode == 'GYEONGGI_INCHEON'} ? 'active' : ''">경기<br />인천</a>
         <a class="chip" th:href="@{/event/category(local_code='JEOLLA')}" th:classappend="${currentLocalCode == 'JEOLLA'} ? 'active' : ''">전라</a>
@@ -89,49 +91,22 @@
       </div>
 
       <div>
+        <!--이벤트 카드-->
         <section class="event-section">
-          <h2 class="section-title">인기 이벤트</h2>
           <div class="event-list">
-            <div th:each="event, eventStat : ${event}" th:if="${eventStat.index < 6}" class="event-card">
+            <div th:each="event, eventStat : ${event}" class="event-card">
               <a th:href="@{/event/detail(event_id=${event.eventId})}">
                 <img th:src="${event.eventImage}" alt="event Cover" class="event-cover" />
-                <p class="meta" th:text="${#strings.substring(event.address, 0, 2)}"></p>
+                <p class="meta" th:text="${#strings.substring(#strings.substringAfter(event.address, ' '), 0, 2)}"></p>
                 <p th:text="${event.eventName}" class="event-title">이벤트 이름</p>
               </a>
             </div>
           </div>
         </section>
-
-        <section class="event-section">
-          <h2 class="section-title">오픈 예정 이벤트</h2>
-          <div class="event-list">
-            <div th:each="openTime, openTimeStat : ${openTime}" th:if="${openTimeStat.index < 6}" class="event-card">
-              <a th:href="@{/event/detail(event_id=${openTime.eventId})}">
-                <img th:src="${openTime.eventImage}" alt="event Cover" class="event-cover" />
-                <p class="meta" th:text="${#strings.substring(openTime.address, 0, 2)}"></p>
-                <p th:text="${openTime.eventName}" class="event-title">이벤트 이름</p>
-              </a>
-            </div>
-          </div>
-        </section>
-
-        <section class="event-section">
-          <section class="event-section">
-            <h2 class="section-title">마감 임박 이벤트</h2>
-            <div class="event-list">
-              <div th:each="closeTime, closeTimeStat : ${closeTime}" th:if="${closeTimeStat.index < 6}" class="event-card">
-                <a th:href="@{/event/detail(event_id=${closeTime.eventId})}">
-                  <img th:src="${closeTime.eventImage}" alt="event Cover" class="event-cover" />
-                  <p class="meta" th:text="${#strings.substring(#strings.substringAfter(closeTime.address, ' '), 0, 2)}"></p>
-                  <p th:text="${closeTime.eventName}" class="event-title">이벤트 이름</p>
-                </a>
-              </div>
-            </div>
-          </section>
-        </section>
       </div>
     </main>
 
+    <!--푸터-->
     <footer th:fragment="site-footer" class="footer" style="border: 1px solid #bfbfbf; margin: 0 auto; color: #bfbfbf; background: #eaeaea">
       <div class="ft_content" style="padding: 40px 100px">
         <div class="ft_logo">
