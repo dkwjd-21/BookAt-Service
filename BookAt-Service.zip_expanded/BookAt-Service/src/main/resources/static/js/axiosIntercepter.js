@@ -1,0 +1,146 @@
+	window.accessTokenKey = 'accessToken';
+	
+	// axios 인스턴스 생성
+	const axiosInstance = axios.create({
+	  baseURL: window.location.origin,
+	  withCredentials: true // refresh token이 HttpOnly 쿠키로 전달될 때 필요
+	});
+	
+	// JWT 파싱 함수 (payload 추출)
+	function parseJwt(token) {
+	  try {
+	    const base64Url = token.split('.')[1];
+	    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+	    const jsonPayload = decodeURIComponent(atob(base64).split('').map(function (c) {
+	      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+	    }).join(''));
+	    return JSON.parse(jsonPayload);
+	  } catch (e) {
+	    return null;
+	  }
+	}
+	
+	let refreshTimer = null;
+	
+	function scheduleTokenRefresh(token) {
+	  if (refreshTimer) {
+	    clearTimeout(refreshTimer); // 중복 예약 방지
+	  }
+
+	  const payload = parseJwt(token);
+	  if (!payload || !payload.exp) return;
+
+	  const exp = payload.exp * 1000;
+	  const now = Date.now();
+	  const refreshTime = exp - now - 10000; // 만료 10초 전
+
+	  if (refreshTime > 0) {
+	    console.log(`곧 엑세스 토큰 갱신 예약`);
+	    refreshTimer = setTimeout(async () => {
+	      try {
+	        const res = await axiosInstance.post('/auth/refresh', {});
+	        const newToken = res.data.accessToken;
+	        localStorage.setItem(window.accessTokenKey, newToken);
+	        console.log('Access Token 갱신 성공');
+	        scheduleTokenRefresh(newToken); // 새 엑세스 토큰으로 다시 예약
+			
+			if (typeof window.updateAuthUI === 'function') {
+			  window.updateAuthUI();
+			}
+			
+	      } catch (err) {
+	        console.error('토큰 자동 갱신 실패:', err);
+	        if (typeof window.handleLogout === 'function') {
+	          window.handleLogout();
+	        }
+	      }
+	    }, refreshTime);
+	  }
+	}
+	
+	// 요청 인터셉터: 모든 요청에 Access Token 자동 첨부
+	axiosInstance.interceptors.request.use(
+	  config => {
+	    const token = localStorage.getItem(window.accessTokenKey);
+	    if (token) {
+	      config.headers.Authorization = `Bearer ${token}`;
+	    }
+	    return config;
+	  },
+	  error => Promise.reject(error)
+	);
+	
+	// refresh 중복 요청 방지 및 대기열 처리
+	let isRefreshing = false;
+	let refreshSubscribers = [];
+	
+	function subscribeTokenRefresh(cb) {
+	  refreshSubscribers.push(cb);
+	}
+	
+	function onRefreshed(newToken) {
+	  refreshSubscribers.forEach(cb => cb(newToken));
+	  refreshSubscribers = [];
+	}
+	
+	// 응답 인터셉터: 401 → refresh 토큰으로 access token 재발급
+	axiosInstance.interceptors.response.use(
+	  response => response,
+	  async error => {
+	    const originalRequest = error.config;
+	
+		if (
+		  error.response &&
+		  error.response.status === 401 &&
+		  !originalRequest._retry &&
+		  !originalRequest.url.includes('/auth/refresh')
+		) {
+	      originalRequest._retry = true;
+	
+	      if (!isRefreshing) {
+	        isRefreshing = true;
+	        try {
+	          // refresh token으로 access token 재발급
+	          const res = await axiosInstance.post('/auth/refresh', {});
+	          const newToken = res.data.accessToken;
+	
+	          localStorage.setItem(window.accessTokenKey, newToken);
+			  scheduleTokenRefresh(newToken);
+			  
+			  if (typeof window.updateAuthUI === 'function') {
+			     window.updateAuthUI();
+			   }
+	
+	          onRefreshed(newToken);
+	        } catch (refreshError) {
+	          // refresh 토큰 만료 → 자동 로그아웃
+	          if (refreshError.response && [401, 403].includes(refreshError.response.status)) {
+				if (typeof handleLogout === 'function') {
+	            window.handleLogout();
+				} else {
+					localStorage.removeItem(window.accessTokenKey);
+					window.location.href = '/user/login';
+				}
+	          }
+	
+	          return Promise.reject(refreshError);
+	        } finally {
+				isRefreshing = false;
+			}
+	      }
+	
+	      // 새 토큰 발급될 때까지 다른 요청 대기 후 재시도
+	      return new Promise(resolve => {
+	        subscribeTokenRefresh(newToken => {
+	          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+	          resolve(axiosInstance(originalRequest));
+	        });
+	      });
+	    }
+	
+	    return Promise.reject(error);
+	  }
+	);
+	
+	// 전역에서 사용 가능
+	window.axiosInstance = axiosInstance;
