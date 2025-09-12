@@ -104,7 +104,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
 
         // 필터 제외할 API
-        if (path.equals("/") || path.equals("/auth/refresh") || path.equals("/user/login") || path.equals("/user/logout")) {
+        // 리프레시 토큰 만료시 자동로그아웃 가능하게 할려면 여기서 필터를 제외시켜야하는데 맞나...?
+        if (path.equals("/") || path.equals("/auth/refresh") || path.equals("/user/login") || path.equals("/user/logout") || path.equals("/queue/reservation")) {
             return true;
         }
 
