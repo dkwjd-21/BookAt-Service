@@ -2,6 +2,7 @@ package com.bookat.controller;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -77,8 +78,13 @@ public class UserLoginController {
 			// refresh token 과 loginTime 저장
 			Map<String, String> redisValue = new HashMap<>();
 			redisValue.put("refreshToken", refreshToken);
-			redisValue.put("loginTime", String.valueOf(loginTime));
+			redisValue.put("loginTime", loginTime);
+			log.info("Redis 저장 시도: key={}, value={}", userId, redisValue);
 			redisTemplate.opsForHash().putAll(userId, redisValue);
+			redisTemplate.expire(userId, CookieUtil.SEVEN_DAYS, TimeUnit.SECONDS);
+			
+			Map<Object, Object> check = redisTemplate.opsForHash().entries(userId);
+			log.info("Redis 저장 확인: {}", check);
 			
 			// refresh token 쿠키 저장
 			cookieUtil.createCookie(response, "refreshToken", refreshToken, CookieUtil.SEVEN_DAYS);
@@ -117,6 +123,7 @@ public class UserLoginController {
 	        Map<Object, Object> redisValue = redisTemplate.opsForHash().entries(userId);
 	        if (redisValue != null && redisValue.containsKey("loginTime")) {
 	            long lastLoginTime = Long.parseLong((String) redisValue.get("loginTime"));
+	            log.warn("lastLoginTime : {}", lastLoginTime);
 	            if (loginTime == lastLoginTime) {
 	                redisTemplate.delete(userId);
 	            }

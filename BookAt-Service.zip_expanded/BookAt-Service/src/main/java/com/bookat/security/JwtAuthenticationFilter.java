@@ -58,20 +58,34 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 
                 HashOperations<String, String, String> hashOps = redisTemplate.opsForHash();
                 Map<String, String> redisValue = hashOps.entries(userId);
-                String redisRefreshToken = redisValue.get("refreshToken");
-                String redisLoginTime = redisValue.get("loginTime");
                 
-                if (redisRefreshToken != null && redisLoginTime != null) {
-                    if (!refreshToken.equals(redisRefreshToken) || !loginTime.equals(redisLoginTime)) {
-                        log.info("다른 기기에서 로그인됨 → 강제 로그아웃");
-                        cookieUtil.deleteCookie(response, "accessToken");
+                if(redisValue != null && !redisValue.isEmpty()) {
+                    String redisRefreshToken = redisValue.get("refreshToken");
+                    String redisLoginTime = redisValue.get("loginTime");
+                    
+                    // RefreshToken 만료 여부 체크
+                    if (redisRefreshToken != null && !jwtTokenProvider.validateToken(redisRefreshToken)) {
+                        log.info("RefreshToken 만료 → Redis 삭제");
+                        redisTemplate.delete(userId);
                         cookieUtil.deleteCookie(response, "refreshToken");
                         cookieUtil.deleteCookie(response, "loginTime");
                         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                         return;
                     }
+                    
+                    if (redisRefreshToken != null && redisLoginTime != null) {
+                        if (!refreshToken.equals(redisRefreshToken) || !loginTime.equals(redisLoginTime)) {
+                            log.info("다른 기기에서 로그인됨 → 강제 로그아웃");
+                            cookieUtil.deleteCookie(response, "accessToken");
+                            cookieUtil.deleteCookie(response, "refreshToken");
+                            cookieUtil.deleteCookie(response, "loginTime");
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            return;
+                        }
+                    }
                 }
 
+                // 인증 컨텍스트 설정
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(user, null, null);
 
@@ -90,12 +104,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
 
         // 필터 제외할 API
-        if (path.equals("/user/refresh") || path.equals("/user/logout")) {
+        if (path.equals("/") || path.equals("/auth/refresh") || path.equals("/user/login") || path.equals("/user/logout")) {
             return true;
         }
 
         // 정적 리소스 제외
-        if (path.startsWith("/css") || path.startsWith("/js") || path.startsWith("/images") || path.equals("/favicon.ico")) {
+        if (path.startsWith("/css") || path.startsWith("/js") || path.startsWith("/images") || path.startsWith("/favicon.ico")) {
+            return true;
+        }
+        
+        if (path.startsWith("/.well-known/")) {
             return true;
         }
 

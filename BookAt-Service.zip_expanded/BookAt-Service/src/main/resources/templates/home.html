@@ -5,23 +5,20 @@
 <title>홈</title>
 <link rel="stylesheet" th:href="@{/css/header.css}" />
 <link rel="stylesheet" th:href="@{/css/footer.css}">
-<script type="text/javascript" src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script th:inline="javascript" th:src="@{/js/loginIsOk.js}"></script>
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/dist/js.cookie.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script th:src="@{/js/axiosIntercepter.js}"></script>
+<script th:src="@{/js/userAuth.js}"></script>
 </head>
 <body>
 
 	<div th:replace="fragments/header :: main-header"></div>
 	
 	<h1>BookAt MainPage</h1>
-	<th:block th:if="${userName != null}">	
-		<h2>[[${userName}]] 님</h2>
-	</th:block>
+	<h2 id="auth-username"></h2>
 	
 	<div th:replace="fragments/footer :: main-footer"></div>
 
-	<!--
-		axios 사용할때 cdn
-		<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-	-->
 </body>
 </html>

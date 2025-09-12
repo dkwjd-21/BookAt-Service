@@ -29,8 +29,8 @@ public class SecurityConfig {
 //        .httpBasic(Customizer.withDefaults())
         .authorizeHttpRequests(auth -> auth
         		.requestMatchers("/css/**", "/js/**", "/images/**").permitAll()	// 정적 리소스 접근 가능
-        		.requestMatchers("/", "/user/**", "/auth/**").permitAll()		// 로그인 전 접근 가능
-        		.requestMatchers("/mainPage").authenticated()
+        		.requestMatchers("/", "/user/**", "/auth/**").permitAll()		// 로그인 전 접근 가능 (페이지들)
+        		.requestMatchers("/api/**").authenticated()						// 기능들
                 .anyRequest().denyAll()
         ).addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 		
