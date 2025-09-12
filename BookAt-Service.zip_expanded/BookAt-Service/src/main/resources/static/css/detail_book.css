@@ -4,7 +4,7 @@
 .panel {
   background:#fff;
   border-radius: 14px;
-  box-shadow: 0 2px 8px rgba(0,0,0,.06);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   padding: 20px;
   margin:0 auto;max-width: 1200px;
 }
@@ -41,16 +41,43 @@ a.btn, a.btn:link, a.btn:visited, a.btn:hover, a.btn:active {
   display: inline-block; /* 필요 시 버튼 박스 형태 */
 }
 
+/* ========== 상세 상단 레이아웃 ========== */
 .detail-grid {
-  display:grid;
-  grid-template-columns: 340px 1fr;
+  display: grid;
+  grid-template-columns: 340px 1fr; /* 왼쪽 고정폭, 오른쪽 가변 */
   gap: 28px;
-  align-items: start;
+  align-items: stretch;            /* 양 칼럼 높이 맞춤 */
 }
-.detail-thumb {
-  width: 310px; height: 410px; object-fit: contain;
-  border-radius: 12px; background:#fff;
+
+/* 이미지 래퍼: 그리드 셀의 세로 공간을 전부 차지 */
+.detail-image-box {
+  height: 100%;
+  width: 100%;
+  display: flex;                   /* 가운데 정렬(여백 있을 때 보기 좋게) */
+  align-items: center;
+  justify-content: center;
+}
+
+/* 표지 이미지: 래퍼 높이에 맞춰 늘어나되, 과도한 확대는 제한 */
+.detail-image {
+  width: 100%;
+  height: 100%;
+  max-height: 720px;               /* 과도한 늘어남 방지 (필요시 조정) */
+  min-height: 360px;               /* 최소 높이 확보 (기존 400px 느낌 유지하려면 400px로) */
+  object-fit: contain;             /* 비율 유지하며 래퍼 안에 맞춤 */
+  border-radius: 12px;
+  background: #fff;
   box-shadow: 0 2px 8px rgba(0,0,0,.06);
+}
+
+/* 긴 제목 줄바꿈 개선 */
+.detail-title {
+  font-size: 30px;
+  font-weight: 800;
+  margin: 0 0 12px;
+  word-break: keep-all;   /* 한국어 단어 깨짐 최소화 */
+  overflow-wrap: anywhere;/* 너무 긴 단일 토큰(긴영문/URL) 강제 줄바꿈 */
+  hyphens: auto;
 }
 
 /* 타이틀/메타/가격 */
@@ -143,6 +170,12 @@ a.btn, a.btn:link, a.btn:visited, a.btn:hover, a.btn:active {
 .stars span { color:#d1d5db; }
 .stars span.on { color:#B5D173;}
 
+* 마우스를 올렸을 때 카드에 생기는 효과 */
+.event-card:hover {
+  transform: translateY(-5px); /* 살짝 위로 이동 */
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
 /* 취소/환불 규정 리스트 스타일 */
 .policy-list {
   margin: 0;
@@ -162,4 +195,83 @@ a.btn, a.btn:link, a.btn:visited, a.btn:hover, a.btn:active {
 
 .policy-sub > li {
   margin: 4px 0;
+}
+
+/*---------------------------------------*/
+
+.modal-overlay {
+  display: none; /* 평소에는 숨김 */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* 모달 폼 그룹 */
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: bold;
+}
+
+/* 별점 입력 스타일 */
+.stars-input .star {
+  font-size: 30px;
+  color: #ddd;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+/* 마우스 올렸을 때 별 색상 변경 */
+.stars-input:hover .star {
+  color: #B5D173;
+}
+.stars-input .star:hover ~ .star {
+  color: #ddd;
+}
+
+/* 선택된 별 색상 고정 */
+.stars-input .star.selected {
+  color: #B5D173;
+}
+.stars-input .star.selected ~ .star {
+  color: #ddd;
+}
+
+/* 리뷰 내용 입력창 */
+.modal-content textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 16px;
+  resize: vertical;
+}
+
+/* 등록하기 버튼 */
+.modal-content .submit-btn {
+  width: 100%;
+  padding: 12px;
+  background-color: #B5D173;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.modal-content .submit-btn:hover {
+  background-color: #fdd835;
 }

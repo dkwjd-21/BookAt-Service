@@ -36,7 +36,7 @@
 <section class="panel" style="margin-top:16px;">
   <div class="detail-grid">
     <!-- 표지 -->
-    <img class="detail-thumb"
+    <img class="detail-image"
          th:src="${book.imageUrl != null ? book.imageUrl : 'https://placehold.co/340x440?text=Book'}"
          th:alt="${book.title}">
 
@@ -115,9 +115,10 @@
   <div th:if="${#lists.isEmpty(events)}" style="color:#6b7280">진행 중인 이벤트가 없습니다.</div>
 
   <div th:if="${!#lists.isEmpty(events)}" class="grid" style="grid-template-columns:repeat(6,1fr);gap:14px;">
-    <a th:each="ev : ${events}" class="card card-link"
-       th:href="@{|/events/${ev.eventId}|}">
-      <img th:src="${ev.imageUrl != null ? ev.imageUrl : 'https://placehold.co/300x420?text=Event'}" alt="event">
+    <a th:each="ev : ${events}"
+       class="event-card"
+       th:href="@{/event/detail(event_id=${ev.eventId})}">
+      <img th:src="${!#strings.isEmpty(ev.imageUrl) ? ev.imageUrl : 'https://placehold.co/300x420?text=Event'}" alt="event">
       <div class="body">
         <div class="title" th:text="${ev.title}">이벤트 제목</div>
         <div class="meta" th:text="${ev.badge}">진행중</div>
@@ -137,7 +138,7 @@
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
     <h3 class="section-title" style="margin:0;">전체 리뷰 (<span th:text="${reviewCount}">0</span>)</h3>
     <form th:action="@{|/books/${book.bookId}/reviews/new|}" method="get">
-      <a class="btn" role="button" th:href="@{|/books/${book.bookId}/reviews/new|}">
+      <a class="review-write-btn" role="button" id="openReviewModalBtn">
   리뷰 작성
 </a>
     </form>
@@ -165,6 +166,36 @@
   </div>
 </section>
 
+  <!-- 리뷰 작성 모달창 -->
+  <div id="reviewModal" class="modal-overlay">
+    <div class="modal-content">
+      <span class="close-btn">&times;</span>
+      <h2>리뷰 작성</h2>
+      <form id="reviewForm">
+        <input type="hidden" name="eventId" th:value="${event.eventId}" />
+
+        <div class="form-group">
+          <label>별점</label>
+          <div class="stars-input">
+            <span class="star" data-value="1">★</span>
+            <span class="star" data-value="2">★</span>
+            <span class="star" data-value="3">★</span>
+            <span class="star" data-value="4">★</span>
+            <span class="star" data-value="5">★</span>
+          </div>
+          <input type="hidden" id="rating" name="rating" value="0" required />
+        </div>
+
+        <div class="form-group">
+          <label for="reviewContent">리뷰 내용</label>
+          <textarea id="reviewContent" name="content" rows="6" placeholder="리뷰 내용을 입력해주세요." required></textarea>
+        </div>
+
+        <button type="submit" class="submit-btn">등록하기</button>
+      </form>
+    </div>
+  </div>
+  
 <!-- 4) 취소 및 환불 규정 패널 (고정 문구) -->
 <section class="panel" style="margin-top:16px;margin-bottom:30px;">
   <h3 class="section-title" style="margin:0 0 12px 0;">취소 및 환불 규정</h3>
