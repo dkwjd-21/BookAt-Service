@@ -19,8 +19,8 @@
       </div>
       <div class="header-bottom">
         <nav class="nav-links">
-          <a href="#" class="nav-item">도서</a>
-          <a href="#" class="nav-item active">이벤트</a>
+          <a th:href="@{/books}" class="nav-item">도서</a>
+          <a th:href="@{/event}" class="nav-item active">이벤트</a>
         </nav>
         <div class="search-bar">
           <form id="searchForm" action="#" method="get">
@@ -53,10 +53,11 @@
           </div>
           <div class="event-info">
             <h1 th:text="${event.eventName}" class="event-title"></h1>
+            <br />
             <div class="meta">
               <h2>날짜</h2>
               <p class="date" th:text="${#dates.format(event.eventDate, 'yyyy년 MM월 dd일')}"></p>
-              <h2>주소</h2>
+              <h2>장소</h2>
               <p class="location" th:text="${event.address}"></p>
             </div>
             <hr />
@@ -67,7 +68,7 @@
             <div class="actions">
               <button class="wishlist-btn">찜</button>
               <button class="wishlist-btn">알림받기</button>
-              <button id="reserve-btn" class="reserve-btn" th:data-event-date="${#dates.format(event.eventDate, 'yyyy-MM-dd')}" style="background-color: #f9d849"></button>
+              <button id="reserve-btn" th:data-event-id="${event.eventId}" class="reserve-btn" th:data-event-date="${#dates.format(event.eventDate, 'yyyy-MM-dd')}" style="background-color: #f9d849"></button>
             </div>
           </div>
         </section>
@@ -76,11 +77,18 @@
       <main class="container">
         <section class="related-books">
           <h2>관련 도서</h2>
-          <div class="related-book-item">
-            <th:block th:if="${book != null}">
-              <img th:src="${book.bookCover}" alt="Book Cover" class="related-book-image" />
-              <p th:text="${book.bookTitle}"></p>
-            </th:block>
+          <div class="related-book-list">
+            <a th:href="@{'/books/' + ${book.bookId}}">
+              <div class="related-book-item">
+                <th:block th:if="${book != null}">
+                  <img th:src="${book.bookCover}" alt="Book Cover" class="related-book-image" />
+                  <div class="book-info">
+                    <span class="book-category">강원</span>
+                    <p class="book-title" th:text="${book.bookTitle}"></p>
+                  </div>
+                </th:block>
+              </div>
+            </a>
           </div>
         </section>
       </main>
@@ -126,9 +134,9 @@
             </form>
           </div>
           <div class="soft-divider"></div>
-		  <br>
-		  <hr>
-		  <br>
+          <br />
+          <hr />
+          <br />
 
           <!-- 리뷰 없을 때 -->
           <div th:if="${#lists.isEmpty(reviews)}" style="color: #6b7280">작성된 리뷰가 없습니다.</div>
@@ -192,7 +200,7 @@
       </div>
     </footer>
 
-    <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=6f894eb134a6be62111b7e20331512d9&libraries=services"></script>
+    <script type="text/javascript" th:src="@{'//dapi.kakao.com/v2/maps/sdk.js?appkey=' + ${kakaoMapsAppkey} + '&libraries=services'}"></script>
 
     <script th:inline="javascript">
       /*<![CDATA[*/
@@ -201,6 +209,17 @@
     </script>
 
     <script th:src="@{/js/event_detail.js}"></script>
+    <script th:inline="javascript">
+      /*<![CDATA[*/
+      // 컨트롤러에서 RedirectAttributes로 전달한 'errorMessage' 속성이 있는지 확인
+      var errorMessage = /*[[${errorMessage}]]*/ null;
+
+      // errorMessage 변수에 값이 존재한다면(null이 아니라면) alert
+      if (errorMessage) {
+        alert(errorMessage);
+      }
+      /*]]>*/
+    </script>
   </body>
   <!-- 리뷰 작성 모달창 -->
   <div id="reviewModal" class="modal-overlay">

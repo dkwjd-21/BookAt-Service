@@ -229,31 +229,73 @@ a {
 }
 
 .related-books {
-  margin-bottom: 30px;
+  width: 100%;
+  /* margin-top: 40px; */
+}
+.related-books h2 {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 20px; /* 제목과 카드 사이 여백 */
+  color: #333;
+}
+
+/* 여러 도서를 가로로 나열하기 위한 리스트 (선택 사항) */
+.related-book-list {
+  display: flex;
+  gap: 24px; /* 카드 사이의 간격 */
+  flex-wrap: wrap; /* 화면이 작아지면 다음 줄로 넘김 */
 }
 
 .related-book-item {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  background-color: #fff;
-  border-radius: 8px;
-  overflow: hidden;
-  padding: 10px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  text-align: center;
-  width: 200px;
+  width: 180px; /* 카드의 너비 */
+  background-color: #ffffff;
+  border-radius: 12px; /* 모서리 둥글게 */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* 그림자 효과 */
+  padding: 16px;
+  text-align: left;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; /* 부드러운 전환 효과 */
+}
+
+/* 마우스를 올렸을 때 카드에 생기는 효과 */
+.related-book-item:hover {
+  transform: translateY(-5px); /* 살짝 위로 이동 */
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
 }
 
 .related-book-image {
-  /* width: 100%; */
-  height: 200px; /* Fixed height for event covers */
-  object-fit: contain; /* Ensures the image fits without cropping */
-  border-radius: 4px;
-  margin-bottom: 10px;
-  background-color: #cccccc;
+  width: 100%;
+  aspect-ratio: 1 / 1.2; /*이미지 비율 (세로로 약간 길게)*/
+  object-fit: contain; /* 이미지가 잘리지 않고 채워지도록 */
+  border-radius: 8px; /* 이미지 모서리 둥글게 */
+  margin-bottom: 16px; /* 이미지와 텍스트 사이 여백 */
+}
+/* 도서 정보 텍스트 컨테이너 */
+.book-info {
+  display: flex;
+  flex-direction: column; /* 세로로 정렬 */
 }
 
+/* 도서 카테고리 (예: 강원) */
+.book-category {
+  font-size: 13px;
+  color: #888;
+  margin-bottom: 8px;
+}
+
+/* 도서 제목 */
+.book-title {
+  font-size: 16px;
+  font-weight: 600; /* 약간 굵게 */
+  color: #374151;
+  line-height: 1.5; /* 줄 간격 */
+
+  /* 두 줄 이상 넘어갈 경우 말줄임표(...) 처리 */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
 .event-details {
   display: flex;
   gap: 30px;

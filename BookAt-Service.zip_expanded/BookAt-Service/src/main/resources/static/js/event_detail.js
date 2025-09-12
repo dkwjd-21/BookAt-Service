@@ -82,7 +82,7 @@ function initializeReviewModal() {
     });
   }
 
-  // --- 폼 제출 (AJAX) 로직 ---
+  // --- 폼 제출 로직 ---
   reviewForm.addEventListener("submit", function (e) {
     e.preventDefault(); // 기본 폼 제출 동작 방지
 
@@ -90,8 +90,8 @@ function initializeReviewModal() {
     const formData = new FormData(reviewForm);
     const data = Object.fromEntries(formData.entries());
 
-    // [주의!] action URL은 실제 리뷰를 저장하는 Controller의 주소로 변경해야 합니다.
-    fetch("/api/reviews", {
+    						// [주의!] URL을  Controller의 주소로 변경해야 합니다.	//미구현
+    fetch("event/review", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -121,6 +121,7 @@ function initializeReviewModal() {
  */
 function initializeReserveButton() {
   const reserveBtn = document.getElementById("reserve-btn");
+  const eventId = reserveBtn.dataset.eventId; 
   if (!reserveBtn) {
     console.error("예약 버튼(id='reserve-btn')을 찾을 수 없습니다.");
     return;
