@@ -1,11 +1,50 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
-  </head>
-  <body>
-	<h1>예매창 팝업입니다!</h1>
-  </body>
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Document</title>
+	<link rel="stylesheet" th:href="@{/css/ReservationPopup.css}" />
+</head>
+
+<body>
+	<div class="popup-container">
+		<header>
+			<img th:src="@{/images/BookAt-Logo.png}" alt="BookAt Logo" class="logo">
+		</header>
+
+		<div class="body-wrapper">
+
+			<div class="left-column">
+				<nav class="progress-steps">
+					<ol>
+						<li class="active">날짜/회차 선택</li>
+						<li>등급/좌석 선택</li>
+						<li>정보 입력</li>
+						<li>결제</li>
+					</ol>
+				</nav>
+
+				<main class="content-wrapper">
+					<section class="selection-area">
+						<div class="calendar-container">달력 & 회차 선택<br>컨텐츠 추가 영역</div>
+					</section>
+				</main>
+			</div>
+
+			<aside class="summary-content">
+				<div class="event-poster">
+					<img class="posterImg">
+					<h2>{이벤트명}</h2>
+					<p>2025년 9월 17일</p>
+					<p>10:00 1회차</p>
+				</div>
+				<button class="next-button">다음 단계</button>
+			</aside>
+
+		</div>
+	</div>
+</body>
+
 </html>
