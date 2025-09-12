@@ -12,7 +12,8 @@
 		  if(accessToken) {
 			axiosInstance.get('/auth/validate')
 			  .then(res => {
-			    console.log("현재 로그인 사용자:", res.data.userId);
+				const userInfo = res.data;
+			    console.log("현재 로그인 사용자:", userInfo.userId);
 			  
 			  if (loginBtn) loginBtn.style.display = 'none';
 			  if (signupBtn) signupBtn.style.display = 'none';

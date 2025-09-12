@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import com.bookat.dto.UserInfoResponse;
 import com.bookat.dto.UserLoginResponse;
 import com.bookat.entity.User;
 import com.bookat.service.impl.UserLoginServiceImpl;
@@ -49,7 +50,18 @@ public class UserAuthController {
 	    userId = jwtTokenProvider.getUserIdFromToken(token);
 	    User user = service.findUserById(userId);
 	    
-	    return ResponseEntity.ok(Map.of("userId", user.getUserId(), "userName", user.getUserName()));
+	    if(user == null) {
+	    	return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("존재하지 않는 사용자입니다.");
+	    }
+	    
+	    UserInfoResponse userInfo = new UserInfoResponse();
+	    userInfo.setUserId(user.getUserId());
+	    userInfo.setUserName(user.getUserName());
+	    userInfo.setPhone(user.getPhone());
+	    userInfo.setBirth(user.getBirth());
+	    userInfo.setEmail(user.getEmail());
+	    
+	    return ResponseEntity.ok(userInfo);
 	}
 	
 	// access token 재발급
