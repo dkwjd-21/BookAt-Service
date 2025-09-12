@@ -13,13 +13,13 @@
       <div class="header-top">
         <a th:href="@{/event}"><img th:src="@{/images/BookAt-Logo.png}" class="main-logo-img" /></a>
         <div class="auth-links">
-          <a href="#">회원가입</a>
-          <a href="#">로그인</a>
+          <a th:href="@{/user/signup}">회원가입</a>
+          <a th:href="@{/user/login}">로그인</a>
         </div>
       </div>
       <div class="header-bottom">
         <nav class="nav-links">
-          <a th:href="@{/books}" class="nav-item">도서</a>
+          <a th:href="@{/books}" class="nav-item" style="color: white">도서</a>
           <a th:href="@{/event}" class="nav-item active">이벤트</a>
         </nav>
         <div class="search-bar">
@@ -33,15 +33,15 @@
     <main class="main_container">
       <main class="container">
         <div class="breadcrumb">
-          이벤트 카테고리 >
-          <span th:switch="${event.localCode}">
-            <span th:case="'GYEONGGI_INCHEON'">경기/인천</span>
-            <span th:case="'SEOUL'">서울</span>
-            <span th:case="'JEOLLA'">전라</span>
-            <span th:case="'JEJU'">제주</span>
-            <span th:case="'GANGWON'">강원</span>
-            <span th:case="'CHUNGCHEONG'">충청</span>
-            <span th:case="'GYEONGSANG'">경상</span>
+          <span class="crumb-label">이벤트 카테고리 </span>
+          <span th:switch="${event.localCode}" style="color: #6b7280">
+            <a th:href="@{/event/category(local_code='SEOUL')}"><span th:case="'GYEONGGI_INCHEON'">경기/인천</span></a>
+            <a th:href="@{/event/category(local_code='SEOUL')}"><span th:case="'SEOUL'">서울</span></a>
+            <a th:href="@{/event/category(local_code='JEOLLA')}"><span th:case="'JEOLLA'">전라</span></a>
+            <a th:href="@{/event/category(local_code='JEJU')}"><span th:case="'JEJU'">제주</span></a>
+            <a th:href="@{/event/category(local_code='GANGWON')}"><span th:case="'GANGWON'">강원</span></a>
+            <a th:href="@{/event/category(local_code='CHUNGCHEONG')}"><span th:case="'CHUNGCHEONG'">충청</span></a>
+            <a th:href="@{/event/category(local_code='GYEONGSANG')}"><span th:case="'GYEONGSANG'">경상</span></a>
           </span>
         </div>
       </main>
@@ -68,7 +68,7 @@
             <div class="actions">
               <button class="wishlist-btn">찜</button>
               <button class="wishlist-btn">알림받기</button>
-              <button id="reserve-btn" th:data-event-id="${event.eventId}" class="reserve-btn" th:data-event-date="${#dates.format(event.eventDate, 'yyyy-MM-dd')}" style="background-color: #f9d849"></button>
+              <button id="reserve-btn" th:data-event-id="${event.eventId}" class="reserve-btn" th:data-event-date="${#dates.format(event.eventDate, 'yyyy-MM-dd')}"></button>
             </div>
           </div>
         </section>

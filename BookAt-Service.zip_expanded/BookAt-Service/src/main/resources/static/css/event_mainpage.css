@@ -290,6 +290,7 @@ body {
 .event-title {
   font-weight: bold;
   font-size: 14px;
+  color: black;
   margin-bottom: 0px;
   height: 40px; /* Ensure consistent height for titles across cards */
   overflow: hidden;
@@ -360,6 +361,7 @@ body {
   .event-title {
     font-size: 13px;
     height: 32px;
+    color: black;
   }
   .event-author {
     font-size: 11px;

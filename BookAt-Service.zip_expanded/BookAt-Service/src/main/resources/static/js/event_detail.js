@@ -90,7 +90,7 @@ function initializeReviewModal() {
     const formData = new FormData(reviewForm);
     const data = Object.fromEntries(formData.entries());
 
-    						// [주의!] URL을  Controller의 주소로 변경해야 합니다.	//미구현
+    // [주의!] URL을  Controller의 주소로 변경해야 합니다.	//미구현
     fetch("event/review", {
       method: "POST",
       headers: {
@@ -121,7 +121,7 @@ function initializeReviewModal() {
  */
 function initializeReserveButton() {
   const reserveBtn = document.getElementById("reserve-btn");
-  const eventId = reserveBtn.dataset.eventId; 
+  const eventId = reserveBtn.dataset.eventId;
   if (!reserveBtn) {
     console.error("예약 버튼(id='reserve-btn')을 찾을 수 없습니다.");
     return;
@@ -131,6 +131,8 @@ function initializeReserveButton() {
   if (!eventDateStr) {
     reserveBtn.textContent = "날짜 정보 없음";
     reserveBtn.disabled = true;
+    // [수정] 비활성화 시 버튼 색상 변경
+    reserveBtn.style.backgroundColor = "#F0F0F0";
     return;
   }
 
@@ -147,21 +149,25 @@ function initializeReserveButton() {
   let countdownInterval;
 
   function updateButtonState() {
-    const currentTime = new Date();
+    const currentTime = new Date(); // 1. 예매가 종료된 경우
 
     if (now.getTime() >= eventDate.getTime()) {
       reserveBtn.textContent = "예매가 종료되었습니다";
       reserveBtn.disabled = true;
+      // [수정] 비활성화 시 버튼 색상 변경
+      reserveBtn.style.backgroundColor = "#F0F0F0";
       if (countdownInterval) clearInterval(countdownInterval);
       return;
-    }
+    } // 2. 예매가 가능한 경우
 
     if (currentTime.getTime() >= ticketingOpenDate.getTime()) {
       reserveBtn.textContent = "예매하기";
       reserveBtn.disabled = false;
+      // [수정] 활성화 시 버튼 색상 변경
+      reserveBtn.style.backgroundColor = "#f9d849";
       reserveBtn.onclick = function () {
         alert("예매 페이지로 이동합니다.");
-        window.location.href = `/event/${eventId}/reservation`;// 예매 페이지 이동 로직
+        window.location.href = `/event/${eventId}/reservation`; // 예매 페이지 이동 로직
       };
       if (countdownInterval) clearInterval(countdownInterval);
       return;
@@ -170,8 +176,11 @@ function initializeReserveButton() {
     const countdownStartDate = new Date(ticketingOpenDate);
     countdownStartDate.setDate(countdownStartDate.getDate() - 1);
 
+    // 3. 카운트다운이 필요한 경우
     if (currentTime.getTime() >= countdownStartDate.getTime()) {
       reserveBtn.disabled = true;
+      // [수정] 비활성화 시 버튼 색상 변경
+      reserveBtn.style.backgroundColor = "#F0F0F0";
       countdownInterval = setInterval(() => {
         const timeLeft = ticketingOpenDate.getTime() - new Date().getTime();
         if (timeLeft <= 0) {
@@ -185,11 +194,15 @@ function initializeReserveButton() {
         reserveBtn.textContent = `예매 오픈 까지 ${String(hours).padStart(2, "0")}시간 ${String(minutes).padStart(2, "0")}분 ${String(seconds).padStart(2, "0")}초`;
       }, 1000);
     } else {
+      // 4. 아직 오픈 일자가 많이 남은 경우
       const openDate = ticketingOpenDate.toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" });
       reserveBtn.textContent = `${openDate} 18:00 오픈예정`;
       reserveBtn.disabled = true;
+      // [수정] 비활성화 시 버튼 색상 변경
+      reserveBtn.style.backgroundColor = "#F0F0F0";
     }
-  }
+  } // 함수 최초 실행
+
   updateButtonState();
 }
 
