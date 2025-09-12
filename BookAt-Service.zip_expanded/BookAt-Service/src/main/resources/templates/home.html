@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>홈</title>
+<link rel="stylesheet" th:href="@{/css/header.css}" />
+<link rel="stylesheet" th:href="@{/css/footer.css}">
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/dist/js.cookie.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script th:src="@{/js/axiosIntercepter.js}"></script>
+<script th:src="@{/js/userAuth.js}"></script>
+</head>
+<body>
+
+	<div th:replace="fragments/header :: main-header"></div>
+	
+	<h1>BookAt MainPage</h1>
+	
+	<div th:replace="fragments/footer :: main-footer"></div>
+
+</body>
+</html>

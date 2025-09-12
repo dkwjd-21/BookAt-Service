@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>로그인</title>
+<link rel="stylesheet" th:href="@{/css/logindefault.css}">
+<script type="text/javascript" src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function() {
+		
+		const ACCESSTOKEN_KEY = "accessToken";
+
+        $("#input-form").submit(function(e) {
+            e.preventDefault();
+			
+			const $userId = $("#userId");
+			const $userPw = $("#userPw");
+
+			const userId = $userId.val().trim();
+			const userPw = $userPw.val().trim();
+
+		    // 기존 에러 초기화
+		    $("#user-id-error, #user-pw-error").hide().text("");
+		    $("#userId, #userPw").removeClass("input-error");
+			
+			// 공란 검증은 프론트에서만 진행
+			if(userId === "") {
+			    $("#user-id-error").text("아이디를 입력해주세요.").show();
+				$userId.focus();
+			    return;
+			}
+
+			if(userPw === "") {
+			    $("#user-pw-error").text("비밀번호를 입력해주세요.").show();
+			    $userPw.focus();
+			    return;
+			}
+
+            $.ajax({
+                url: "/user/login",
+                type: "POST",
+                contentType: "application/json; charset=UTF-8",
+                data: JSON.stringify({ userId, userPw }),
+                success: function(data) {
+                    // access token 은 localStorage 저장
+					if (data && data.accessToken) {
+                    	localStorage.setItem(ACCESSTOKEN_KEY, data.accessToken);
+					}
+					// 헤더를 붙일 수 없어서 그냥 이동
+					window.location.href = "/";
+                },
+                error: function(xhr) {
+					const errMsg = xhr.responseText || "로그인 실패";
+
+				    // 아이디 관련 에러
+				    if (errMsg.includes("아이디")) {
+				        $("#user-id-error").text(errMsg).show();
+				        $("#userId").focus().addClass("input-error");
+				    }
+				    // 비밀번호 관련 에러
+				    else if (errMsg.includes("비밀번호")) {
+				        $("#user-pw-error").text(errMsg).show();
+				        $("#userPw").focus().addClass("input-error");
+				    }
+				    // 그 외 (공통 에러)
+				    else {
+				        alert(errMsg);
+				    }
+                }
+            });
+        });
+    });
+</script>
+</head>
+<body>
+	<div id="container">
+		<h1>로그인</h1>
+		
+		<div class="login-container">
+			<form id="input-form" class="input-form">
+			    <div>
+			        <label for="userId">아이디</label>
+			        <input type="text" id="userId" name="userId" placeholder="아이디를 입력해주세요.">
+					<p id="user-id-error" style="color:#bd2130; display:none;"></p>
+			    </div>
+			    <div>
+			        <label for="userPw">비밀번호</label>
+			        <input type="password" id="userPw" name="userPw" placeholder="비밀번호를 입력해주세요.">
+					<p id="user-pw-error" style="color:#bd2130; display:none;"></p>
+			    </div>
+			    <button type="submit">로그인</button>
+			</form>
+			
+			<div class="links">
+				<a href="/">메인으로</a><span>|</span>
+				<a href="/user/findId">아이디 찾기</a><span>|</span>
+				<a href="/user/findPw">비밀번호 찾기</a><span>|</span>
+				<a href="/user/signup">회원가입</a>
+			</div>
+		</div>
+	</div>
+</body>
+</html>
