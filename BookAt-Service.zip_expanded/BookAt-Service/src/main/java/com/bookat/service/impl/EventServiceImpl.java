@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.bookat.dto.EventResDto;
+import com.bookat.entity.Book;
 import com.bookat.mapper.EventMapper;
 import com.bookat.service.EventService;
 
@@ -45,7 +46,37 @@ public class EventServiceImpl implements EventService{
 		return mapper.selectByLocalCodeAndCloseTime(local_code);
 	}
 	
+	@Override
+	public List<EventResDto> selectForMain() {	//메인인기카테고리에 출력될 이벤트 6개 불러오기
+		
+		return mapper.selectForMain(); 
+	}
+	
+	@Override
+	public List<EventResDto> selectByStartTime() {	//메인에서 필요한 오픈예정 이벤트 6개 불러오기
+		
+		return mapper.selectByStartTime();
+	}
 
+	@Override
+	public List<EventResDto> selectByCloseTime() {	//메인에서 필요한 마감임박 이벤트 6개 불러오기
+		
+		return mapper.selectByCloseTime();
+	}
+
+	@Override
+	public Book selectBookOne(String book_id) {
+		
+		return mapper.selectBookOne(book_id);
+	}
+
+	
+	
+	
+	
+	
+	
+	
 	@Override
 	public int insert(EventResDto dto) {
 
@@ -70,6 +101,13 @@ public class EventServiceImpl implements EventService{
         List<EventResDto> list = mapper.selectByBookId(bookId);
         return (list != null) ? list : java.util.List.of();
     }
+
+	
+
+	
+	
+
+	
 
 	
 

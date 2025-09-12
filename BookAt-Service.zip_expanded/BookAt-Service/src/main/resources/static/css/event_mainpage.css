@@ -3,6 +3,10 @@
   padding: 0;
 }
 
+a {
+  text-decoration: none;
+}
+
 .main-header {
   font-family: Arial, sans-serif;
 }
@@ -103,7 +107,7 @@
 /*  본문  */
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: Arial, sans-serif;
   line-height: 1.6;
   background-color: #f0f2f5;
   color: #333;
@@ -115,6 +119,63 @@ body {
   padding: 20px;
 }
 
+/* ---------------------------------- */
+
+.chip-row {
+  display: flex;
+  justify-content: center; /* 가로 중앙 */
+  align-items: center;
+  gap: 14px; /* 칩 간 간격 */
+  flex-wrap: wrap; /* 줄바꿈 허용 */
+  margin: 12px 0 22px;
+}
+
+/* ===== 정사각형 라운드 칩 ===== */
+:root {
+  --chip-size: 64px; /* 정사각형 한 변 (제곱수) */
+  --chip-radius: 14px; /* 모서리 라운드 */
+  --chip-border: #d9d9d9;
+  --chip-on: #f9d849; /* 선택색(연두) */
+}
+
+/* a 태그를 버튼처럼 보이게 */
+.chip {
+  width: var(--chip-size);
+  height: var(--chip-size);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 6px; /* 2줄일 때 안쪽 여백 */
+  border: 1px solid var(--chip-border);
+  border-radius: var(--chip-radius); /* 둥근 정사각형 */
+  background: #fff;
+  color: #222;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2; /* 2줄 텍스트 예쁘게 */
+  text-align: center;
+  white-space: normal; /* 줄바꿈 허용 */
+  word-break: keep-all; /* 한글 단어 중간 끊김 방지 */
+  text-decoration: none; /* 밑줄 제거 */
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.05s;
+}
+.chip:hover {
+  background: var(--chip-on);
+  border-color: var(--chip-on);
+  color: #fff;
+}
+
+/* 선택된 칩 */
+.chip--on {
+  background: var(--chip-on);
+  border-color: var(--chip-on);
+  color: #fff;
+}
+
+/* ------------------------------ */
 /* Header Banner Section */
 .header-banner {
   position: relative;
@@ -174,7 +235,7 @@ body {
   white-space: nowrap;
 }
 
-.category-nav a.active {
+.chip-row a.active {
   background-color: #f9d849;
   color: #fff;
   border-color: #f9d849;
@@ -186,9 +247,20 @@ body {
 }
 
 .section-title {
-  font-size: 20px;
+  /* font-size: 20px;
   font-weight: bold;
-  margin-bottom: 20px;
+  margin-bottom: 20px; */
+  font-size: 25px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: normal;
+  margin: 0 0 10px 0;
+}
+.meta {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 2px;
+  text-align: left;
 }
 
 .event-list {
@@ -218,8 +290,8 @@ body {
 .event-title {
   font-weight: bold;
   font-size: 14px;
-  margin-bottom: 5px;
-  height: 36px; /* Ensure consistent height for titles across cards */
+  margin-bottom: 0px;
+  height: 40px; /* Ensure consistent height for titles across cards */
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
