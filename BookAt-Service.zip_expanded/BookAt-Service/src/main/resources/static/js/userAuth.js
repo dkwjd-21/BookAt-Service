@@ -4,7 +4,6 @@
 	  const loginBtn = document.getElementById('loginBtn');
 	  const logoutBtn = document.getElementById('logoutBtn');
 	  const signupBtn = document.getElementById('signupBtn');
-	  const authUsername = document.getElementById("auth-username");
 	  
 	  window.updateAuthUI = function () {
 
@@ -15,20 +14,12 @@
 			  .then(res => {
 			    console.log("현재 로그인 사용자:", res.data.userId);
 			  
-			  if(authUsername) {
-				authUsername.innerText = `${res.data.userName} 님 💕`;
-			  }
-			  
 			  if (loginBtn) loginBtn.style.display = 'none';
 			  if (signupBtn) signupBtn.style.display = 'none';
 			  if (logoutBtn) logoutBtn.style.display = 'inline-block';
 			  })
 			  .catch(err => {
 			    console.log("로그인 상태 아님:", err);
-				
-			  if(authUsername) {
-			  authUsername.innerText = "";
-			  }
 			  
 			  if (loginBtn) loginBtn.style.display = 'inline-block';
 			  if (signupBtn) signupBtn.style.display = 'inline-block';
@@ -37,7 +28,6 @@
 			  localStorage.removeItem("accessToken");
 			  });
 		  } else {
-			  if (authUsername) authUsername.innerText = "";
 			  if (loginBtn) loginBtn.style.display = 'inline-block';
 			  if (signupBtn) signupBtn.style.display = 'inline-block';
 			  if (logoutBtn) logoutBtn.style.display = 'none';
