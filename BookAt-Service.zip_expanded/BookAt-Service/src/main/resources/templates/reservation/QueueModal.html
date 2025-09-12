@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>예매 대기 모달</title>
+	<script th:src="@{/js/QueueModal.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/queueModal.css}" />
+  </head>
+  <body>
+    <button
+      style="width: 100px; height: 50px; margin: 10px"
+      onclick="onModal();"
+    >
+      예매하기
+    </button>
+
+    <div class="queueModal-overlay" style="display: none">
+      <div class="modal-content">
+        <h1 class="modal-title">
+          티켓 예매를 위해<br />
+          <span class="modal-highlight">접속 대기중</span>입니다
+        </h1>
+        <div class="modal-circle">
+          <p class="modal-label">대기순서</p>
+          <span class="modal-waitingNum">26</span>
+        </div>
+        <p class="modal-notice">
+          페이지를 새로고침 하시면<br />
+          대기 순서에 변동이 생길 수 있으니,<br />
+          잠시만 기다려주세요.
+        </p>
+		<button class="modal-enter">예매창 입장</button>
+      </div>
+    </div>
+  </body>
+</html>
