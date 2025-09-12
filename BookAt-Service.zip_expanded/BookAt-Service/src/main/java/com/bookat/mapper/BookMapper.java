@@ -16,4 +16,7 @@ public interface BookMapper {
   List<Book> findAll();
   List<Book> findByCategory(@Param("category") String category);
   List<Book> findByCategories(@Param("categories") List<String> categories);
+  
+  Book selectOne(@Param("bookId") String bookId);
 }
+

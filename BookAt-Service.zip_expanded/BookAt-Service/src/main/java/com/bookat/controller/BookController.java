@@ -10,8 +10,13 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 
 import com.bookat.service.BookService;
+import com.bookat.service.ReviewService;
+import com.bookat.service.EventService;
+import com.bookat.dto.EventResDto;
 import com.bookat.dto.*;
 import lombok.RequiredArgsConstructor;
 
@@ -23,17 +28,78 @@ import lombok.RequiredArgsConstructor;
 public class BookController{
 
 	private final BookService bookService;
+	private final ReviewService reviewService;
+    private final EventService eventService;
 	
 	// 메인 : /books
 	@GetMapping
-	public String booksHome(Model model) {
+	public String books(@RequestParam(value = "category", required = false) String category, Model model) {
 		
+        List<BookDto> books = null;
+        
+        //카테고리 선택 시
+        if (category != null && !category.isBlank()) {
+            if (GROUPS.containsKey(category)) {
+                books = bookService.findByCategories(GROUPS.get(category));
+            } else if (ALLOWED.contains(category)) {
+                books = bookService.findByCategory(category);
+            } else {
+            	category = null;
+
+            }
+        }
+        
+		//카테 고리 미선택 시 메인 섹션(베스트/신간/이벤트)
+		if(category == null) {
 		model.addAttribute("best", bookService.getBestSellers(6));
 		model.addAttribute("newest", bookService.getNewBooks(6));
 		model.addAttribute("events", bookService.getEventBooks(6));
+		}
+    
+        model.addAttribute("books", books);
+        model.addAttribute("selectedCategory", category);
 		
-		return "mainpage/book";
+        return "mainpage/book";
 	}
+	
+	//도서 상세 페이지
+	@GetMapping("/{bookId}")
+	public String bookDetail(@PathVariable String bookId, Model model) {
+		BookDto book = bookService.selectOne(bookId);
+		model.addAttribute("book", book);
+
+	    List<EventResDto> events = eventService.selectByBookId(bookId); 
+	    model.addAttribute("events", events != null ? events : java.util.List.of());
+		
+		
+        List<ReviewDto> reviews = reviewService.findByBookId(bookId);
+        int reviewCount = reviewService.countByBookId(bookId);
+		
+	    
+	    model.addAttribute("reviews", reviews);
+	    model.addAttribute("reviewCount", reviewCount);
+		
+		return "mainpage/bookdetail";
+	}
+	
+	//선물하기 기능
+	@PostMapping("/{bookId}/gift")
+	public String gift(@PathVariable String bookId) {
+		return  "redirect:/books/" + bookId;
+	}
+	
+	//장바구니 기능
+	@PostMapping("/{bookId}/cart")
+	public String cart(@PathVariable String bookId) {
+		return  "redirect:/books/" + bookId;
+	}
+	
+	//구매하기
+	@PostMapping("/{bookId}/order")
+	public String order(@PathVariable String bookId) {
+		return  "redirect:/books/" + bookId;
+	}
+	
 	
 	// 카테고리(단일)
 	private static final Set<String> ALLOWED = Set.of(
@@ -45,28 +111,6 @@ public class BookController{
 			"FICTION_POETRY", List.of("FICTION","POETRY")
 	);
 	
-	@GetMapping("/list")
-	public String listBooks(
-		@RequestParam(value = "category", required = false) String category, Model model) {
-		
-		List<BookDto> books;
-		if(category == null || category.isBlank()) {
-		   books = bookService.findAll();
-		   category = null;
-		}else if(GROUPS.containsKey(category)) {
-			books = bookService.findByCategories(GROUPS.get(category));
-		}else if(ALLOWED.contains(category)) {
-			books = bookService.findByCategory(category);
-		}else {
-			books = bookService.findAll();
-			category = null;
-		}
-		
-		model.addAttribute("books", books);
-		model.addAttribute("selectedCategory", category);
-		
-		return "mainpage/booklist";
-	}
 	
 	
 }

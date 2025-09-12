@@ -1,6 +1,7 @@
 package com.bookat.dto;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,4 +21,6 @@ public class BookDto {
     private BigDecimal price;     // BOOK.book_price
     private String imageUrl;   // BOOK.book_cover
     private String category;   // BOOK.category
+    private LocalDate pubdate; // BOOK.pubdate
+    private String description; // Book.description
 }

@@ -61,5 +61,14 @@
     <foreach collection="categories" item="c" open="(" separator="," close=")">#{c}</foreach>
   ORDER BY b.book_id DESC
 </select>
+
+<select id="selectOne" parameterType="string" resultType="Book">
+  SELECT
+    b.book_id, b.book_title, b.book_cover, b.author, b.book_price,
+    b.publisher, b.pubdate, b.description, b.category
+  FROM book b
+  WHERE b.book_id = #{bookId}
+</select>
+
   
 </mapper>
