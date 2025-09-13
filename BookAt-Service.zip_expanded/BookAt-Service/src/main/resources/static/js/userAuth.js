@@ -21,34 +21,20 @@
 			  })
 			  .catch(err => {
 			    console.log("로그인 상태 아님:", err);
-			  
-			  if (loginBtn) loginBtn.style.display = 'inline-block';
-			  if (signupBtn) signupBtn.style.display = 'inline-block';
-			  if (logoutBtn) logoutBtn.style.display = 'none';
-			  
-			  localStorage.removeItem("accessToken");
+				
+				if (typeof window.handleLogout === 'function') {
+					window.handleLogout();
+				} else {
+					localStorage.removeItem("accessToken");
+					window.location.href = "/user/login";
+				}
 			  });
 		  } else {
 			  if (loginBtn) loginBtn.style.display = 'inline-block';
 			  if (signupBtn) signupBtn.style.display = 'inline-block';
 			  if (logoutBtn) logoutBtn.style.display = 'none';
 		  }
-	  }
-	  
-	  window.handleLogout = function () {
-		
-		axiosInstance.post("/user/logout")
-		.then(() => {
-			console.log("로그아웃 성공");
-		})
-		.catch(err => {
-		  console.warn("로그아웃 요청 중 에러:", err);
-		})
-		.finally(() => {
-		  localStorage.removeItem("accessToken");
-		  window.location.href = "/";
-		});
-	  }
+	  };
 	  
 	    if (loginBtn) {
 	      loginBtn.addEventListener('click', (e) => {
@@ -58,7 +44,11 @@
 	    }
 
 		if (logoutBtn) {
-		  logoutBtn.addEventListener('click', window.handleLogout);
+		  logoutBtn.addEventListener('click', () => {
+			if (typeof window.handleLogout === 'function') {
+				window.handleLogout();
+			}
+		  });
 		}
 
 		window.updateAuthUI();

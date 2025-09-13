@@ -32,7 +32,7 @@ public class JwtTokenProvider {
 		return Jwts.builder()
 				.setSubject(userId)
 				.setIssuedAt(new Date())
-				.setExpiration(new Date(System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(30)))	// 발급/만료 테스트 때문에 짧게 맞춰둠
+				.setExpiration(new Date(System.currentTimeMillis() + expiration_30m))
 				.signWith(key, SignatureAlgorithm.HS256)
 				.compact();
 	}
@@ -42,7 +42,7 @@ public class JwtTokenProvider {
 		return Jwts.builder()
 				.setSubject(userId)
 				.setIssuedAt(new Date())
-				.setExpiration(new Date(System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(70)))	// 발급/만료 테스트 때문에 짧게 맞춰둠
+				.setExpiration(new Date(System.currentTimeMillis() + expiration_7d))
 				.signWith(key, SignatureAlgorithm.HS256)
 				.compact();
 	}

@@ -2,7 +2,6 @@ package com.bookat.controller;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -28,6 +27,7 @@ import com.bookat.dto.UserLoginRequest;
 import com.bookat.dto.UserLoginResponse;
 import com.bookat.entity.User;
 import com.bookat.exception.LoginException;
+import com.bookat.service.RefreshTokenService;
 import com.bookat.service.impl.UserLoginServiceImpl;
 import com.bookat.util.CookieUtil;
 import com.bookat.util.JwtTokenProvider;
@@ -48,6 +48,7 @@ public class UserLoginController {
     private final JwtTokenProvider jwtTokenProvider;
     private final CookieUtil cookieUtil;
 	private final UserLoginServiceImpl loginService;
+	private final RefreshTokenService refreshTokenService;
 	private final RedisTemplate<String, String> redisTemplate;
 	
 	// 아이디 찾기 간편인증 정보
@@ -75,35 +76,31 @@ public class UserLoginController {
 			String refreshToken = tokens.getRefreshToken();
 			String loginTime = String.valueOf(System.currentTimeMillis());
 			
-			// refresh token 과 loginTime 저장
-			Map<String, String> redisValue = new HashMap<>();
-			redisValue.put("refreshToken", refreshToken);
-			redisValue.put("loginTime", loginTime);
-			log.info("Redis 저장 시도: key={}, value={}", userId, redisValue);
-			redisTemplate.opsForHash().putAll(userId, redisValue);
-			redisTemplate.expire(userId, CookieUtil.SEVEN_DAYS, TimeUnit.SECONDS);
+			// redis 에 refresh token 과 loginTime 저장
+			refreshTokenService.storeRefreshToken(userId, refreshToken, loginTime, CookieUtil.SEVEN_DAYS);
 			
 			Map<Object, Object> check = redisTemplate.opsForHash().entries(userId);
 			log.info("Redis 저장 확인: {}", check);
 			
-			// refresh token 쿠키 저장
+			// 쿠키 에 refresh token 과 loginTime 저장
 			cookieUtil.createCookie(response, "refreshToken", refreshToken, CookieUtil.SEVEN_DAYS);
 			cookieUtil.createCookie(response, "loginTime", loginTime, CookieUtil.SEVEN_DAYS);
 			
-			return ResponseEntity.ok(new UserLoginResponse(tokens.getAccessToken(), null));
+			return ResponseEntity.ok(Map.of("accessToken", tokens.getAccessToken()));
 		} catch (LoginException le) {
 			// 사용자가 없거나 비밀번호 불일치
-		    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(le.getMessage());
+		    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", le.getMessage()));
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "로그인 처리 중 오류가 발생했습니다."));
 		}
 	}
 	
 	// 로그아웃
 	@PostMapping("/logout")
 	public ResponseEntity<?> logout(@RequestHeader(value="Authorization", required=false) String accessToken, @CookieValue(value = "loginTime", required = false) String loginTimeCookie, HttpServletResponse response) {
-		String userId = null;
-		long loginTime = -1;
-		
 		log.warn("로그아웃 시작");
+		
+		String userId = null;
 		
 		if(accessToken != null && accessToken.startsWith("Bearer ")) {
 	        try {
@@ -114,22 +111,12 @@ public class UserLoginController {
 	        }
 	    }
 
-	    if (loginTimeCookie != null) {
-	        loginTime = Long.parseLong(loginTimeCookie);
-	    }
+		// redis 세션 삭제 (loginTime 비교 없이 바로 삭제)
+		if(userId != null) {
+			redisTemplate.delete(userId);
+		}
 	    
-	    // 로그인 시간 비교 후 로그인 시간이 일치하면 redis 에서 삭제
-	    if (userId != null && loginTime != -1) {
-	        Map<Object, Object> redisValue = redisTemplate.opsForHash().entries(userId);
-	        if (redisValue != null && redisValue.containsKey("loginTime")) {
-	            long lastLoginTime = Long.parseLong((String) redisValue.get("loginTime"));
-	            log.warn("lastLoginTime : {}", lastLoginTime);
-	            if (loginTime == lastLoginTime) {
-	                redisTemplate.delete(userId);
-	            }
-	        }
-	    }
-	    
+		// 관련 쿠키 삭제
 	    String[] cookieNames = {"refreshToken", "loginTime"};
 	    for (String name : cookieNames) {
 	    	cookieUtil.deleteCookie(response, name);
@@ -138,7 +125,7 @@ public class UserLoginController {
 	    SecurityContextHolder.clearContext();
 	    
 		log.warn("로그아웃 끝");
-	    return ResponseEntity.ok(HttpStatus.OK);
+	    return ResponseEntity.ok(Map.of("message", "로그아웃 완료"));
 	}
 	
 	// 아이디 찾기 페이지로 이동

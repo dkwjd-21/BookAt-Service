@@ -22,10 +22,17 @@
 	
 	let refreshTimer = null;
 	
-	function scheduleTokenRefresh(token) {
+	function clearRefreshTimer() {
 	  if (refreshTimer) {
-	    clearTimeout(refreshTimer); // 중복 예약 방지
+	    clearTimeout(refreshTimer);
+	    refreshTimer = null;
 	  }
+	}
+	window.clearRefreshTimer = clearRefreshTimer;
+	
+	function scheduleTokenRefresh(token) {
+		
+		clearRefreshTimer();
 
 	  const payload = parseJwt(token);
 	  if (!payload || !payload.exp) return;
@@ -33,32 +40,41 @@
 	  const exp = payload.exp * 1000;
 	  const now = Date.now();
 	  const refreshTime = exp - now - 10000; // 만료 10초 전
-
-	  if (refreshTime > 0) {
-	    console.log(`곧 엑세스 토큰 갱신 예약`);
-	    refreshTimer = setTimeout(async () => {
-	      try {
-	        const res = await axiosInstance.post('/auth/refresh', {});
-	        const newToken = res.data.accessToken;
-	        localStorage.setItem(window.accessTokenKey, newToken);
-	        console.log('Access Token 갱신 성공');
-	        scheduleTokenRefresh(newToken); // 새 엑세스 토큰으로 다시 예약
-			
-			if (typeof window.updateAuthUI === 'function') {
-			  window.updateAuthUI();
-			}
-			
-	      } catch (err) {
-	        console.error('토큰 자동 갱신 실패:', err);
-	        if (typeof window.handleLogout === 'function') {
-	          window.handleLogout();
-	        }
-	      }
-	    }, refreshTime);
+	 
+	  if(refreshTime <= 0) {
+		tryRefreshImmediately();
+		return;
 	  }
+	  
+	  console.log("곧 access token 재발급");
+	  refreshTimer = setTimeout(tryRefreshImmediately, refreshTime);
 	}
 	
-	// 요청 인터셉터: 모든 요청에 Access Token 자동 첨부
+	async function tryRefreshImmediately() {
+		try {
+			const res = await axiosInstance.post('/auth/refresh', {});
+			const newToken = res.data.accessToken;
+			if (!newToken) throw new Error("서버에서 access token 누락");
+			
+			localStorage.setItem(window.accessTokenKey, newToken);
+			console.log('access token 갱신 성공');
+			scheduleTokenRefresh(newToken);
+			
+			if (typeof window.updateAuthUI === 'function') {
+				window.updateAuthUI();
+			}
+			
+			onRefreshed(newToken);
+		} catch(err) {
+			console.error('토큰 자동 갱신 실패:', err);
+			onRefreshed(null); // 대기열 정리
+			if (typeof window.handleLogout === 'function') {
+				window.handleLogout();
+			}
+		}
+	}
+	
+	// 요청 인터셉터: 모든 요청에 access token 자동 첨부
 	axiosInstance.interceptors.request.use(
 	  config => {
 	    const token = localStorage.getItem(window.accessTokenKey);
@@ -103,6 +119,8 @@
 	          // refresh token으로 access token 재발급
 	          const res = await axiosInstance.post('/auth/refresh', {});
 	          const newToken = res.data.accessToken;
+			  
+			  if (!newToken) throw new Error("서버에서 access token 누락");
 	
 	          localStorage.setItem(window.accessTokenKey, newToken);
 			  scheduleTokenRefresh(newToken);
@@ -114,15 +132,20 @@
 	          onRefreshed(newToken);
 	        } catch (refreshError) {
 	          // refresh 토큰 만료 → 자동 로그아웃
-	          if (refreshError.response && [401, 403].includes(refreshError.response.status)) {
-				if (typeof handleLogout === 'function') {
-	            window.handleLogout();
+			  if(
+				refreshError.response &&
+				[401, 403].includes(refreshError.response.status)
+			  ) {
+				if(typeof window.handleLogout === 'function') {
+					window.handleLogout();
 				} else {
+					clearRefreshTimer();
 					localStorage.removeItem(window.accessTokenKey);
-					window.location.href = '/user/login';
+					window.location.href = '/';
 				}
-	          }
+			  }
 	
+			  onRefreshed(null); // 대기열 정리
 	          return Promise.reject(refreshError);
 	        } finally {
 				isRefreshing = false;
@@ -132,8 +155,12 @@
 	      // 새 토큰 발급될 때까지 다른 요청 대기 후 재시도
 	      return new Promise(resolve => {
 	        subscribeTokenRefresh(newToken => {
-	          originalRequest.headers.Authorization = `Bearer ${newToken}`;
-	          resolve(axiosInstance(originalRequest));
+				if(newToken) {
+					originalRequest.headers.Authorization = `Bearer ${newToken}`;
+					resolve(axiosInstance(originalRequest));
+				} else {
+					resolve(Promise.reject(error));
+				}
 	        });
 	      });
 	    }
