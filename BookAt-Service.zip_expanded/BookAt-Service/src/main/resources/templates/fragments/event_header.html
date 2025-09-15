@@ -10,12 +10,12 @@
   <body>
     <header class="main-header">
       <div class="header-top">
-        <a href="@{/mainpage}"><img src="../../static/images/BookAt-Logo.png" class="main-logo-img" /></a>
+        <a href="@{/}"><img src="../../static/images/BookAt-Logo.png" class="main-logo-img" /></a>
 
         <div class="auth-links">
           <th:block th:if="${!isLoggedIn}">
-            <a th:href="@{/signup}">회원가입</a>
-            <a th:href="@{/login}">로그인</a>
+            <a th:href="@{/user/signup}">회원가입</a>
+            <a th:href="@{/user/login}">로그인</a>
           </th:block>
 
           <!-- <th:block th:if="${isLoggedIn}">
@@ -28,8 +28,8 @@
 
       <div class="header-bottom">
         <nav class="nav-links">
-          <a th:href="#" class="nav-item">도서</a>
-          <a th:href="#" class="nav-item active">이벤트</a>
+          <a th:href="@{/books}" class="nav-item">도서</a>
+          <a th:href="@{/event}" class="nav-item active">이벤트</a>
         </nav>
         <div class="search-bar">
           <form id="searchForm" action="#" method="get">

@@ -16,6 +16,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.RestTemplate;
 
@@ -27,6 +28,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpSession;
 
 @Controller
+@RequestMapping("/user/signup")
 public class UserSignupController {
 	
 	// service
@@ -42,7 +44,7 @@ public class UserSignupController {
 	private String portoneApiSecret;
 	
 	// 회원가입 페이지로 이동 
-	@GetMapping("/user/signup")
+	@GetMapping
 	public String signupVerification(Model model) {
 		model.addAttribute("isLoggedIn", false);
 		
@@ -54,7 +56,7 @@ public class UserSignupController {
 	}
 	
 	// 인증 정보 받아오기
-	@PostMapping("/user/signup/verify")
+	@PostMapping("/verify")
 	@ResponseBody
     public ResponseEntity<Map<String, Object>> verifyIdentity(
             @RequestBody Map<String, String> payload, HttpSession session) {
@@ -121,7 +123,7 @@ public class UserSignupController {
     }
 	
 	// 회원 Insert 하기
-	@PostMapping("/user/signup/insert")
+	@PostMapping("/insert")
 	public ResponseEntity<Map<String, Object>> signupInsert(@RequestBody UserSignup input) {
 		System.out.println(input.toString());
 		
@@ -141,7 +143,7 @@ public class UserSignupController {
 	}
 	
 	// 아이디 중복검사 
-	@GetMapping("/user/signup/chkId")
+	@GetMapping("/chkId")
 	public ResponseEntity<Boolean> checkId(String idVal) {
 		// DB에서 아이디 중복 여부 검사
 		boolean isIdAvailable;
@@ -158,7 +160,7 @@ public class UserSignupController {
 	}
 	
 	// 이메일 중복검사 
-	@GetMapping("/user/signup/chkEmail")
+	@GetMapping("/chkEmail")
 	public ResponseEntity<Boolean> checkEmail(String emailVal) {
 		// DB에서 아이디 중복 여부 검사
 		boolean isEmailAvailable;

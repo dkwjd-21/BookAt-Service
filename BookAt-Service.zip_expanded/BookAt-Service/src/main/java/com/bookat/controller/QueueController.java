@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,6 +25,12 @@ public class QueueController {
 
 	@Autowired
 	private QueueService queueService;
+	
+	// 테스트용 진입 API 
+	@GetMapping
+	public String test() {
+		return "reservation/QueueModal";
+	}
 	
 	// 대기열 진입 API (예매하기 버튼 클릭시) 
 	@PostMapping("/enter")

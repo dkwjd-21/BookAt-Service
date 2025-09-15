@@ -2,7 +2,6 @@ package com.bookat.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -35,10 +34,11 @@ public class SecurityConfig {
 //        .httpBasic(Customizer.withDefaults())
         .authorizeHttpRequests(auth -> auth
         		.requestMatchers("/css/**", "/js/**", "/images/**").permitAll()			// 정적 리소스 접근 가능
-        		.requestMatchers("/", "/user/**", "/auth/**", "/mainPage/**", "/infoPage/**").permitAll()
+        		.requestMatchers("/", "/user/**", "/auth/**", "/books/**", "/event/**").permitAll()
         							// 홈, 로그인, 메인페이지, 상세페이지 토큰없이 접근 허용
-        		.requestMatchers("/api/**", "/queue/**", "/myPage/**").authenticated()
+        		.requestMatchers("/api/**",  "/myPage/**").authenticated()	//"/queue/**",
         							// 예약 기능 토큰 필요
+        		.requestMatchers("/queue/**").permitAll() // 임시허용
                 .anyRequest().denyAll()
        ).addFilterBefore(accessTokenFilter, UsernamePasswordAuthenticationFilter.class)
         .addFilterAfter(refreshTokenFilter, AccessTokenFilter.class);
