@@ -1,11 +1,10 @@
 package com.bookat.service;
 
-import com.bookat.dto.PaymentRequest;
-import com.bookat.dto.PaymentResponse;
+import com.bookat.dto.PaymentDto;
 
 public interface PaymentService {
-  PaymentResponse.CheckoutView prepareCheckout(Long orderId, String userId);
-  PaymentResponse.Result complete(PaymentRequest.Complete req, String userId);
-  PaymentResponse.Result cancel(PaymentRequest.Cancel req, String userId);
-  void handleWebhook(String impUid);
+    PaymentDto createReadyPayment(Integer amount, String method, String info /* TODO user/order */);
+    void markPaid(String merchantUid, String impUid, String pgTid, String receiptUrl);
+    void markFailed(String merchantUid, String reason);
+    PaymentDto findByMerchantUid(String merchantUid);
 }
