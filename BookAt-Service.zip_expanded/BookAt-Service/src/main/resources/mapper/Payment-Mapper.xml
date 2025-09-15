@@ -34,13 +34,13 @@
   )
   VALUES(
       SEQ_PAYMENT.NEXTVAL,
-      #{orderId,jdbcType=NUMERIC},         <!-- ✅ null 가능: 오라클 NUMBER -->
+      #{orderId,jdbcType=NUMERIC},         <!-- null 가능-->
       #{totalPrice},                       <!-- NOT NULL -->
       #{paymentPrice},                     <!-- NOT NULL -->
       #{paymentMethod},                    <!-- NOT NULL -->
       #{paymentStatus},                    <!-- NOT NULL -->
       SYSDATE,
-      #{paymentInfo,jdbcType=VARCHAR},     <!-- ✅ null 가능: VARCHAR2 -->
+      #{paymentInfo,jdbcType=VARCHAR},     <!-- null 가능-->
       #{merchantUid}                       <!-- UNIQUE/NOT NULL로 사용 -->
   )
 </insert>

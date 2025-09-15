@@ -31,7 +31,7 @@ public class SecurityConfig {
         		.requestMatchers("/css/**", "/js/**", "/images/**").permitAll()	// 정적 리소스 접근 가능
         		.requestMatchers("/", "/user/**", "/auth/**").permitAll()		// 로그인 전 접근 가능
 //        		.requestMatchers("/mainpage/**", "/books/**", "/events/**").permitAll()
-        		.requestMatchers("/payment/**").permitAll()      // 추후 삭제
+        		.requestMatchers("/payment/**").permitAll()   // 임시로 전체 허용, 추후 삭제
 //        		.requestMatchers("/payment/**").authenticated()  //추후 활성화
                 .anyRequest().denyAll()
         ).addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
