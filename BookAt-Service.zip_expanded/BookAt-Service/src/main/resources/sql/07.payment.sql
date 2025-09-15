@@ -1,0 +1,22 @@
+CREATE TABLE PAYMENT (
+	payment_id	number	PRIMARY KEY,
+	total_price	number	NOT NULL,
+	payment_price	number	NOT NULL,
+	payment_method	varchar2(50)	NOT NULL,
+	payment_status	number(2)	NOT NULL,
+	payment_date	Date	DEFAULT SYSDATE NOT NULL,
+	payment_info	varchar2(100)	NULL
+);
+
+-- 시퀀스 생성
+CREATE SEQUENCE SEQ_PAYMENT;
+
+-- 제약 조건
+ALTER TABLE PAYMENT ADD CONSTRAINT CHK_PAYMENT_METHOD 
+CHECK (PAYMENT_METHOD IN ('CARD', 'VIRTUAL' , 'POINT'));
+
+ALTER TABLE PAYMENT ADD CONSTRAINT CHK_PAYMENT_STATUS 
+CHECK (PAYMENT_STATUS IN (0,1,-1,2));
+
+-- 테이블 확인
+SELECT * FROM PAYMENT ORDER BY PAYMENT_ID;
