@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8">
+  <title th:text="'BookAt - '+${book.title}">BookAt</title>
+
+  <!-- 기존 공통 CSS -->
+  <link rel="stylesheet" th:href="@{/css/main_header.css}">
+  <link rel="stylesheet" th:href="@{/css/main_book.css}">
+  <link rel="stylesheet" th:href="@{/css/event_mainpage.css}">
+  <!-- 상세 전용 CSS -->
+  <link rel="stylesheet" th:href="@{/css/detail_book.css}">
+</head>
+
+<body style="background:#f7f8fa;">
+  <div th:replace="~{fragments/book_header :: site-header}"></div>
+  
+  <!-- 상단 카테고리 패널 -->
+<div class="panel panel-crumb">
+  <span class="crumb-label">도서 카테고리</span>
+  <a class="crumb-cat" th:href="@{/books(category=${book.category})}"
+     th:text="${book.category == 'SELF-HELP' ? '자기계발' :
+               book.category == 'FICTION' ? '소설' :
+               book.category == 'POETRY' ? '시' :
+               book.category == 'ESSAY' ? '에세이' :
+               book.category == 'HUMANITY' ? '인문' :
+               book.category == 'MAGAZINE' ? '잡지' :
+               book.category == 'KIDS' ? '아동도서' :
+               book.category == 'HOBBY' ? '취미' : '전체 도서'}">
+    카테고리
+  </a>
+</div>
+
+<!-- 도서 상세 패널 -->
+<section class="panel" style="margin-top:16px;">
+  <div class="detail-grid">
+    <!-- 표지 -->
+    <img class="detail-thumb"
+         th:src="${book.imageUrl != null ? book.imageUrl : 'https://placehold.co/340x440?text=Book'}"
+         th:alt="${book.title}">
+
+    <!-- 정보 -->
+    <div>
+      <h1 class="detail-title" th:text="${book.title}">책 제목</h1>
+
+      <div class="detail-meta">
+        <span>저자</span>&nbsp;&nbsp;|&nbsp;&nbsp;<span th:text="${book.author}">작가명</span>
+        <br>
+        <span>출판사</span>&nbsp;&nbsp;|&nbsp;&nbsp;<span th:text="${book.publisher}">출판사</span>
+        <br>
+        <span>출간일</span>&nbsp;&nbsp;|&nbsp;&nbsp;<span th:text="${book.pubdate != null ? #temporals.format(book.pubdate, 'yyyy년 MM월 dd일') : '-'}">2025년 09월 01일</span>
+        <br>
+        <span>리뷰()</span>
+        <br>
+      </div>
+
+      <!-- 리뷰와 가격 사이 연한 구분선 -->
+      <div class="soft-divider"></div>
+
+      <!-- 가격 + 배송 문구 -->
+      <div class="detail-price-row">
+        <span class="price-number"
+              th:text="${#numbers.formatDecimal(book.price, 0, 'COMMA', 0, 'POINT')}"></span>원
+        &nbsp;&nbsp; <span class="ship-note">기본배송비 3,000원 / 15,000원 이상 무료</span>
+      </div>
+
+      <!-- 수량 + 버튼들 -->
+<div class="detail-qty-row">
+  <label for="qty">수량</label>
+  <input class="detail-qty" id="qty" type="number" min="1" value="1"
+         oninput="document.getElementById('giftQty').value=this.value;
+                  document.getElementById('cartQty').value=this.value;
+                  document.getElementById('orderQty').value=this.value;">
+</div>
+
+<!-- 버튼 (아래 줄에) -->
+<div class="detail-btn-row">
+  <!-- 위시리스트 -->
+  <form th:action="@{|/books/${book.bookId}/wishlist|}" method="post">
+    <button type="submit" class="btn-heart"
+            th:classappend="${liked} ? ' is-liked' : ''">
+      <span class="icon" th:text="${liked} ? '♥' : '♡'">♡</span>
+      <span></span>
+    </button>
+  </form>
+
+  <!-- 선물하기 -->
+  <form th:action="@{|/books/${book.bookId}/gift|}" method="post">
+    <input type="hidden" id="giftQty" name="qty" value="1">
+    <button class="btn" type="submit">선물하기</button>
+  </form>
+
+  <!-- 장바구니 -->
+  <form th:action="@{|/books/${book.bookId}/cart|}" method="post">
+    <input type="hidden" id="cartQty" name="qty" value="1">
+    <button class="btn" type="submit">장바구니 담기</button>
+  </form>
+
+  <!-- 바로구매 -->
+  <form th:action="@{|/books/${book.bookId}/order|}" method="post">
+    <input type="hidden" id="orderQty" name="qty" value="1">
+    <button class="btn btn--primary" type="submit">바로구매</button>
+  </form>
+</div>
+    </div>
+  </div>
+</section>
+
+<!-- 1) '도서 관련 이벤트' 패널 -->
+<section class="panel" style="margin-top:16px;">
+  <h3 class="section-title" style="margin:0 0 12px 0;">관련 이벤트</h3>
+
+  <div th:if="${events == null or #lists.isEmpty(events)}" style="color:#6b7280">
+    진행 중인 이벤트가 없습니다.
+  </div>
+
+  <div th:if="${events != null and !#lists.isEmpty(events)}" class="event-list">
+    <!-- 상세페이지 merge 후 수정 -->
+    <a th:each="event : ${events}"
+       th:href="@{/event/detail(event_id=${event.eventId})}"
+       class="event-card">
+                <img th:src="${event.eventImage}" alt="event Cover" class="event-cover" />
+                <p class="meta" th:text="${#strings.substring(event.address, 0, 2)}"></p>
+                <p th:text="${event.eventName}" class="event-title">이벤트 이름</p>
+    </a>
+  </div>
+</section>
+
+<!-- 2) 도서 소개 패널 -->
+<section class="panel" style="margin-top:16px;">
+  <h3 class="section-title" style="margin:0 0 12px 0;">도서 소개</h3>
+  <div style="white-space:pre-line;color:#374151;" th:text="${book.description}">설명</div>
+</section>
+
+<!-- 3) 전체 리뷰 패널 -->
+<section class="panel" style="margin-top:16px;">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+  <h3 class="section-title" style="margin:0;">전체 리뷰 (<span th:text="${reviewCount}">0</span>)</h3>
+  <button type="button" class="review-write-btn" id="openReviewModalBtn">리뷰 작성</button>
+</div>
+  <div class="soft-divider"></div>
+
+  <!-- 리뷰 없을 때 -->
+  <div th:if="${#lists.isEmpty(reviews)}" style="color:#6b7280">작성된 리뷰가 없습니다.</div>
+
+  <!-- 리뷰 리스트 -->
+  <div th:each="rv : ${reviews}" style="padding:30px 0;border-bottom:2px solid #eee;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+      <!-- 별점 표시: 가득★ 와 빈☆를 5개 기준으로 -->
+<span>
+ <span class="stars">
+  <span th:each="i : ${#numbers.sequence(1,5)}"
+        th:text="${i <= rv.rating} ? '★' : '☆'"
+        th:classappend="${i <= rv.rating} ? 'on' : ''">★</span>
+</span>
+</span>
+      <span class="meta" th:text="${rv.userId}">user_id</span>&nbsp;&nbsp;|&nbsp;&nbsp;
+      <span class="meta"th:text="${#temporals.format(rv.createdAt, 'yyyy.MM.dd')}">2025.09.01</span>
+    </div>
+    <div style="white-space:pre-line;color:#374151;margin-top:20px;margin-left:90px;" th:text="${rv.content}">리뷰 내용</div>
+  </div>
+</section>
+
+<!-- 모달 -->
+<div id="reviewModal" class="modal-overlay">
+  <div class="modal-content">
+    <button type="button" class="close-btn" aria-label="close">&times;</button>
+    <h2>리뷰 작성</h2>
+
+    <form id="reviewForm"
+          th:action="@{|/books/${book.bookId}/reviews|}"
+          method="post">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+      <input type="hidden" name="bookId" th:value="${book.bookId}" />
+
+      <div class="form-group">
+        <label>별점</label>
+        <div class="stars-input" id="starsInput">
+          <span class="star" data-value="1">★</span>
+          <span class="star" data-value="2">★</span>
+          <span class="star" data-value="3">★</span>
+          <span class="star" data-value="4">★</span>
+          <span class="star" data-value="5">★</span>
+        </div>
+        <input type="hidden" id="rating" name="rating" value="0" required />
+      </div>
+
+      <div class="form-group">
+        <label for="reviewContent">리뷰 내용</label>
+        <textarea id="reviewContent" name="content" rows="6" placeholder="리뷰 내용을 입력해주세요." required></textarea>
+      </div>
+
+      <button type="submit" class="submit-btn">등록하기</button>
+    </form>
+  </div>
+</div>
+
+<!-- 4) 취소 및 환불 규정 패널 (고정 문구) -->
+<section class="panel" style="margin-top:16px;margin-bottom:30px;">
+  <h3 class="section-title" style="margin:0 0 12px 0;">취소 및 환불 규정</h3>
+
+  <div class="policy">
+    <ol class="policy-list">
+      <li>
+        <b>주문 취소</b>
+        <ul class="policy-sub">
+          <li>결제 완료 후에는 취소 요청을 접수해야 하며, 승인 여부에 따라 처리됩니다.</li>
+        </ul>
+      </li>
+
+      <li>
+        <b>환불 안내</b>
+        <ul class="policy-sub">
+          <li>환불은 결제 수단과 동일한 방법으로 처리됩니다.</li>
+          <li>결제 완료 후 7영업일 이내에 환불이 완료되는 것을 목표로 합니다.</li>
+          <li>부분 환불은 불가하며, 주문 전체를 취소하는 경우에만 환불 가능합니다.</li>
+        </ul>
+      </li>
+
+      <li>
+        <b>환불 불가 조건</b>
+        <ul class="policy-sub">
+          <li>배송 완료 후 책 상품은 상품 손상, 물리적 훼손 시 환불 불가합니다.</li>
+        </ul>
+      </li>
+
+      <li>
+        <b>마이페이지 &gt; 주문 내역 &gt; 취소/환불 요청</b>
+        <ul class="policy-sub">
+          <li>고객센터 문의: support@bookat.com 또는 02-1234-5678</li>
+        </ul>
+      </li>
+
+      <li>
+        <b>유의 사항</b>
+        <ul class="policy-sub">
+          <li>취소 및 환불 정책은 사정에 따라 변경될 수 있으며, 최신 내용은 사이트 공지 또는 주문 화면에서 확인 가능합니다.</li>
+          <li>환불 시 발생하는 수수료는 결제 수단과 환불 방식에 따라 달라질 수 있습니다.</li>
+        </ul>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<div th:replace="~{fragments/footer :: site-footer}"></div>
+
+</body>
+<script>
+  (function(){
+    const modal = document.getElementById('reviewModal');
+    const openBtn = document.getElementById('openReviewModalBtn');
+    const closeBtn = modal.querySelector('.close-btn');
+    const starsWrap = document.getElementById('starsInput');
+    const stars = Array.from(starsWrap.querySelectorAll('.star'));
+    const ratingInput = document.getElementById('rating');
+    const form = document.getElementById('reviewForm');
+
+    const openModal = () => { modal.style.display = 'flex'; };
+    const closeModal = () => { modal.style.display = 'none'; };
+
+    openBtn.addEventListener('click', (e)=>{ e.preventDefault(); openModal(); });
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e)=>{ if(e.target === modal) closeModal(); });
+    document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closeModal(); });
+
+    starsWrap.addEventListener('click', (e)=>{
+      const star = e.target.closest('.star'); if(!star) return;
+      const val = Number(star.dataset.value);
+      ratingInput.value = val;
+      stars.forEach(s => s.classList.toggle('selected', Number(s.dataset.value) <= val));
+    });
+
+    form.addEventListener('submit', (e)=>{
+      if(Number(ratingInput.value) < 1){ e.preventDefault(); alert('별점을 선택해주세요.'); }
+    });
+  })();
+</script>
+</html>

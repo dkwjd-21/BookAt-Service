@@ -1,0 +1,161 @@
+@charset "UTF-8";
+
+.container{margin:0 auto;max-width: 1200px;
+    padding: 20px;}
+.section-title{font-size: 25px; font-style: normal; font-weight: 700;
+line-height: normal;margin:0 0 20px 0}
+.banner{  position: relative;
+  width: 100%;
+  margin-top: 20px;
+  border-radius: 8px;
+  overflow: hidden;
+  height: 200px;}
+.banner img{  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  background-color: #cccccc;}
+
+
+
+/* ===== 정사각형 라운드 칩 ===== */
+:root {
+  --chip-size: 64px;         /* 정사각형 한 변 (제곱수) */
+  --chip-radius: 14px;       /* 모서리 라운드 */
+  --chip-border: #D9D9D9;
+  --chip-on: #B5D173;        /* 선택색(연두) */
+}
+
+/* a 태그를 버튼처럼 보이게 */
+.chip {
+  width: var(--chip-size);
+  height: var(--chip-size);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 6px;              /* 2줄일 때 안쪽 여백 */
+  border: 1px solid var(--chip-border);
+  border-radius: var(--chip-radius);   /* 둥근 정사각형 */
+  background: #fff;
+  color: #222;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;         /* 2줄 텍스트 예쁘게 */
+  text-align: center;
+  white-space: normal;       /* 줄바꿈 허용 */
+  word-break: keep-all;      /* 한글 단어 중간 끊김 방지 */
+  text-decoration: none;     /* 밑줄 제거 */
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background .15s ease, border-color .15s ease, transform .05s;
+}
+.chip:hover { 
+  background: var(--chip-on);
+  border-color: var(--chip-on);
+  color: #fff; }
+
+.chip-row {
+  display: flex;
+  justify-content: center;   /* 가로 중앙 */
+  align-items: center;
+  gap: 20px;                 /* 칩 간 간격 */
+  flex-wrap: wrap;           /* 줄바꿈 허용 */
+  margin: 30px 0 30px;
+}
+  
+
+
+/* 선택된 칩 */
+.chip--on {
+  background: var(--chip-on);
+  border-color: var(--chip-on);
+  color: #fff;
+}
+
+.grid{display:grid;grid-template-columns:repeat(6,1fr);gap:20px}
+.card{border:1px solid #eee;border-radius:12px;overflow:hidden;background:#fff;
+ box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); padding: 10px;}
+.card img{
+  margin-bottom:10px;           /* 가로 중앙 */
+  width: 100%;
+  height: 220px;            /* 그리드 통일 */
+  object-fit: contain;      /* 표지 비율 유지 (자르지 않음) */
+  background: #fff;}
+.card .body{padding:10px}
+.card .title{font-weight:600;font-size:14px;line-height:1.4;height:40px;overflow:hidden}
+.card .meta{font-size:12px;color:#6b7280;margin-top:2px}
+.price { font-size:14px; }
+.card-link{
+  display:block; 
+  color:inherit; 
+  text-decoration:none; 
+}
+
+.category-title{
+	margin:0 0 20px 0;
+}
+
+.section-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 0 12px 0;
+}
+
+/* 섹션 여백 통일 */
+.book-carousel-section { margin-bottom: 50px; }
+
+/* 캐러셀 래퍼: 패딩 없애고, 밖으로 튀어나오는 버튼을 보이게 */
+.carousel {
+  position: relative;
+  overflow: visible;    /* 버튼을 바깥으로 빼도 보이도록 */
+}
+
+/* 뷰포트/트랙은 그대로 */
+.carousel-viewport {
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  padding: 2px 0;
+}
+.carousel-viewport::-webkit-scrollbar { display: none; }
+
+.carousel-track {
+  display: grid;
+  grid-auto-flow: column;
+  /* 기존 grid 폭과 동일 (카테고리 페이지와 동일한 6열 기준) */
+  grid-auto-columns: calc((100% - 5 * 20px) / 6);
+  gap: 20px;
+}
+.carousel-track > .card { scroll-snap-align: start; }
+
+/* 좌/우 버튼: 캐러셀의 '바깥'으로 뺌 — 레이아웃 차지 X */
+.carousel-nav {
+  position: absolute;
+  top: 50%;
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  border: 1px solid #D9D9D9;
+  background: #fff;
+  display: inline-flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: background .15s ease, border-color .15s ease;
+  user-select: none;
+  z-index: 3;           /* 카드 위로 */
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+/* 왼쪽 버튼: 좌측 가장자리에서 왼쪽으로 120% 더 빼서 화면 밖 느낌 */
+.carousel-nav--prev {
+  left: 0;
+  transform: translate(-120%, -50%);
+}
+
+/* 오른쪽 버튼: 우측 가장자리에서 오른쪽으로 120% 더 빼서 화면 밖 느낌 */
+.carousel-nav--next {
+  right: 0;
+  transform: translate(120%, -50%);
+}
+
+.carousel-nav:hover { background: var(--chip-on, #B5D173); border-color: var(--chip-on, #B5D173);
