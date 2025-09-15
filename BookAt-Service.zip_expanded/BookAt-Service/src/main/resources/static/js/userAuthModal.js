@@ -8,7 +8,12 @@ document.addEventListener('DOMContentLoaded', () => {
 	  
 	  if(!accessToken) {
 		console.log("access token 없음, 비로그인 상태");
-		window.location.href = "/";
+		if (typeof window.handleLogout === 'function') {
+			window.handleLogout();
+		} else {
+			localStorage.removeItem("accessToken");
+			window.location.href = "/";
+		}
 		return;
 	  }
 	  
@@ -17,9 +22,13 @@ document.addEventListener('DOMContentLoaded', () => {
 		const userInfo = res.data;
 		console.log("현재 로그인 사용자 : ", userInfo.userId);
 	  } catch(err) {
-		console.log("로그인 상태 아님 : ", err);
-		localStorage.removeItem("accessToken");
-		window.location.href = "/";
+		console.log("로그인 상태 아님 : ", err.response?.data || err.message);
+		if (typeof window.handleLogout === 'function') {
+			window.handleLogout();
+		} else {
+			localStorage.removeItem("accessToken");
+			window.location.href = "/";
+		}
 	  }
 	};
 
