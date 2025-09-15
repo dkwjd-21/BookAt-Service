@@ -1,0 +1,322 @@
+/* Global */
+* {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "Pretendard";
+  background-color: #f5f5f7;
+  color: #333;
+
+  /* display: flex; */
+  /* flex-direction: column; */
+  /* 세로 방향으로 쌓도록 변경 */
+  min-height: 100vh;
+}
+
+/* Header */
+
+.main-header {
+  font-family: Arial, sans-serif;
+}
+
+/* 상단 섹션 스타일 */
+.header-top {
+  background: var(--Navy-100, #003274);
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 5%;
+}
+
+.main-logo-img {
+  width: 150px;
+}
+
+.auth-links {
+  display: flex;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.auth-links a {
+  text-decoration: none;
+  color: #003274;
+  border: 1px solid #003274;
+  border-radius: 20px;
+  padding: 5px 15px;
+  font-size: 14px;
+  background-color: white;
+  /* height: 20px; */
+}
+
+/* 하단 섹션 스타일 */
+.header-bottom {
+  background-color: #003274;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 5%;
+}
+
+.nav-links {
+  display: flex;
+  gap: 20px;
+}
+
+.nav-item {
+  color: white;
+  text-decoration: none;
+  font-size: 16px;
+  padding: 10px 20px;
+  border-radius: 25px;
+  transition: background-color 0.3s;
+  border-radius: 15px 15px 0px 0px;
+  transform: translateY(10px);
+  cursor: pointer;
+}
+
+.nav-item.active {
+  background-color: white;
+  color: #003274;
+  border-radius: 15px 15px 0px 0px;
+  transform: translateY(10px);
+}
+
+/* 검색창 스타일 */
+.search-bar {
+  position: relative;
+  width: 300px;
+  padding-right: 50px;
+}
+
+.search-bar input {
+  width: 100%;
+  border: none;
+  border-radius: 20px;
+  padding: 10px 40px 10px 15px;
+  background-color: white;
+  outline: none;
+  font-size: 14px;
+}
+
+.search-icon {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23888"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16a6.471 6.471 0 0 0 3.23-.88l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>') no-repeat center center;
+  background-size: contain;
+  cursor: pointer;
+}
+
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap");
+
+:root {
+  --border-color: #ebebeb;
+  --text-color: #333;
+  --text-secondary-color: #888;
+  --background-color: #fff;
+  --accent-color: #000;
+}
+
+body {
+  font-family: "Noto Sans KR", sans-serif;
+  margin: 0;
+  background-color: #f9f9f9;
+  color: var(--text-color);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  min-height: 600px;
+}
+
+/* 메인 컨텐츠 레이아웃 */
+.cart-layout {
+  display: flex;
+  gap: 2rem;
+}
+
+.cart-items-container {
+  flex: 3;
+}
+
+.order-summary-container {
+  flex: 2;
+  position: sticky;
+  top: 2rem;
+}
+
+/* 장바구니 목록 */
+.cart-section {
+  background-color: var(--background-color);
+  padding: 2rem;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+}
+
+.cart-section h2 {
+  margin-top: 0;
+  font-size: 1.5rem;
+  border-bottom: 2px solid var(--accent-color);
+  padding-bottom: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.cart-item {
+  display: flex;
+  gap: 1.5rem;
+  padding: 1.5rem 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.cart-item:last-child {
+  border-bottom: none;
+}
+
+.cart-item-image img {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border: 1px solid var(--border-color);
+}
+
+.cart-item-details {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.cart-item-image img {
+  /* width: 100px; */
+  height: 150px;
+  object-fit: contain; /* contain 또는 cover 사용 */
+}
+
+.item-info {
+  flex-grow: 1;
+}
+
+.item-info h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+}
+
+.item-info p {
+  margin: 0.2rem 0;
+  font-size: 0.9rem;
+  color: var(--text-secondary-color);
+}
+
+.item-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* 수량 조절 */
+.quantity-control {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--border-color);
+}
+
+.quantity-control button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem 0.8rem;
+  font-size: 1rem;
+  color: var(--text-color);
+}
+
+.quantity-control input {
+  width: 40px;
+  text-align: center;
+  border: none;
+  border-left: 1px solid var(--border-color);
+  border-right: 1px solid var(--border-color);
+  font-size: 0.9rem;
+  padding: 0.5rem 0;
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.item-price-delete {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.item-price {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.delete-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2rem;
+  padding: 0;
+  color: var(--text-secondary-color);
+}
+
+.delete-btn:hover {
+  color: var(--accent-color);
+}
+
+/* 주문 내역 */
+.order-summary {
+  background-color: var(--background-color);
+  padding: 2rem;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+}
+
+.order-summary h2 {
+  margin-top: 0;
+  font-size: 1.5rem;
+  border-bottom: 2px solid var(--accent-color);
+  padding-bottom: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+}
+
+.summary-row.total {
+  border-top: 1px solid var(--border-color);
+  padding-top: 1.5rem;
+  margin-top: 1.5rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.checkout-btn {
+  width: 100%;
+  padding: 1rem;
+  background-color: #b5d173;
+  color: black;
+  border: none;
+  cursor: pointer;
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-top: 1rem;
+  border-radius: 8px;
+}
+
+.checkout-btn:hover {
+  opacity: 0.85;
+}

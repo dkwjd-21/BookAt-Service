@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" th:href="@{/css/cart.css}" />
+  </head>
+  <body>
+    <header class="main-header">
+      <div class="header-top">
+        <a th:href="@{/event}"><img th:src="@{/images/BookAt-Logo.png}" class="main-logo-img" /></a>
+
+        <div class="auth-links">
+          <!--<th:block th:if="${isLoggedIn == null}">-->
+          <a th:href="@{/user/signup}">회원가입</a>
+          <a th:href="@{/user/login}">로그인</a>
+          <!--</th:block>-->
+
+          <!-- <th:block th:if="${isLoggedIn}">
+            <a th:href="@{/mypage}">마이페이지</a>
+            <a th:href="@{/logout}">로그아웃</a>
+          </th:block> -->
+          <!-- 로그인 구현 후 로그인 시 바뀌는 부분 -->
+        </div>
+      </div>
+
+      <div class="header-bottom">
+        <nav class="nav-links">
+          <a th:href="@{/books}" class="nav-item active">도서</a>
+          <a th:href="@{/event}" class="nav-item">이벤트</a>
+        </nav>
+        <div class="search-bar">
+          <form id="searchForm" action="#" method="get">
+            <input type="text" name="search-query" placeholder="검색어를 입력하세요" />
+            <span class="search-icon" onclick="document.getElementById('searchForm').submit();"></span>
+          </form>
+        </div>
+      </div>
+    </header>
+
+    <form th:action="@{/order}" method="post">
+      <div class="container">
+        <div class="cart-layout">
+          <div class="cart-items-container">
+            <section class="cart-section">
+              <h2>장바구니</h2>
+
+              <div th:if="${not #lists.isEmpty(cartItems)}">
+                <div class="select-all-container">
+                  <input type="checkbox" id="select-all" checked />
+                  <label for="select-all">전체선택</label>
+                </div>
+
+                <div class="cart-items">
+                  <div class="cart-item" th:each="item : ${cartItems}" th:attr="data-price=${item.price}, data-cart-id=${item.cartId}">
+                    <div class="item-selector">
+                      <input type="checkbox" class="item-checkbox" name="selectedCartIds" th:value="${item.cartId}" checked />
+                    </div>
+                    <div class="cart-item-image">
+                      <img th:src="${item.coverImage}" alt="Product Image" />
+                    </div>
+                    <div class="cart-item-details">
+                      <div class="item-info">
+                        <h3 th:text="${item.title}">Product Name</h3>
+                        <p th:text="${item.author}">Author</p>
+                      </div>
+                      <div class="item-actions">
+                        <div class="quantity-control">
+                          <button type="button" class="quantity-minus">-</button>
+                          <input type="number" class="quantity-input" name="quantity" th:value="${item.cartQuantity}" min="1" />
+                          <button type="button" class="quantity-plus">+</button>
+                        </div>
+                        <div class="item-price-delete">
+                          <span class="item-price" th:text="|${#numbers.formatInteger(item.price * item.cartQuantity, 0, 'COMMA')} 원|">Price</span>
+                          <button type="button" class="delete-btn" th:data-cart-id="${item.cartId}">🗑️</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="empty-cart-message" th:if="${#lists.isEmpty(cartItems)}">
+                <p>장바구니가 비어 있습니다.</p>
+              </div>
+            </section>
+          </div>
+          <div class="order-summary-container">
+            <section class="order-summary">
+              <h2>주문 내역</h2>
+              <div class="summary-row">
+                <span>상품 금액</span>
+                <span id="subtotal">0 원</span>
+              </div>
+              <div class="summary-row">
+                <span>배송비</span>
+                <span id="shipping-fee">0 원</span>
+              </div>
+              <div class="summary-row total">
+                <span>총 결제 금액</span>
+                <span id="total-amount">0 원</span>
+              </div>
+              <button type="submit" class="checkout-btn">주문하기</button>
+            </section>
+          </div>
+        </div>
+      </div>
+    </form>
+
+    <script th:src="@{/js/cart.js}"></script>
+
+    <footer th:fragment="site-footer" class="footer" style="border: 1px solid #bfbfbf; margin: 0 auto; color: #bfbfbf; background: #eaeaea">
+      <div class="ft_content" style="padding: 40px 100px">
+        <div class="ft_logo">
+          <img th:src="@{/images/BookAt-LogoTypo.png}" alt="eventAt" style="width: 120.645px; height: 26.525px" />
+        </div>
+
+        <div class="ft__left" style="float: left">
+          <div style="margin-top: 6px; font-size: 18px; font-style: normal; font-weight: 400; line-height: 28px">
+            (주) 북캣 | 현대이지웰 Java 풀스택 개발자 5회차<br />
+            책읽는고양이 송아정 김명주 박태욱 서지나
+          </div>
+        </div>
+
+        <div class="ft__right" style="text-align: right; font-size: 18px; font-style: normal; font-weight: 400; line-height: 28px">
+          <div>Copyright ⓒ BookAt. ALL RIGHTS RESERVED</div>
+          <div><a href="">관리자로그인</a></div>
+          <!--관리자페이지 이동 추가해야함-->
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
