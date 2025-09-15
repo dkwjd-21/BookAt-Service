@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,7 +14,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.bookat.entity.User;
 import com.bookat.service.QueueService;
-
 import lombok.extern.slf4j.Slf4j;
 
 // 대기열 컨트롤러
@@ -87,14 +85,6 @@ public class QueueController {
 		}
 		
 		return ResponseEntity.ok(response);
-	}
-	
-	// 임시 티켓팅 팝업 오픈 --> 이후 ReservationController로 이동 
-	@GetMapping("/reservation")
-	public String reservation() {
-		
-		// 여기서 이벤트 타입 보내주기 (좌석인지 선착순인지 판단 여기서)
-		return "reservation/ReservationPopup_Person";
 	}
 	
 }

@@ -1,15 +1,83 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
 	<meta charset="UTF-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-	<title>Document</title>
+	<title>예약 팝업</title>
 	<link rel="stylesheet" th:href="@{/css/ReservationPopup.css}" />
 	<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 	<script th:src="@{/js/utils/axiosIntercepter.js}"></script>
 	<script th:src="@{/js/utils/logout.js}"></script>
 	<script th:src="@{/js/utils/userAuth.js}"></script>
+	<script>
+		document.addEventListener("DOMContentLoaded", () => {
+			const steps = document.querySelectorAll(".progress-steps li");
+			const sections = document.querySelectorAll(".selection-area");
+			const nextBtn = document.querySelector(".next-button");
+			
+			const selects = document.querySelectorAll(".person-select-table select");
+			const sumPriceEl = document.getElementById("sumPrice");
+			const feeEl = document.getElementById("fee");
+			
+			let currentStep = 1;
+			
+			// 다음단계 버튼 클릭 이벤트
+			nextBtn.addEventListener("click", () => {
+				if(currentStep < steps.length) {
+					currentStep++;
+					
+					steps.forEach(s => s.classList.remove("active"));
+					const targetStep = steps[currentStep -1];
+					targetStep.classList.add("active");
+					
+					sections.forEach(sec => {
+						sec.style.display = sec.getAttribute("data-step") == currentStep ? "block" : "none";
+					});
+					
+					if(currentStep === steps.length) {
+						nextBtn.textContent = "결제";
+					}
+				} else {
+					alert("결제창으로 이동합니다.");
+				}
+			})
+			
+			// 결제 총합 구하기
+			const selectedList = document.querySelector("#sumPrice").closest("tr").querySelector("td:last-child");
+			
+			function updateSummary() {
+				let sum = 0;
+				let selected = [];
+				
+				selects.forEach((sel) => {
+					const unitPrice = parseInt(sel.getAttribute("data-unit-price"), 10);
+					const count = parseInt(sel.value, 10);
+					if(count > 0) {
+						sum += unitPrice * count;
+						
+						let label = "";
+						
+						if(sel.name === "adultCount") label = "성인";
+						else if (sel.name === "youthCount") label = "청소년";
+						else if (sel.name === "childCount") label = "유아";
+						
+						selected.push(`${label} ${count}명`);
+					}
+				});
+				
+				const fee = Math.floor(sum * 0.1);
+				
+				sumPriceEl.textContent = sum.toLocaleString() + "원";
+				feeEl.textContent = fee.toLocaleString() + " 원";
+				
+				selectedList.innerHTML = selected.length
+				? selected.map((s) => `<p>${s}</p>`).join("") : "-";
+			}
+			
+			selects.forEach((sel) => sel.addEventListener("change", updateSummary));
+			
+		});
+	</script>
 </head>
 
 <body>
@@ -23,24 +91,107 @@
 			<div class="left-column">
 				<nav class="progress-steps">
 					<ol>
-						<li class="active">날짜/회차 선택</li>
-						<li>등급/좌석 선택</li>
-						<li>정보 입력</li>
-						<li>결제</li>
+						<li class="active" data-step="1">날짜/회차 선택</li>
+						<li data-step="2" th:text="${event.ticketType == 'SEAT_TYPE'} ? '좌석 선택' : '등급 선택'"></li>
+						<li data-step="3">정보 입력</li>
+						<li data-step="4">결제</li>
 					</ol>
 				</nav>
 
 				<main class="content-wrapper">
-					<section class="selection-area">
+					<section class="selection-area step" data-step="1">
 						<div class="calendar-container">달력 & 회차 선택<br>컨텐츠 추가 영역</div>
+					</section>
+					<section class="selection-area step" data-step="2" style="display: none;">
+						<div class="calendar-container">
+							
+							<h3>인원 선택</h3>
+							<table class="person-select-table">
+								<thead>
+									<tr>
+										<th>구분</th>
+										<th>가격</th>
+										<th>인원수</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr>
+										<td>성인</td>
+										<td th:text="${#numbers.formatInteger(event.eventPrice, 3, 'COMMA')} + ' 원'"></td>
+										<td>
+											<select name="adultCount" id="adultCount"
+											        th:attr="data-unit-price=${event.eventPrice}">
+											  <option value="0">선택</option>
+											  <option th:each="i : ${#numbers.sequence(1,10)}"
+											          th:value="${i}"
+											          th:text="${i} + '명'">
+											  </option>
+											</select>
+										</td>
+									</tr>
+									<tr>
+										<td>청소년</td>
+										<td th:text="${#numbers.formatInteger(event.eventPrice * 8 / 10, 3, 'COMMA')} + ' 원'"></td>
+										<td>
+											<select name="youthCount" id="youthCount"
+											        th:attr="data-unit-price=${event.eventPrice * 8 / 10}">
+											  <option value="0">선택</option>
+											  <option th:each="i : ${#numbers.sequence(1,10)}"
+											          th:value="${i}"
+											          th:text="${i} + '명'">
+											  </option>
+											</select>
+										</td>
+									</tr>
+									<tr>
+										<td>유아</td>
+										<td th:text="${#numbers.formatInteger(event.eventPrice / 2, 3, 'COMMA')} + ' 원'"></td>
+										<td>
+											<select name="childCount" id="childCount"
+											        th:attr="data-unit-price=${event.eventPrice / 2}">
+											  <option value="0">선택</option>
+											  <option th:each="i : ${#numbers.sequence(1,10)}"
+											          th:value="${i}"
+											          th:text="${i} + '명'">
+											  </option>
+											</select>
+										</td>
+									</tr>
+								</tbody>
+							</table>
+							
+							<table class="person-select-table">
+								<tbody>
+									<tr>
+										<th>합계</th>
+										<td id="sumPrice"></td>
+										<td>
+											<p></p>
+											<p></p>
+										</td>
+									</tr>
+									<tr>
+										<th>수수료 (10%)</th>
+										<td id="fee"></td>
+									</tr>
+								</tbody>
+							</table>
+							
+						</div>
+					</section>
+					<section class="selection-area step" data-step="3" style="display: none;">
+						<div class="calendar-container">정보입력<br>컨텐츠 추가 영역</div>
+					</section>
+					<section class="selection-area step" data-step="4" style="display: none;">
+						<div class="calendar-container">결제<br>컨텐츠 추가 영역</div>
 					</section>
 				</main>
 			</div>
 
 			<aside class="summary-content">
 				<div class="event-poster">
-					<img class="posterImg">
-					<h2>{이벤트명}</h2>
+					<img class="posterImg" th:src="@{${event.eventImage}}" alt="포스터">
+					<h2>[[${event.eventName}]]</h2>
 					<p>2025년 9월 17일</p>
 					<p>10:00 1회차</p>
 				</div>

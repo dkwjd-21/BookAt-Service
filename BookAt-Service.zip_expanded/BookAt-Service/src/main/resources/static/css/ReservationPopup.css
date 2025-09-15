@@ -99,13 +99,39 @@ header {
 .calendar-container {
 	min-height: 400px;
 	display: flex;
-	justify-content: center;
+	flex-direction: column;
 	align-items: center;
+	justify-content: flex-start;
 	font-size: 20px;
 	color: #ccc;
 	border: 1px dashed #e0e0e0;
 	border-radius: 8px;
 	background-color: white;
+	padding: 20px;
+}
+
+.calendar-container h3 {
+	margin-bottom: 20px;
+	align-self: flex-start;
+}
+
+.person-select-table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.person-select-table th,
+.person-select-table td {
+	padding: 12px;
+	text-align: left;
+}
+
+.person-select-table tr:last-child {
+	border-bottom: 1px solid #333;
+}
+
+.person-select-table p {
+	font-size: 15px;
 }
 
 /* 4. 오른쪽 열 (aside) */

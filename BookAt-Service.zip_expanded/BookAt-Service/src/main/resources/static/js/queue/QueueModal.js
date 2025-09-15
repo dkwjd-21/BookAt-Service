@@ -28,7 +28,9 @@ async function onModal() {
     modal.style.display = "flex";
 
     // eventId를 랜덤으로 생성
-    const eventId = "21";
+    const eventId = "100";
+	
+	sessionStorage.setItem("eventId", eventId);
 	
 	try {
 		const res = await axiosInstance.post("/queue/enter", null, {
@@ -221,7 +223,8 @@ document.addEventListener("DOMContentLoaded", () => {
         
 		// 팝업창 띄우기
 		try {
-			const popupRes = await axiosInstance.get("/queue/reservation", {
+			const popupRes = await axiosInstance.get("/reservation/", {
+				params: {eventId},
 				responseType: "text",
 			});
 			
