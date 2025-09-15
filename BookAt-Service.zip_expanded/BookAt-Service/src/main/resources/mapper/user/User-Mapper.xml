@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.bookat.mapper.UserLoginMapper">
+	
+	<select id="findUserById" resultType="User">
+		SELECT * FROM USERS WHERE USER_ID = #{userId}
+	</select>
+	
+	<update id="updateUserRefreshToken" parameterType="map">
+		UPDATE USERS SET REFRESH_TOKEN = #{refreshToken, jdbcType=VARCHAR} WHERE USER_ID = #{userId}
+	</update>
+	
+	<update id="updatePassword" parameterType="map">
+		UPDATE USERS SET USER_PW = #{password, jdbcType=VARCHAR} WHERE USER_ID = #{userId}
+	</update>
+	
+	<select id="findIdBySimpleAuth" resultType="User">
+		SELECT * FROM USERS WHERE USER_NAME = #{userName} AND PHONE = #{phone} AND BIRTH = #{birth}
+	</select>
+	
+</mapper>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bookat.mapper.UserSignupMapper">
+	
+	<resultMap id="userSignupResultMap" type="com.bookat.dto.UserSignup">
+        <id property="userId" column="USER_ID"/>
+        <result property="userPw" column="USER_PW"/>
+        <result property="userName" column="USER_NAME"/>
+        <result property="email" column="EMAIL"/>
+        <result property="phone" column="PHONE"/>
+        <result property="birth" column="BIRTH"/>
+    </resultMap>
+	
+    <select id="selectUserById" resultMap="userSignupResultMap">
+        SELECT * FROM USERS
+        WHERE USER_ID = #{userId}
+    </select>
+    
+    <select id="selectUserByEmail" resultMap="userSignupResultMap">
+        SELECT * FROM USERS
+        WHERE USER_ID = #{email}
+    </select>
+
+	<insert id="insertUser" parameterType="com.bookat.dto.UserSignup">
+		INSERT INTO USERS
+		VALUES(
+			#{userId}, #{userPw}, #{userName}, #{email}, #{phone},
+			#{birth}, 'Y', SYSDATE, null
+		)
+	</insert>
+
+</mapper>
