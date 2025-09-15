@@ -79,9 +79,6 @@ public class UserLoginController {
 			// redis 에 refresh token 과 loginTime 저장
 			refreshTokenService.storeRefreshToken(userId, refreshToken, loginTime, CookieUtil.SEVEN_DAYS);
 			
-			Map<Object, Object> check = redisTemplate.opsForHash().entries(userId);
-			log.info("Redis 저장 확인: {}", check);
-			
 			// 쿠키 에 refresh token 과 loginTime 저장
 			cookieUtil.createCookie(response, "refreshToken", refreshToken, CookieUtil.SEVEN_DAYS);
 			cookieUtil.createCookie(response, "loginTime", loginTime, CookieUtil.SEVEN_DAYS);
