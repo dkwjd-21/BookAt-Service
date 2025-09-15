@@ -226,11 +226,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await res.json();
 
       if (data.status === "success") {
-        alert("대기열에서 제거되고 예매창으로 이동합니다!");
+        // alert("대기열에서 제거되고 예매창으로 이동합니다!");
         closeModal();
         stopQueuePolling();
         // 팝업창 띄우기
-        window.open("/queue/reservation", "_blank", "width=1000,height=700");
+        window.open("/queue/reservationSeat", "_blank", "width=1000,height=700");
       } else {
         alert("대기열 제거 실패: " + data.message);
       }

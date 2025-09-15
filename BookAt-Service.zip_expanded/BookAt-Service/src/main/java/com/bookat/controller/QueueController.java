@@ -18,57 +18,50 @@ import com.bookat.service.QueueService;
 @Controller
 @RequestMapping("/queue")
 public class QueueController {
-	
+
 	@Autowired
 	private QueueService queueService;
-	
-	// 테스트를 위한 메인 페이지 
+
+	// 테스트를 위한 메인 페이지
 	@GetMapping("/test")
 	public String queue(Model model) {
 		return "reservation/QueueModal";
 	}
-	
-	// 대기열 진입 API (예매하기 버튼 클릭시) 
+
+	// 대기열 진입 API (예매하기 버튼 클릭시)
 	@PostMapping("/enter")
-	public ResponseEntity<Map<String, Object>> enterQueue(@RequestParam String eventId, @RequestParam String userId){
-				
+	public ResponseEntity<Map<String, Object>> enterQueue(@RequestParam String eventId, @RequestParam String userId) {
+
 		// userId는 클라이언트에서 전달받은 랜덤 값 사용
-	    if (eventId == null || eventId.isEmpty() || userId == null || userId.isEmpty()) {
-	        return ResponseEntity.badRequest().body(Map.of("status", "error", "message", "eventId/userId 필요"));
-	    }
-		
+		if (eventId == null || eventId.isEmpty() || userId == null || userId.isEmpty()) {
+			return ResponseEntity.badRequest().body(Map.of("status", "error", "message", "eventId/userId 필요"));
+		}
+
 		Long rank = queueService.addUserToQueue(eventId, userId);
-		
-		return ResponseEntity.ok(Map.of(
-				"status", "success", 
-				"rank", rank != null? rank : 0L, 
-				"userId", userId)
-		);
+
+		return ResponseEntity.ok(Map.of("status", "success", "rank", rank != null ? rank : 0L, "userId", userId));
 	}
-	
-	// 대기열 상태 확인 API 
+
+	// 대기열 상태 확인 API
 	@GetMapping("/status")
-	public ResponseEntity<Map<String, Object>> getQueueStatus(@RequestParam String eventId, @RequestParam String userId){
+	public ResponseEntity<Map<String, Object>> getQueueStatus(@RequestParam String eventId,
+			@RequestParam String userId) {
 		Long rank = queueService.getUserRank(eventId, userId);
-		
-		return ResponseEntity.ok(Map.of(
-				"status", "success", 
-				"rank", rank!=null? rank : null)
-		);
+
+		return ResponseEntity.ok(Map.of("status", "success", "rank", rank != null ? rank : null));
 	}
-	
-	// 대기열에서 삭제 & 예매팝업으로 이동 API 
+
+	// 대기열에서 삭제 & 예매팝업으로 이동 API
 	@PostMapping("/leave")
-	public ResponseEntity<Map<String, Object>> leaveQueue(
-			@RequestParam("eventId") String eventId, 
-			@RequestParam("userId") String userId){
-		
+	public ResponseEntity<Map<String, Object>> leaveQueue(@RequestParam("eventId") String eventId,
+			@RequestParam("userId") String userId) {
+
 		Map<String, Object> response = new HashMap<>();
-		
+
 		try {
 			boolean removed = queueService.leaveQueue(eventId, userId);
-			
-			if(removed) {
+
+			if (removed) {
 				response.put("status", "success");
 				response.put("message", "대기열에서 제거되었습니다.");
 			} else {
@@ -77,16 +70,22 @@ public class QueueController {
 			}
 		} catch (Exception e) {
 			response.put("status", "error");
-			response.put("message", "대기열 제거 중 오류 발생 : "+e.getMessage());
+			response.put("message", "대기열 제거 중 오류 발생 : " + e.getMessage());
 		}
-		
+
 		return ResponseEntity.ok(response);
 	}
-	
-	// 임시 티켓팅 팝업 오픈 --> 이후 ReservationController로 이동 
+
+	// 임시 티켓팅 팝업 오픈 --> 이후 ReservationController로 이동
 	@GetMapping("/reservation")
 	public String reservation() {
 		return "reservation/ReservationPopup";
 	}
-	
+
+	// 임시 티켓팅 팝업 오픈 --> 이후 ReservationController로 이동
+	@GetMapping("/reservationSeat")
+	public String reservationSeat() {
+		return "reservation/ReservationPopup_Seat";
+	}
+
 }
