@@ -27,6 +27,8 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	
+	// 필터로 사용 X, 계속 필요없으면 나중에 삭제할 예정
+	
     private final JwtTokenProvider jwtTokenProvider;
     private final CookieUtil cookieUtil;
     private final UserLoginMapper userMapper;
@@ -103,8 +105,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
 
-        // 필터 제외할 API
-        if (path.equals("/") || path.equals("/auth/refresh") || path.equals("/user/login") || path.equals("/user/logout")) {
+        if (path.equals("/") || path.equals("/auth/refresh") || path.equals("/user/login") || path.equals("/user/logout") || path.equals("/queue/reservation")) {
             return true;
         }
 

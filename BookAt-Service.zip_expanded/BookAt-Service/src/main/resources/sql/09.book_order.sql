@@ -1,0 +1,26 @@
+CREATE TABLE BOOK_ORDER (
+	order_id	number	PRIMARY KEY,
+	payment_id	number	NULL,   -- 결제 전엔 PAYMENT_ID가 NULL 이어야 함(수정)
+	order_date	date	DEFAULT SYSDATE NOT NULL,
+	order_status	number(2)	NOT NULL,
+	total_price	number	NOT NULL,
+	user_id	varchar2(50)	NOT NULL,
+	addr_id	number	NOT NULL
+);
+
+-- 시퀀스 생성
+CREATE SEQUENCE SEQ_BOOK_ORDER;
+
+-- 제약 조건
+ALTER TABLE BOOK_ORDER ADD CONSTRAINT CHK_ORDER_STATUS 
+CHECK (ORDER_STATUS  IN (0,1,-1,2,-2,3));
+
+-- 테이블 조인
+ALTER TABLE BOOK_ORDER ADD CONSTRAINT FK_PAYMENT_TO_BOOK_ORDER_1 FOREIGN KEY (payment_id) REFERENCES PAYMENT (payment_id);
+
+ALTER TABLE BOOK_ORDER ADD CONSTRAINT FK_users_TO_BOOK_ORDER_1 FOREIGN KEY (user_id) REFERENCES users (user_id);
+
+ALTER TABLE BOOK_ORDER ADD CONSTRAINT FK_addresses_TO_BOOK_ORDER_1 FOREIGN KEY (addr_id) REFERENCES addresses (addr_id);
+
+-- 테이블 확인
+SELECT * FROM BOOK_ORDER ORDER BY ORDER_ID;

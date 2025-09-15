@@ -1,0 +1,74 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bookat.mapper.BookMapper">
+
+  <!-- 신간: PUBDATE 최신순 -->
+  <select id="findNewBooks" parameterType="int" resultType="Book">
+    SELECT
+      book_id, book_title, book_cover, author, book_price,
+      publisher, pubdate, description
+    FROM book
+    ORDER BY pubdate DESC, book_id DESC
+    FETCH FIRST #{limit} ROWS ONLY
+  </select>
+
+  <!-- 베스트셀러: 랜덤 선택 -->
+ <select id="findBestSellers" parameterType="int" resultType="Book">
+  SELECT
+    b.book_id, b.book_title, b.book_cover, b.author, b.book_price,
+    b.publisher, b.pubdate, b.description
+  FROM book b
+  ORDER BY DBMS_RANDOM.VALUE
+  FETCH FIRST #{limit} ROWS ONLY
+</select>
+
+  <!-- 이벤트 진행 중 도서: EVENT에 연결된 BOOK -->
+  <select id="findEventBooks" parameterType="int" resultType="Book">
+    SELECT DISTINCT
+      b.book_id, b.book_title, b.book_cover, b.author, b.book_price,
+      b.publisher, b.pubdate, b.description
+    FROM book b
+    JOIN event e ON e.book_id = b.book_id
+    FETCH FIRST #{limit} ROWS ONLY
+  </select>
+  
+  <!-- 전체 조회 -->
+<select id="findAll" resultType="Book">
+  SELECT
+    b.book_id, b.book_title, b.book_cover, b.author, b.book_price,
+    b.publisher, b.pubdate, b.description, b.category
+  FROM book b
+  ORDER BY b.book_id DESC
+</select>
+
+<!-- 단일 조회 -->
+<select id="findByCategory" parameterType="string" resultType="Book">
+  SELECT
+    b.book_id, b.book_title, b.book_cover, b.author, b.book_price,
+    b.publisher, b.pubdate, b.description, b.category
+  FROM book b
+  WHERE b.category = #{category}
+  ORDER BY b.book_id DESC
+</select>
+
+<!-- 묶음 조회 -->
+<select id="findByCategories" parameterType="list" resultType="Book">
+  SELECT
+    b.book_id, b.book_title, b.book_cover, b.author, b.book_price,
+    b.publisher, b.pubdate, b.description, b.category
+  FROM book b
+  WHERE b.category IN
+    <foreach collection="categories" item="c" open="(" separator="," close=")">#{c}</foreach>
+  ORDER BY b.book_id DESC
+</select>
+
+<select id="selectOne" parameterType="string" resultType="Book">
+  SELECT
+    b.book_id, b.book_title, b.book_cover, b.author, b.book_price,
+    b.publisher, b.pubdate, b.description, b.category
+  FROM book b
+  WHERE b.book_id = #{bookId}
+</select>
+
+  
+</mapper>

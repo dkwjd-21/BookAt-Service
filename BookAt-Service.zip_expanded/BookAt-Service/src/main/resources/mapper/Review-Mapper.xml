@@ -1,0 +1,29 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bookat.mapper.ReviewMapper">
+
+  <!-- 필요에 맞게 실제 컬럼명으로 수정하세요 -->
+  <select id="findByBookId" parameterType="string" resultType="com.bookat.dto.ReviewDto">
+    SELECT
+      r.rating         AS rating,
+      r.user_id        AS userId,
+      r.review_date     AS createdAt,
+      r.review_content        AS content
+    FROM review r
+    WHERE r.book_id = #{bookId}
+    ORDER BY r.review_date DESC
+  </select>
+
+  <select id="countByBookId" parameterType="string" resultType="int">
+    SELECT COUNT(*) FROM review WHERE book_id = #{bookId}
+  </select>
+  
+  <select id="findByEventId" parameterType="int" resultType="com.bookat.entity.Review">
+  		SELECT * FROM REVIEW WHERE EVENT_ID = #{eventId}
+  </select>
+  
+  <select id="countByEventId" parameterType="int" resultType="int">
+  		SELECT COUNT(*) FROM REVIEW WHERE EVENT_ID = #{eventId}
+  </select>
+
+</mapper>

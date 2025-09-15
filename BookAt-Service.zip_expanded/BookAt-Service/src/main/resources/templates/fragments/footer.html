@@ -1,29 +1,30 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
-<meta charset="UTF-8">
-<title>footer</title>
-<link rel="stylesheet" th:href="@{/css/footer.css}" />
-</head>
-<body>
-	
-	<footer th:fragment="main-footer" class="footer">
-	  <div class="ft_content">
-	    <div class="ft__left">
-	      <div class="ft_logo">
-	        <img th:src="@{/images/BookAt-LogoTypo.png}" alt="BookAt" />
-	      </div>
-	      <div>
-	        (주) 북캣 | 현대이지웰 Java 풀스택 개발자 5회차<br />
-	        책읽는고양이 송아정 김명주 박태욱 서지나
-	      </div>
-	    </div>
-	    <div class="ft__right">
-	      <div>Copyright ⓒ BookAt. ALL RIGHTS RESERVED</div>
-	      <div><a href="">관리자로그인</a></div>
-	    </div>
-	  </div>
-	</footer>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
+<body>
+
+<footer th:fragment="site-footer" class="footer"
+style="border: 1px solid #BFBFBF; margin:0 auto; color:#BFBFBF; background:#EAEAEA">
+
+<div class="ft_content" style="padding:40px 100px; ">
+
+<div class="ft_logo">
+<img src="../../static/images/BookAt-LogoTypo.png" th:src="@{/images/BookAt-LogoTypo.png}" alt="BookAt"
+style="width: 120.645px; height: 26.525px;">
+</div>
+
+<div class="ft__left" style=float:left;>
+<div style="margin-top:6px;font-size:18px;font-style: normal; font-weight: 400; line-height:28px;">
+(주) 북캣 | 현대이지웰 Java 풀스택 개발자 5회차<br>
+책읽는고양이 송아정 김명주 박태욱 서지나</div></div>
+
+<div class="ft__right" style="text-align:right;font-size:18px;font-style: normal; font-weight: 400; line-height:28px;">
+<div>Copyright ⓒ BookAt. ALL RIGHTS RESERVED</div>
+<div><a href="">관리자로그인</a></div>
+</div>
+
+</div>
+
+</footer>
 </body>
 </html>

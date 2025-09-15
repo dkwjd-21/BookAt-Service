@@ -49,8 +49,8 @@
 					// 헤더를 붙일 수 없어서 그냥 이동
 					window.location.href = "/";
                 },
-                error: function(xhr) {
-					const errMsg = xhr.responseText || "로그인 실패";
+                error: function(err) {
+					const errMsg = err.responseJSON?.error || "로그인에 실패했습니다.";
 
 				    // 아이디 관련 에러
 				    if (errMsg.includes("아이디")) {

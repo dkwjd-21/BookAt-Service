@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BookAt</title>
+    <link rel="stylesheet" th:href="@{/css/event_mainpage.css}" />
+
+    <style>
+      /* 이미지 없을 때 빈 자리 모두 회색빈칸 처리해두기 */
+      .header-banner img,
+      .event-cover {
+        background-color: #cccccc;
+        width: 100%;
+        height: auto;
+        display: block;
+      }
+      .header-banner img {
+        height: 200px;
+        object-fit: cover;
+      }
+      .event-card .event-cover {
+        height: 180px;
+        object-fit: contain;
+      }
+    </style>
+  </head>
+  <body>
+    <script th:src="@{/js/event_mainpage.js}"></script>
+    <header class="main-header">
+      <div class="header-top">
+        <a th:href="@{/event/main}"><img th:src="@{/images/BookAt-Logo.png}" class="main-logo-img" /></a>
+
+        <div class="auth-links">
+          <!--<th:block th:if="${isLoggedIn == null}">-->
+          <a th:href="@{/user/signup}">회원가입</a>
+          <a th:href="@{/user/login}">로그인</a>
+          <!--</th:block>-->
+
+          <!-- <th:block th:if="${isLoggedIn}">
+            <a th:href="@{/mypage}">마이페이지</a>
+            <a th:href="@{/logout}">로그아웃</a>
+          </th:block> -->
+          <!-- 로그인 구현 후 로그인 시 바뀌는 부분 -->
+        </div>
+      </div>
+
+      <div class="header-bottom">
+        <nav class="nav-links">
+          <a th:href="@{/books}" class="nav-item">도서</a>
+
+          <a th:href="@{/event}" class="nav-item active">이벤트</a>
+        </nav>
+        <div class="search-bar">
+          <form id="searchForm" action="#" method="get">
+            <input type="text" name="search-query" placeholder="검색어를 입력하세요" />
+            <span class="search-icon" onclick="document.getElementById('searchForm').submit();"></span>
+          </form>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="header-banner">
+        <!--상단 메인 배너-->
+        <div>
+          <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1200&auto=format&fit=crop" alt="Promotion Banner" style="background-color: #cccccc" />
+
+          <div class="banner-text">
+            <a href="#" class="btn-bookat">BookAt ></a>
+          </div>
+          <div>
+            <img src="https://placehold.co/1440x200?text=EventPromotionBanner2" alt="Promotion Banner" style="background-color: #cccccc" />
+          </div>
+          <div class="banner-text">
+            <a href="#" class="btn-bookat">BookAt ></a>
+          </div>
+        </div>
+      </section>
+
+      <!--카테고리 nav-->
+      <div class="chip-row" style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px">
+        <a class="chip" th:href="@{/event}">전체</a>
+        <a class="chip" th:href="@{/event/category(local_code='SEOUL')}" th:classappend="${currentLocalCode == 'SEOUL'} ? 'active' : ''">서울</a>
+        <a class="chip" th:href="@{/event/category(local_code='GYEONGGI_INCHEON')}" th:classappend="${currentLocalCode == 'GYEONGGI_INCHEON'} ? 'active' : ''">경기<br />인천</a>
+        <a class="chip" th:href="@{/event/category(local_code='JEOLLA')}" th:classappend="${currentLocalCode == 'JEOLLA'} ? 'active' : ''">전라</a>
+        <a class="chip" th:href="@{/event/category(local_code='GYEONGSANG')}" th:classappend="${currentLocalCode == 'GYEONGSANG'} ? 'active' : ''">경상</a>
+        <a class="chip" th:href="@{/event/category(local_code='GANGWON')}" th:classappend="${currentLocalCode == 'GANGWON'} ? 'active' : ''">강원</a>
+        <a class="chip" th:href="@{/event/category(local_code='CHUNGCHEONG')}" th:classappend="${currentLocalCode == 'CHUNGCHEONG'} ? 'active' : ''">충청</a>
+        <a class="chip" th:href="@{/event/category(local_code='JEJU')}" th:classappend="${currentLocalCode == 'JEJU'} ? 'active' : ''">제주</a>
+      </div>
+
+      <div>
+        <!--이벤트 카드-->
+        <section class="event-section">
+          <div class="event-list">
+            <div th:each="event, eventStat : ${event}" class="event-card">
+              <a th:href="@{/event/detail(event_id=${event.eventId})}">
+                <img th:src="${event.eventImage}" alt="event Cover" class="event-cover" />
+                <p class="meta" th:text="${#strings.substring(#strings.substringAfter(event.address, ' '), 0, 2)}"></p>
+                <p th:text="${event.eventName}" class="event-title">이벤트 이름</p>
+              </a>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!--푸터-->
+    <footer th:fragment="site-footer" class="footer" style="border: 1px solid #bfbfbf; margin: 0 auto; color: #bfbfbf; background: #eaeaea">
+      <div class="ft_content" style="padding: 40px 100px">
+        <div class="ft_logo">
+          <img th:src="@{/images/BookAt-LogoTypo.png}" alt="eventAt" style="width: 120.645px; height: 26.525px" />
+        </div>
+
+        <div class="ft__left" style="float: left">
+          <div style="margin-top: 6px; font-size: 18px; font-style: normal; font-weight: 400; line-height: 28px">
+            (주) 북캣 | 현대이지웰 Java 풀스택 개발자 5회차<br />
+            책읽는고양이 송아정 김명주 박태욱 서지나
+          </div>
+        </div>
+
+        <div class="ft__right" style="text-align: right; font-size: 18px; font-style: normal; font-weight: 400; line-height: 28px">
+          <div>Copyright ⓒ BookAt. ALL RIGHTS RESERVED</div>
+          <div><a href="">관리자로그인</a></div>
+          <!--관리자페이지 이동 추가해야함-->
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

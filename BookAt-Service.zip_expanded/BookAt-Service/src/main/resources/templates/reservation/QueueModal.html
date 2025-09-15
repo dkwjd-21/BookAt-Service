@@ -4,8 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>예매 대기 모달</title>
-	<script th:src="@{/js/QueueModal.js}"></script>
     <link rel="stylesheet" th:href="@{/css/queueModal.css}" />
+	<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+	<script th:src="@{/js/utils/axiosIntercepter.js}"></script>
+	<script th:src="@{/js/utils/logout.js}"></script>
+	<script th:src="@{/js/utils/userAuth.js}"></script>
+	<script th:src="@{/js/queue/QueueModal.js}"></script>
   </head>
   <body>
     <button

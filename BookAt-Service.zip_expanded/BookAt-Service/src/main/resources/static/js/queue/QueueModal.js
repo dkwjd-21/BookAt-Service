@@ -11,39 +11,35 @@ let isFetching = false;
 // 예매하기 버튼을 눌렀을 때 대기열 모달 띄우기
 // 모달을 열면 대기열에 추가 -> 주기적으로 폴링 시작.
 async function onModal() {
+  try {
+    await window.validateUser();
+  } catch (e) {
+    alert("로그인한 회원님만 예매 가능합니다.");
+    window.location.href = "/user/login";
+    return;
+  }
+
   const modal = document.getElementsByClassName("queueModal-overlay")[0];
 
   if (modal.style.display === "none") {
     // 모달 보여주기
     modal.style.display = "flex";
 
-    // eventId & userId를 랜덤으로 생성
-    const userId = generateRandomUserId();
-    console.log("랜덤 유저 ID:", userId);
+    // eventId를 랜덤으로 생성
     const eventId = "21";
 
-    // (테스트용 코드) eventId & userId를 세션스토리지에 임시 저장 (탭마다 저장)
-    // 실제로는 쿠키에서 가져와서 사용
-    sessionStorage.setItem("userId", userId);
-    sessionStorage.setItem("eventId", eventId);
-
     try {
-      // 먼저 큐에 진입 (서버에 유저 등록)
-      const res = await fetch(
-        `/queue/enter?eventId=${eventId}&userId=${encodeURIComponent(userId)}`,
-        {
-          method: "POST",
-        }
-      );
-      const data = await res.json();
+      const res = await axiosInstance.post("/queue/enter", null, {
+        params: { eventId },
+      });
+
+      const data = res.data;
 
       if (data.status === "success") {
         // 초기 대기 번호 표시
         const numberElement = document.querySelector(".modal-waitingNum");
         numberElement.textContent = data.rank ?? "-";
-
-        // 2️⃣ 큐 상태 주기적으로 확인 시작
-        startQueuePolling(true, userId);
+        startQueuePolling(true);
       } else {
         alert("대기열 진입 실패");
         modal.style.display = "none";
@@ -102,10 +98,9 @@ async function performFetchAndUpdate(numberElement) {
   try {
     // 세션스토리지에서 userId, eventId 가져오기
     // 실제로는 쿠키 또는 인증 토큰에서 가져와야 함
-    const userId = encodeURIComponent(sessionStorage.getItem("userId"));
     const eventId = encodeURIComponent(sessionStorage.getItem("eventId"));
 
-    if (!userId || !eventId) {
+    if (!eventId) {
       console.error(
         "세션스토리지에서 userId 또는 eventId를 가져오지 못했습니다."
       );
@@ -113,20 +108,12 @@ async function performFetchAndUpdate(numberElement) {
       return;
     }
 
-    // fetch에 signal을 넣으면 stopQueuePolling()에서 abort로 요청을 취소할 수 있음
-    const res = await fetch(
-      `/queue/status?eventId=${eventId}&userId=${userId}`,
-      { signal }
-    );
+    const res = await axiosInstance.get("/queue/status", {
+      params: { eventId },
+      signal,
+    });
 
-    // HTTP 응답 상태 체크
-    if (!res.ok) {
-      console.error("HTTP error:", res.status);
-      isFetching = false;
-      return;
-    }
-
-    const data = await res.json();
+    const data = res.data;
     console.log("서버 응답 data:", data);
 
     if (data.status === "success") {
@@ -202,7 +189,7 @@ function generateRandomUserId() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  const enterButton = document.querySelector('.modal-enter');
+  const enterButton = document.querySelector(".modal-enter");
 
   // 초기 상태
   enterButton.disabled = true;
@@ -210,27 +197,39 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // 클릭 이벤트
   enterButton.addEventListener("click", async () => {
-    const userId = encodeURIComponent(sessionStorage.getItem("userId"));
+    //const userId = encodeURIComponent(sessionStorage.getItem("userId"));
     const eventId = encodeURIComponent(sessionStorage.getItem("eventId"));
 
-    if (!userId || !eventId) {
-      alert("유저 정보가 없습니다.");
+    if (!eventId) {
+      alert("이벤트 정보가 없습니다.");
       return;
     }
 
     try {
-      const res = await fetch(`/queue/leave?eventId=${eventId}&userId=${userId}`, {
-        method: "POST",
+      const res = await axiosInstance.post("/queue/leave", null, {
+        params: { eventId },
       });
 
-      const data = await res.json();
+      const data = res.data;
 
       if (data.status === "success") {
         // alert("대기열에서 제거되고 예매창으로 이동합니다!");
         closeModal();
         stopQueuePolling();
+
         // 팝업창 띄우기
-        window.open("/queue/reservationSeat", "_blank", "width=1000,height=700");
+        try {
+          const popupRes = await axiosInstance.get("/queue/reservation", {
+            responseType: "text",
+          });
+
+          const popup = window.open("", "_blank", "width=1000,height=700");
+          popup.document.write(popupRes.data);
+          popup.document.close();
+        } catch (err) {
+          console.log("예약 팝업 열기 실패 : ", err);
+          alert("로그인이 필요합니다.");
+        }
       } else {
         alert("대기열 제거 실패: " + data.message);
       }
@@ -241,7 +240,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // 대기번호에 따라 버튼 활성화 업데이트
-  window.updateEnterButton = function(parsedRank) {
+  window.updateEnterButton = function (parsedRank) {
     if (parsedRank === 1) {
       enterButton.disabled = false;
       enterButton.style.opacity = 1;
@@ -254,21 +253,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // 탭/창 종료, 새로고침 시 실행
 window.addEventListener("beforeunload", async (event) => {
-    const userId = encodeURIComponent(sessionStorage.getItem("userId"));
-    const eventId = encodeURIComponent(sessionStorage.getItem("eventId"));
+  //const userId = encodeURIComponent(sessionStorage.getItem("userId"));
+  const eventId = encodeURIComponent(sessionStorage.getItem("eventId"));
 
-    if (!userId || !eventId) return;
+  if (!eventId) return;
 
-    try {
-        // navigator.sendBeacon는 브라우저 종료 시에도 서버에 안전하게 요청 보낼 수 있음
-        const url = `/queue/leave?eventId=${eventId}&userId=${userId}`;
-        const data = new Blob([], { type: "application/json" });
-        navigator.sendBeacon(url, data);
+  try {
+    // navigator.sendBeacon는 브라우저 종료 시에도 서버에 안전하게 요청 보낼 수 있음
+    const url = `/queue/leave?eventId=${encodeURIComponent(eventId)}`;
+    const data = new Blob([], { type: "application/json" });
+    navigator.sendBeacon(url, data);
 
-        // fetch로도 시도 가능하지만 탭 종료 시 요청이 끊길 수 있음
-        // await fetch(url, { method: "POST" });
-    } catch (err) {
-        console.error("탭 종료 시 대기열 제거 실패:", err);
-    }
+    // fetch로도 시도 가능하지만 탭 종료 시 요청이 끊길 수 있음
+    // await fetch(url, { method: "POST" });
+  } catch (err) {
+    console.error("탭 종료 시 대기열 제거 실패:", err);
+  }
 });
-
