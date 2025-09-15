@@ -35,8 +35,10 @@ public class SecurityConfig {
 //        .httpBasic(Customizer.withDefaults())
         .authorizeHttpRequests(auth -> auth
         		.requestMatchers("/css/**", "/js/**", "/images/**").permitAll()			// 정적 리소스 접근 가능
-        		.requestMatchers("/", "/user/**", "/auth/**", "/queue/**").permitAll()	// 토큰없이 접근 허용
-        		.requestMatchers("/api/**").authenticated()								// 기능들
+        		.requestMatchers("/", "/user/**", "/auth/**", "/mainPage/**", "/infoPage/**").permitAll()
+        							// 홈, 로그인, 메인페이지, 상세페이지 토큰없이 접근 허용
+        		.requestMatchers("/api/**", "/queue/**", "/myPage/**").authenticated()
+        							// 예약 기능 토큰 필요
                 .anyRequest().denyAll()
        ).addFilterBefore(accessTokenFilter, UsernamePasswordAuthenticationFilter.class)
         .addFilterAfter(refreshTokenFilter, AccessTokenFilter.class);
