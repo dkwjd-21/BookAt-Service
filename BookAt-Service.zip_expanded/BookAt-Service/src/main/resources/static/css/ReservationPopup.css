@@ -100,14 +100,15 @@ header {
 	min-height: 400px;
 	display: flex;
 	flex-direction: column;
-	align-items: center;
+	align-items: stretch;
 	justify-content: flex-start;
 	font-size: 20px;
 	color: #ccc;
 	border: 1px dashed #e0e0e0;
 	border-radius: 8px;
 	background-color: white;
-	padding: 20px;
+	padding: 30px;
+	text-align: center;
 }
 
 .calendar-container h3 {
@@ -117,17 +118,18 @@ header {
 
 .person-select-table {
 	width: 100%;
+	margin: 0 auto;
 	border-collapse: collapse;
 }
 
 .person-select-table th,
 .person-select-table td {
-	padding: 12px;
 	text-align: left;
+	padding: 10px;
 }
 
 .person-select-table tr:last-child {
-	border-bottom: 1px solid #333;
+	border-bottom: 1px solid #ccc;
 }
 
 .person-select-table p {

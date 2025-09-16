@@ -86,48 +86,56 @@
 				}
 			});
 			
-			// 결제 총합 구하기
-			const selectedList = document.querySelector("#sumPrice").closest("tr").querySelector("td:last-child");
+			if (ticketType === "PERSON_TYPE") {
+				// 결제 총합 구하기
+				let selectedList = null;
+				if(sumPriceEl) {
+					selectedList = document.querySelector("#sumPrice").closest("tr").querySelector("td:last-child");
+				}
+				
+				function updateSummary() {
+					if (!sumPriceEl || !feeEl || !selectedList) return;
+					
+					let sum = 0;
+					let selected = [];
+					let personSummary = [];
+					
+					selects.forEach((sel) => {
+						const unitPrice = parseInt(sel.getAttribute("data-unit-price"), 10);
+						const count = parseInt(sel.value, 10);
+						if(count > 0) {
+							sum += unitPrice * count;
+							
+							let label = "";
+							
+							if(sel.name === "adultCount") label = "성인";
+							else if (sel.name === "youthCount") label = "청소년";
+							else if (sel.name === "childCount") label = "유아";
+							
+							selected.push(`${label} ${count}명`);
+							personSummary.push(`<p>${label} ${count}명</p>`);
+						}
+					});
+					
+					const fee = Math.floor(sum * 0.1);
+					totalPrice = sum + fee;
+					
+					sumPriceEl.textContent = sum.toLocaleString() + "원";
+					feeEl.textContent = fee.toLocaleString() + " 원";
+					
+					selectedList.innerHTML = selected.length
+					? selected.map((s) => `<p>${s}</p>`).join("") : "-";
+					
+					document.getElementById("summaryTotal").textContent = totalPrice.toLocaleString() + "원";
+					document.getElementById("total-price").value = totalPrice;
+					
+					const personInfoEl = document.querySelector(".person-info");
+					personInfoEl.innerHTML = personSummary.length ? personSummary.join("") : "<p>선택된 인원이 없습니다.</p>";
+				}
+				
+				selects.forEach((sel) => sel.addEventListener("change", updateSummary));
 			
-			function updateSummary() {
-				let sum = 0;
-				let selected = [];
-				let personSummary = [];
-				
-				selects.forEach((sel) => {
-					const unitPrice = parseInt(sel.getAttribute("data-unit-price"), 10);
-					const count = parseInt(sel.value, 10);
-					if(count > 0) {
-						sum += unitPrice * count;
-						
-						let label = "";
-						
-						if(sel.name === "adultCount") label = "성인";
-						else if (sel.name === "youthCount") label = "청소년";
-						else if (sel.name === "childCount") label = "유아";
-						
-						selected.push(`${label} ${count}명`);
-						personSummary.push(`<p>${label} ${count}명</p>`);
-					}
-				});
-				
-				const fee = Math.floor(sum * 0.1);
-				totalPrice = sum + fee;
-				
-				sumPriceEl.textContent = sum.toLocaleString() + "원";
-				feeEl.textContent = fee.toLocaleString() + " 원";
-				
-				selectedList.innerHTML = selected.length
-				? selected.map((s) => `<p>${s}</p>`).join("") : "-";
-				
-				document.getElementById("summaryTotal").textContent = totalPrice.toLocaleString() + "원";
-				document.getElementById("total-price").value = totalPrice;
-				
-				const personInfoEl = document.querySelector(".person-info");
-				personInfoEl.innerHTML = personSummary.length ? personSummary.join("") : "<p>선택된 인원이 없습니다.</p>";
 			}
-			
-			selects.forEach((sel) => sel.addEventListener("change", updateSummary));
 			
 			// 주문자 정보 입력에서 전화번호 형식 검증
 			phoneInput.addEventListener("input", () => {
@@ -239,14 +247,12 @@
 											<tr>
 												<th>합계</th>
 												<td id="sumPrice"></td>
-												<td>
-													<p></p>
-													<p></p>
-												</td>
+												<td></td>
 											</tr>
 											<tr>
 												<th>수수료 (10%)</th>
 												<td id="fee"></td>
+												<td></td>
 											</tr>
 										</tbody>
 									</table>
