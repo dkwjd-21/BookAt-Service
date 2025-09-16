@@ -17,30 +17,52 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Transactional
 public class PaymentServiceImpl implements PaymentService {
-	  private final PaymentMapper paymentMapper;
 
-	  @Override
-	  public PaymentDto createReadyPayment(Integer amount, String method, String info){
-	    String merchantUid = "PAY-" + DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS")
-	                          .format(LocalDateTime.now());
-	    PaymentDto dto = new PaymentDto();
-	    dto.setTotalPrice(amount);
-	    dto.setPaymentPrice(amount);
-	    dto.setPaymentMethod(method);
-	    dto.setPaymentStatus(PaymentStatus.READY.code);
-	    dto.setPaymentInfo(info);
-	    dto.setMerchantUid(merchantUid);
-	    paymentMapper.insert(dto);
-	    return paymentMapper.findByMerchantUid(merchantUid);
-	  }
+  private final PaymentMapper paymentMapper;
 
-	  @Override public void markPaid(String merchantUid, String impUid, String pgTid, String receiptUrl){
-	    paymentMapper.markPaidByMerchantUid(merchantUid, impUid, pgTid, receiptUrl);
-	  }
-	  @Override public void markFailed(String merchantUid, String reason){
-	    paymentMapper.markFailedByMerchantUid(merchantUid, reason);
-	  }
-	  @Override public PaymentDto findByMerchantUid(String merchantUid){
-	    return paymentMapper.findByMerchantUid(merchantUid);
-	  }
+  private String normalizeMethod(String method) {
+    if (method == null) return "CARD";
+    String m = method.trim().toUpperCase().replace("-", "").replace("_", "");
+    switch (m) {
+      case "CARD":  return "CARD";
+      case "VBANK": return "VBANK";
+      case "POINT": return "POINT";
+      default:      return "CARD";
+    }
+  }
+
+  @Override
+  public PaymentDto createReadyPayment(Integer amount, String method, String info){
+    String merchantUid = "PAY-" + DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS")
+                          .format(LocalDateTime.now());
+    PaymentDto dto = new PaymentDto();
+    dto.setTotalPrice(amount);
+    dto.setPaymentPrice(amount);
+    dto.setPaymentMethod(normalizeMethod(method)); // 정규화
+    dto.setPaymentStatus(PaymentStatus.READY.code);
+    dto.setPaymentInfo(info);
+    dto.setMerchantUid(merchantUid);
+    paymentMapper.insert(dto);
+    return paymentMapper.findByMerchantUid(merchantUid);
+  }
+
+  @Override
+  public void markPaid(String merchantUid, String impUid, String pgTid, String receiptUrl){
+    paymentMapper.markPaidByMerchantUid(merchantUid, impUid, pgTid, receiptUrl);
+  }
+
+  @Override
+  public void markFailed(String merchantUid, String reason){
+    paymentMapper.markFailedByMerchantUid(merchantUid, reason);
+  }
+  
+  @Override
+  public void markCanceled(String merchantUid, String reason, String cancelReceiptUrl) {
+    paymentMapper.markCanceledByMerchantUid(merchantUid, reason, cancelReceiptUrl);
+  }
+
+  @Override
+  public PaymentDto findByMerchantUid(String merchantUid){
+    return paymentMapper.findByMerchantUid(merchantUid);
+  }
 }

@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head><meta charset="UTF-8"><title>프래그먼트 테스트</title></head>
+<body>
+  <h2>프래그먼트 포함 테스트</h2>
+
+  <!-- 이름 있는 파라미터-->
+  <div th:replace="~{fragments/payFragment :: payFragment(merchantUid=${merchantUid}, amount=${amount})}"></div>
+
+  <!-- JS (IMP.init/IMP.request_pay 포함) -->
+  <script src="https://cdn.iamport.kr/v1/iamport.js"></script>
+  <script th:src="@{/js/payment.js}"></script>
+</body>
+</html>

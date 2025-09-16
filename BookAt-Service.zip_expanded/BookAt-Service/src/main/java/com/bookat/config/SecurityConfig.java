@@ -24,15 +24,16 @@ public class SecurityConfig {
     	log.info("-- securityFilterChain --");
     	
         http
-        .csrf(csrf -> csrf.disable())
+        .csrf(csrf -> csrf.ignoringRequestMatchers("/payment/webhook"))
         .formLogin(AbstractHttpConfigurer::disable)
 //        .httpBasic(Customizer.withDefaults())
         .authorizeHttpRequests(auth -> auth
         		.requestMatchers("/css/**", "/js/**", "/images/**").permitAll()	// 정적 리소스 접근 가능
         		.requestMatchers("/", "/user/**", "/auth/**").permitAll()		// 로그인 전 접근 가능
 //        		.requestMatchers("/mainpage/**", "/books/**", "/events/**").permitAll()
-        		.requestMatchers("/payment/**").permitAll()   // 임시로 전체 허용, 추후 삭제
-//        		.requestMatchers("/payment/**").authenticated()  //추후 활성화
+        		.requestMatchers("/payment/webhook").permitAll()  // webhook은 포트원이 서버로 POST를 보내는 것이므로 삭제X
+        		.requestMatchers("/payment/**").permitAll()       // 임시로 전체 허용, 추후 삭제
+//        		.requestMatchers("/payment/**").authenticated()   //추후 활성화
                 .anyRequest().denyAll()
         ).addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 		

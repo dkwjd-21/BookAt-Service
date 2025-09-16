@@ -26,22 +26,28 @@
     SELECT * FROM PAYMENT WHERE merchant_uid = #{merchantUid}
   </select>
 
-<insert id="insert" parameterType="com.bookat.dto.PaymentDto"
-        useGeneratedKeys="true" keyProperty="paymentId" keyColumn="payment_id">
-  INSERT INTO PAYMENT(
-      payment_id, order_id, total_price, payment_price, payment_method,
-      payment_status, payment_date, payment_info, merchant_uid
+<insert id="insert" parameterType="com.bookat.dto.PaymentDto">
+  INSERT INTO PAYMENT (
+    payment_id,
+    order_id,
+    total_price,
+    payment_price,
+    payment_method,
+    payment_status,
+    payment_date,
+    payment_info,
+    merchant_uid
   )
-  VALUES(
-      SEQ_PAYMENT.NEXTVAL,
-      #{orderId,jdbcType=NUMERIC},         <!-- null 가능-->
-      #{totalPrice},                       <!-- NOT NULL -->
-      #{paymentPrice},                     <!-- NOT NULL -->
-      #{paymentMethod},                    <!-- NOT NULL -->
-      #{paymentStatus},                    <!-- NOT NULL -->
-      SYSDATE,
-      #{paymentInfo,jdbcType=VARCHAR},     <!-- null 가능-->
-      #{merchantUid}                       <!-- UNIQUE/NOT NULL로 사용 -->
+  VALUES (
+    SEQ_PAYMENT.NEXTVAL,
+    #{orderId, jdbcType=NUMERIC},
+    #{totalPrice},
+    #{paymentPrice},
+    #{paymentMethod},
+    #{paymentStatus},
+    SYSDATE,
+    #{paymentInfo},
+    #{merchantUid}
   )
 </insert>
 
@@ -61,16 +67,13 @@
     WHERE merchant_uid = #{merchantUid}
   </update>
   
-  <update id="markCancelledByMerchantUid" parameterType="string">
-  UPDATE PAYMENT SET payment_status = 2 WHERE merchant_uid = #{merchantUid}
-</update>
-
-<update id="markPartCancelledByMerchantUid" parameterType="map">
+  <update id="markCanceledByMerchantUid">
   UPDATE PAYMENT
-  SET payment_status = 3,
-      -- (선택) cancel_amount 누적/기록을 쓴다면 여기서 갱신
-      receipt_url = NVL(receipt_url, #{receiptUrl})
-  WHERE merchant_uid = #{merchantUid}
+     SET payment_status = 3,               -- CANCELED
+         fail_reason    = #{reason},       -- 취소 사유 기록
+         receipt_url    = #{receiptUrl},   -- 취소 영수증(있으면)
+         payment_date   = SYSDATE          -- 타임스탬프 갱신
+   WHERE merchant_uid   = #{merchantUid}
 </update>
   
 </mapper>

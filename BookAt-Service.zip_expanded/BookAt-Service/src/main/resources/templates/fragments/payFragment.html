@@ -1,0 +1,48 @@
+<div th:fragment="payFragment(merchantUid, amount)">
+  <form id="payCompleteForm" th:action="@{/payment/complete}" method="post" style="display:none;">
+    <input type="hidden" name="imp_uid" id="imp_uid">
+    <input type="hidden" name="merchant_uid" th:value="${merchantUid}">
+    <input type="hidden" name="method" id="method" value="card"> <!-- 기본값: card -->
+  </form>
+
+  <!-- 결제수단 버튼 -->
+  <div class="pay-method-group" style="display:flex; gap:8px; margin:8px 0;">
+    <button type="button" class="pay-method-btn is-active" data-method="card">신용카드</button>
+    <button type="button" class="pay-method-btn" data-method="vbank">가상계좌</button>
+  </div>
+
+  <button id="payBtn" th:attr="data-merchant=${merchantUid},data-amount=${amount}">
+    결제하기
+  </button>
+
+  <script>
+    (function(){
+      // 디자인
+      const style = document.createElement('style');
+      style.textContent = `
+        .pay-method-btn {
+          padding:8px 12px; border:1px solid #ddd; background:#fff; cursor:pointer;
+          border-radius:6px; font-size:14px;
+        }
+        .pay-method-btn.is-active { border-color:#444; background:#B5D173; font-weight:600; }
+      `;
+      document.head.appendChild(style);
+
+      const group = document.currentScript.previousElementSibling.previousElementSibling;
+      const buttons = document.querySelectorAll('.pay-method-btn');
+      const hiddenMethod = document.getElementById('method');
+
+      function setActive(method){
+        hiddenMethod.value = method; // complete로 보낼 값
+        buttons.forEach(b => b.classList.toggle('is-active', b.dataset.method === method));
+      }
+
+      // 초기화
+      setActive(hiddenMethod.value || 'card');
+
+      buttons.forEach(btn => {
+        btn.addEventListener('click', () => setActive(btn.dataset.method));
+      });
+    })();
+  </script>
+</div>

@@ -17,7 +17,6 @@ public interface PaymentMapper {
     int markFailedByMerchantUid(@Param("merchantUid") String merchantUid,
                                 @Param("failReason") String failReason);
     
-    int markCancelledByMerchantUid(@Param("merchantUid") String merchantUid);
-    int markPartCancelledByMerchantUid(@Param("merchantUid") String merchantUid,
-                                       @Param("receiptUrl") String receiptUrl);
+    void markCanceledByMerchantUid(String merchantUid, String reason, String receiptUrl);
+
 }
