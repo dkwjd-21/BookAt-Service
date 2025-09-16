@@ -27,8 +27,10 @@ async function onModal() {
     // 모달 보여주기
     modal.style.display = "flex";
 
-    // eventId를 랜덤으로 생성
+    // eventId를 DB의 이벤트ID 1개
+	//const eventId = "98";
     const eventId = "100";
+	//const eventId = "700";
 	
 	sessionStorage.setItem("eventId", eventId);
 	

@@ -134,6 +134,51 @@ header {
 	font-size: 15px;
 }
 
+.person-info {
+    margin-top: 10px;
+    padding: 7px;
+    border: 1px solid #ddd;
+    background: #fafafa;
+    border-radius: 6px;
+}
+
+.person-info p {
+    margin: 4px 0;
+    font-size: 14px;
+}
+
+/* 정보입력 */
+.pay-info-container {
+	width: 100%;
+	margin: 20px auto 0;
+	padding: 20px;
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+}
+
+.pay-info-form > div {
+	margin: 20px;
+}
+
+.pay-info-container label {
+	display: inline-block;
+	width: 100px;
+	font-size: 16px;
+	font-weight: 600;
+	color: #444;
+}
+
+.pay-info-container input {
+	display: inline-block;
+	width: calc(100% - 110px);
+	padding: 12px;
+	font-size: 15px;
+	box-sizing: border-box;
+	border: 1px solid #ccc;
+	border-radius: 8px;
+}
+
 /* 4. 오른쪽 열 (aside) */
 .summary-content {
 	width: 250px;
