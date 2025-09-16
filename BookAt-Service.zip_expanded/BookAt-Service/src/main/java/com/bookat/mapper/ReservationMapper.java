@@ -1,7 +1,12 @@
 package com.bookat.mapper;
 
+import org.apache.ibatis.annotations.Mapper;
+
+import com.bookat.entity.Event;
+
+@Mapper
 public interface ReservationMapper {
 	
-	String findTicketTypeByEventId(int eventId);
+	Event findEventByEventId(int eventId);
 
 }
