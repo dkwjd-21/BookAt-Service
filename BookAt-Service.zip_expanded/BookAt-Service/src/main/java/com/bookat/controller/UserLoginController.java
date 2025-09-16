@@ -4,13 +4,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,12 +27,13 @@ import com.bookat.dto.UserLoginRequest;
 import com.bookat.dto.UserLoginResponse;
 import com.bookat.entity.User;
 import com.bookat.exception.LoginException;
+import com.bookat.service.RefreshTokenService;
 import com.bookat.service.impl.UserLoginServiceImpl;
+import com.bookat.util.CookieUtil;
 import com.bookat.util.JwtTokenProvider;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -42,7 +46,10 @@ import lombok.extern.slf4j.Slf4j;
 public class UserLoginController {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final CookieUtil cookieUtil;
 	private final UserLoginServiceImpl loginService;
+	private final RefreshTokenService refreshTokenService;
+	private final RedisTemplate<String, String> redisTemplate;
 	
 	// 아이디 찾기 간편인증 정보
     @Value("${portone.public.store-id}")
@@ -64,27 +71,32 @@ public class UserLoginController {
 	public ResponseEntity<?> login(@RequestBody UserLoginRequest userLoginRequest, HttpServletResponse response) {
 		
 		try {
-			// refresh token 은 Service 에서 디비에 저장 (지금은 비활성화)
 			UserLoginResponse tokens = loginService.login(userLoginRequest);
+			String userId = userLoginRequest.getUserId();
+			String refreshToken = tokens.getRefreshToken();
+			String loginTime = String.valueOf(System.currentTimeMillis());
 			
-			// refresh token 쿠키 저장
-			Cookie refreshCookie  = new Cookie("refreshToken", tokens.getRefreshToken());
-			refreshCookie .setHttpOnly(true);
-//			refreshCookie .setSecure(true);
-			refreshCookie .setPath("/");
-			refreshCookie .setMaxAge(60 * 60 * 24 * 7);		// 7일
-			response.addCookie(refreshCookie);
+			// redis 에 refresh token 과 loginTime 저장
+			refreshTokenService.storeRefreshToken(userId, refreshToken, loginTime, CookieUtil.SEVEN_DAYS);
 			
-			return ResponseEntity.ok(new UserLoginResponse(tokens.getAccessToken(), null));
+			// 쿠키 에 refresh token 과 loginTime 저장
+			cookieUtil.createCookie(response, "refreshToken", refreshToken, CookieUtil.SEVEN_DAYS);
+			cookieUtil.createCookie(response, "loginTime", loginTime, CookieUtil.SEVEN_DAYS);
+			
+			return ResponseEntity.ok(Map.of("accessToken", tokens.getAccessToken()));
 		} catch (LoginException le) {
 			// 사용자가 없거나 비밀번호 불일치
-		    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(le.getMessage());
+		    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", le.getMessage()));
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "로그인 처리 중 오류가 발생했습니다."));
 		}
 	}
 	
 	// 로그아웃
 	@PostMapping("/logout")
-	public ResponseEntity<String> logout(@RequestHeader(value="Authorization", required=false) String accessToken, HttpServletResponse response) {
+	public ResponseEntity<?> logout(@RequestHeader(value="Authorization", required=false) String accessToken, @CookieValue(value = "loginTime", required = false) String loginTimeCookie, HttpServletResponse response) {
+		log.warn("로그아웃 시작");
+		
 		String userId = null;
 		
 		if(accessToken != null && accessToken.startsWith("Bearer ")) {
@@ -95,26 +107,22 @@ public class UserLoginController {
 	            log.warn("access token 파싱 실패, 로그아웃 계속 진행");
 	        }
 	    }
-		
-		// 디비에서도 삭제하기 위함
-		/*
+
+		// redis 세션 삭제 (loginTime 비교 없이 바로 삭제)
 		if(userId != null) {
-	        User user = loginService.findUserById(userId);
-	        if(user != null) {
-	            user.setRefreshToken(null);
-	            loginService.updateRefreshToken(user.getRefreshToken(), user.getUserId());
-	        }
+			redisTemplate.delete(userId);
+		}
+	    
+		// 관련 쿠키 삭제
+	    String[] cookieNames = {"refreshToken", "loginTime"};
+	    for (String name : cookieNames) {
+	    	cookieUtil.deleteCookie(response, name);
 	    }
-	    */
-
-		// 쿠키 삭제
-	    Cookie refreshCookie = new Cookie("refreshToken", null);
-	    refreshCookie.setHttpOnly(true);
-	    refreshCookie.setMaxAge(0);
-	    refreshCookie.setPath("/");
-	    response.addCookie(refreshCookie);
-
-	    return ResponseEntity.ok("로그아웃 성공");
+	    
+	    SecurityContextHolder.clearContext();
+	    
+		log.warn("로그아웃 끝");
+	    return ResponseEntity.ok(Map.of("message", "로그아웃 완료"));
 	}
 	
 	// 아이디 찾기 페이지로 이동

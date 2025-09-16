@@ -1,0 +1,80 @@
+package com.bookat.service.impl;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.TimeUnit;
+
+import org.springframework.data.redis.core.HashOperations;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Service;
+
+import com.bookat.service.RefreshTokenService;
+import com.bookat.util.CookieUtil;
+import com.bookat.util.JwtTokenProvider;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class RefreshTokenServiceImpl implements RefreshTokenService {
+	
+	private final JwtTokenProvider jwtTokenProvider;
+	private final RedisTemplate<String, Object> redisTemplate;
+	private final CookieUtil cookieUtil;
+	
+    /**
+     * RefreshToken 및 동시 로그인 검증
+     *
+     * @param request  HttpServletRequest
+     * @param response HttpServletResponse
+     * @param userId   사용자 ID
+     * @return true → 정상, false → 만료/다른 기기 로그인 감지
+     */
+
+	@Override
+	public boolean validateRefreshToken(HttpServletRequest request, HttpServletResponse response, String userId) {
+		
+		String refreshToken = cookieUtil.getCookieValue(request, "refreshToken");
+		String loginTime = cookieUtil.getCookieValue(request, "loginTime");
+		
+		HashOperations<String, String, String> hashOps = redisTemplate.opsForHash();
+		Map<String, String> redisValue = hashOps.entries(userId);
+		
+		if(redisValue == null || redisValue.isEmpty()) {
+			log.info("redis 에 저장된 세션이 없음");
+			return false;
+		}
+		
+		String redisRefreshToken = redisValue.get("refreshToken");
+		String redisLoginTime = redisValue.get("loginTime");
+		
+		// refresh token 만료 여부 체크
+		if(redisRefreshToken != null && !jwtTokenProvider.validateToken(redisRefreshToken)) {
+			log.info("refresh token 만료, redis 삭제 필요");
+			return false;
+		}
+		
+		// 동시 로그인 체크
+		if(!Objects.equals(refreshToken, redisRefreshToken) || !Objects.equals(loginTime, redisLoginTime)) {
+			log.info("다른 기기에서 로그인, 현재 기기 강제 로그아웃 필요");
+			return false;
+		}
+		
+		return true;
+	}
+
+	@Override
+	public void storeRefreshToken(String userId, String refreshToken, String loginTime, int storeTime) {
+		Map<String, String> values = new HashMap<>();
+		values.put("refreshToken", refreshToken);
+		values.put("loginTime", loginTime);
+		redisTemplate.opsForHash().putAll(userId, values);
+		redisTemplate.expire(userId, storeTime, TimeUnit.SECONDS);
+	}
+
+}

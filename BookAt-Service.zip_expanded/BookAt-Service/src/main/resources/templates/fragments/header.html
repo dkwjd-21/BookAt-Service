@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <title>header</title>
 <link rel="stylesheet" th:href="@{/css/header.css}" />
-<script th:inline="javascript" th:src="@{/js/loginIsOk.js}"></script>
 </head>
 <body>
 	
@@ -13,11 +12,12 @@
 	    <a th:href="@{/mainpage}">
 			<img th:src="@{/images/BookAt-Logo.png}" class="main-logo-img" />
 	    </a>
-	    <div class="auth-links">
-			<button id="logoutBtn" style="display:none;">로그아웃</button>
-			<button id="loginBtn">로그인</button>
-			<button id="signupBtn">회원가입</button>
-	    </div>
+		<div class="auth-links">
+			<button id="loginBtn" style="display: none;">로그인</button>
+			<button id="signupBtn" style="display: none;">회원가입</button>
+			<button id="logoutBtn" style="display: none;">로그아웃</button>
+			<button id="myPageBtn" style="display: none;">마이페이지</button>
+		</div>
 	  </div>
 	  <div class="header-bottom">
 	    <nav class="nav-links">

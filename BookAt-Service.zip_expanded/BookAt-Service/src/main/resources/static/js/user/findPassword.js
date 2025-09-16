@@ -83,6 +83,12 @@ $(document).ready(function() {
             return;
         }
 		
+		if(password.length < 4) {
+		    $("#find-pw-check").text("비밀번호는 4자 이상이어야 합니다.").show();
+			$("#userPw").focus();
+		    return;
+		}
+		
 		if(passwordCheck === "") {
 		    $("#find-pw-check").text("비밀번호를 한번 더 입력해주세요.").show();
 			$("#userPwCheck").focus();
