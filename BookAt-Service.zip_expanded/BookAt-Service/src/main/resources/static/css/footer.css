@@ -4,36 +4,29 @@
   border-top: 1px solid #bfbfbf;
   background: #eaeaea;
   color: #6d6d6d;
-  padding: 40px 0;               /* ← 좌우 퍼센트 패딩 삭제 */
+  padding: 40px 0;     
+  flex:0 0 auto;              /* 혹시 상위가 flex면 수축 방지 */
 }
 
-/* 안쪽 컨텐트: 중앙정렬 + 좌우 여백 담당 */
-.ft_content {
-  max-width: 1200px;
-  margin: 0 auto;                /* 중앙 정렬 */
-  padding: 20px 5%;                 /* ← 좌우 여백은 여기서 */
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 24px;                     /* 칼럼 간격 */
+.ft_content{
+  max-width:1200px;
+  margin:0 auto;
+  padding:0 5%;
+  display:flex;
+  flex-wrap:wrap;         /* 로고 줄바꿈 허용 */
+  align-items:center;
+  gap:8px 16px;
 }
 
-.ft_logo img {
-	width: 120.645px;
-	height: 26.525px;
-	margin-bottom: 15px;
-}
+/* 1행: 로고가 한 줄 전체 */
+.ft_logo{ flex:0 0 100%; }
+.ft_logo img{ width:120.645px; height:26.525px; margin-bottom:10px; }
 
-.ft__left,
-.ft__right {
-	font-size: 14px;
-	line-height: 1.6;
-}
+/* 2행: 왼쪽/오른쪽 끝 배치 */
+.ft__left{  flex:0 0 auto; }
+.ft__right{ flex:0 0 auto; margin-left:auto; text-align:right; }  /* ← 핵심 한 줄 */
 
-.ft__right {
-	text-align: right;
-}
+.footer{ flex:0 0 auto; } /* 상위가 flex여도 수축 방지 */
 
-.ft__right a {
-	color: #6d6d6d;
-}
+
+
