@@ -1,4 +1,5 @@
 // 페이지의 모든 HTML 요소가 완전히 로드된 후 모든 스크립트를 실행합니다.
+
 document.addEventListener("DOMContentLoaded", function() {
 	// 1. 리뷰 모달 기능 초기화
 	initializeReviewModal();

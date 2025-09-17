@@ -31,7 +31,7 @@ public class QueueController {
 	public String test() {
 		return "reservation/QueueModal";
 	}
-	
+
 	// 대기열 진입 API (예매하기 버튼 클릭시) 
 	@PostMapping("/enter")
 	public ResponseEntity<Map<String, Object>> enterQueue(@RequestParam String eventId, @AuthenticationPrincipal User user){

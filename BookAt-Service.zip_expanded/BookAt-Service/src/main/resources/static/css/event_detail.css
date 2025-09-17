@@ -37,6 +37,9 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 15px 5%;
+
+.search-bar {
+  padding-right: 0px;
 }
 
 .main-logo-img {
@@ -55,9 +58,11 @@ a {
 a:link {
   color: #6b7280;
 }
+
 a:visited {
   color: #6b7280;
 }
+
 a:hover {
   color: #6b7280;
 }
@@ -138,6 +143,7 @@ a:active {
   cursor: pointer;
 }
 .main_container {
+  width: 1200px;
   max-width: 1200px;
   margin: 20px auto;
   margin-top: 0;
@@ -212,6 +218,7 @@ a:active {
   line-height: normal;
 }
 .price-info {
+  gap: 30px;
   display: flex;
   position: absolute;
   bottom: 50px;
@@ -375,6 +382,7 @@ a:active {
   width: 150px;
   text-align: center;
 }
+
 
 .cancellation-info {
   /* margin-top: 30px; */

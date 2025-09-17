@@ -22,6 +22,7 @@ async function onModal() {
   const modal = document.getElementsByClassName("queueModal-overlay")[0];
 
   if (modal.style.display === "none") {
+
     // 모달 보여주기
     modal.style.display = "flex";
 
