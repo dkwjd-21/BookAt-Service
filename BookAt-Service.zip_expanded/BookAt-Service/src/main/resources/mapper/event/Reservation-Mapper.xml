@@ -5,8 +5,8 @@
   
 <mapper namespace="com.bookat.mapper.ReservationMapper">
 	
-	<select id="findTicketTypeByEventId">
-		SELECT TICKET_TYPE FROM EVENT WHERE EVENT_ID = #{eventId}
+	<select id="findEventByEventId" resultType="Event">
+		SELECT * FROM EVENT WHERE EVENT_ID = #{eventId}
 	</select>
 	
 </mapper>

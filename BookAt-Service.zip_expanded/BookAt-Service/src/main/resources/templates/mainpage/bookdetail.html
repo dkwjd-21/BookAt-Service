@@ -12,9 +12,8 @@
   <link rel="stylesheet" th:href="@{/css/main_book.css}">
   <link rel="stylesheet" th:href="@{/css/event_mainpage.css}">
   <!-- 상세 전용 CSS -->
-  <link rel="stylesheet" th:href="@{/css/detail_book.css}">
-  
-  	<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <link rel="stylesheet" th:href="@{/css/detail_book.css}"> 
+ 	<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 	<script th:src="@{/js/utils/axiosIntercepter.js}"></script>
 	<script th:src="@{/js/utils/logout.js}"></script>
 	<script th:src="@{/js/utils/userAuth.js}"></script>
@@ -250,7 +249,9 @@
     </ol>
   </div>
 </section>
+
 <div th:replace="~{fragments/footer :: main-footer}"></div>
+  
 </body>
 <script>
   (function(){
