@@ -5,6 +5,7 @@
   <resultMap id="PaymentMap" type="com.bookat.dto.PaymentDto">
     <id property="paymentId" column="payment_id"/>
     <result property="orderId" column="order_id"/>
+    <result property="userId" column="user_id"/>
     <result property="totalPrice" column="total_price"/>
     <result property="paymentPrice" column="payment_price"/>
     <result property="paymentMethod" column="payment_method"/>
@@ -30,6 +31,7 @@
   INSERT INTO PAYMENT (
     payment_id,
     order_id,
+    user_id,
     total_price,
     payment_price,
     payment_method,
@@ -41,6 +43,7 @@
   VALUES (
     SEQ_PAYMENT.NEXTVAL,
     #{orderId, jdbcType=NUMERIC},
+    #{userId},
     #{totalPrice},
     #{paymentPrice},
     #{paymentMethod},
@@ -67,13 +70,12 @@
     WHERE merchant_uid = #{merchantUid}
   </update>
   
-  <update id="markCanceledByMerchantUid">
+ <update id="markCanceledByMerchantUid">
   UPDATE PAYMENT
-     SET payment_status = 3,               -- CANCELED
-         fail_reason    = #{reason},       -- 취소 사유 기록
-         receipt_url    = #{receiptUrl},   -- 취소 영수증(있으면)
-         payment_date   = SYSDATE          -- 타임스탬프 갱신
-   WHERE merchant_uid   = #{merchantUid}
-</update>
+  SET payment_status = #{status},
+      fail_reason    = #{reason},
+      receipt_url    = #{receiptUrl}
+  WHERE merchant_uid = #{merchantUid}
+ </update>
   
 </mapper>

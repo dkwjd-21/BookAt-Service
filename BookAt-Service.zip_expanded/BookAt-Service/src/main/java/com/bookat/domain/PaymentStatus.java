@@ -6,6 +6,7 @@ public enum PaymentStatus {
     FAILED(-1),
     CANCELED(2),
     PART_CANCELED(3);
+	
     public final int code;
     PaymentStatus(int code){ this.code = code; }
     

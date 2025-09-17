@@ -5,13 +5,16 @@ import java.util.Date;
 public class PaymentDto {
 
     private Long paymentId;
-    private Long orderId;          // TODO: 주문 연동 시 채움
+    private Long orderId;
+    private String userId;
+
 	private Integer totalPrice;
     private Integer paymentPrice;
     private String paymentMethod;  // CARD/VIRTUAL/POINT
     private Integer paymentStatus; // 0 READY, 1 PAID, -1 FAILED, 2 CANCEL_REQUESTED, 3 CANCELED
     private Date paymentDate;      // DEFAULT SYSDATE
     private String paymentInfo;
+    
     private String merchantUid;    // 우리 결제번호 UNIQUE
     private String impUid;         // 포트원 결제번호
     private String pgTid;          // PG TID
@@ -19,12 +22,13 @@ public class PaymentDto {
     private String failReason;     // 실패 사유
     
     public PaymentDto() {}
-    public PaymentDto(Long paymentId, Long orderId, Integer totalPrice, Integer paymentPrice, String paymentMethod,
+    public PaymentDto(Long paymentId, Long orderId, String userId, Integer totalPrice, Integer paymentPrice, String paymentMethod,
 			Integer paymentStatus, Date paymentDate, String paymentInfo, String merchantUid, String impUid,
 			String pgTid, String receiptUrl, String failReason) {
 		super();
 		this.paymentId = paymentId;
 		this.orderId = orderId;
+		this.userId = userId;
 		this.totalPrice = totalPrice;
 		this.paymentPrice = paymentPrice;
 		this.paymentMethod = paymentMethod;
@@ -48,6 +52,12 @@ public class PaymentDto {
 	}
 	public void setOrderId(Long orderId) {
 		this.orderId = orderId;
+	}
+	public String getUserId() {
+		return userId;
+	}
+	public void setUserId(String userId) {
+		this.userId = userId;
 	}
 	public Integer getTotalPrice() {
 		return totalPrice;

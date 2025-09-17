@@ -31,9 +31,11 @@ public class SecurityConfig {
         		.requestMatchers("/css/**", "/js/**", "/images/**").permitAll()	// 정적 리소스 접근 가능
         		.requestMatchers("/", "/user/**", "/auth/**").permitAll()		// 로그인 전 접근 가능
 //        		.requestMatchers("/mainpage/**", "/books/**", "/events/**").permitAll()
-        		.requestMatchers("/payment/webhook").permitAll()  // webhook은 포트원이 서버로 POST를 보내는 것이므로 삭제X
-        		.requestMatchers("/payment/**").permitAll()       // 임시로 전체 허용, 추후 삭제
-//        		.requestMatchers("/payment/**").authenticated()   //추후 활성화
+        		
+                //결제 콜백/웹훅만 공개
+                .requestMatchers("/payment/complete", "/payment/webhook").permitAll()
+                .requestMatchers("/payment/frag-test").authenticated()
+        		// .requestMatchers("/payment/**").permitAll() 
                 .anyRequest().denyAll()
         ).addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 		

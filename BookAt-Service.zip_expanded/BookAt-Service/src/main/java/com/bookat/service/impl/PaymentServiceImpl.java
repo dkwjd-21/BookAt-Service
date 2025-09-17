@@ -32,9 +32,11 @@ public class PaymentServiceImpl implements PaymentService {
   }
 
   @Override
-  public PaymentDto createReadyPayment(Integer amount, String method, String info){
-    String merchantUid = "PAY-" + DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS")
+  public PaymentDto createReadyPayment(Integer amount, String method, String info, String userId){
+	//서버에서 merchantUid 생성
+    String merchantUid = "PAY-" + userId + DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS")
                           .format(LocalDateTime.now());
+    
     PaymentDto dto = new PaymentDto();
     dto.setTotalPrice(amount);
     dto.setPaymentPrice(amount);
@@ -42,6 +44,7 @@ public class PaymentServiceImpl implements PaymentService {
     dto.setPaymentStatus(PaymentStatus.READY.code);
     dto.setPaymentInfo(info);
     dto.setMerchantUid(merchantUid);
+    
     paymentMapper.insert(dto);
     return paymentMapper.findByMerchantUid(merchantUid);
   }
@@ -57,7 +60,8 @@ public class PaymentServiceImpl implements PaymentService {
   }
   
   @Override
-  public void markCanceled(String merchantUid, String reason, String cancelReceiptUrl) {
+  public void markCanceled(String merchantUid, String reason, String cancelReceiptUrl, boolean partial) {
+	int status = partial ? PaymentStatus.PART_CANCELED.code : PaymentStatus.CANCELED.code;
     paymentMapper.markCanceledByMerchantUid(merchantUid, reason, cancelReceiptUrl);
   }
 

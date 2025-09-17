@@ -7,9 +7,13 @@ import com.bookat.dto.PaymentDto;
 
 @Mapper
 public interface PaymentMapper {
+	
+	int insert(PaymentDto dto);
+	
     PaymentDto findById(Long paymentId);
+    
     PaymentDto findByMerchantUid(String merchantUid);
-    int insert(PaymentDto dto);
+    
     int markPaidByMerchantUid(@Param("merchantUid") String merchantUid,
                               @Param("impUid") String impUid,
                               @Param("pgTid") String pgTid,
