@@ -21,10 +21,16 @@ import lombok.extern.slf4j.Slf4j;
 @Controller
 @RequestMapping("/queue")
 public class QueueController {
-	
+
 	@Autowired
 	private QueueService queueService;
 	
+	// 테스트용 진입 API 
+	@GetMapping
+	public String test() {
+		return "reservation/QueueModal";
+	}
+
 	// 대기열 진입 API (예매하기 버튼 클릭시) 
 	@PostMapping("/enter")
 	public ResponseEntity<Map<String, Object>> enterQueue(@RequestParam String eventId, @AuthenticationPrincipal User user){
@@ -47,8 +53,8 @@ public class QueueController {
 				"userId", userId)
 		);
 	}
-	
-	// 대기열 상태 확인 API 
+
+	// 대기열 상태 확인 API
 	@GetMapping("/status")
 	public ResponseEntity<Map<String, Object>> getQueueStatus(@RequestParam String eventId, @AuthenticationPrincipal User user){
 		Long rank = queueService.getUserRank(eventId, user.getUserId());
@@ -59,20 +65,20 @@ public class QueueController {
 		
 		return ResponseEntity.ok(response);
 	}
-	
-	// 대기열에서 삭제 & 예매팝업으로 이동 API 
+
+	// 대기열에서 삭제 & 예매팝업으로 이동 API
 	@PostMapping("/leave")
 	public ResponseEntity<Map<String, Object>> leaveQueue(
 			@RequestParam("eventId") String eventId, 
 			@AuthenticationPrincipal User user){
 		
 		Map<String, Object> response = new HashMap<>();
-		
+
 		try {
 			String userId = user.getUserId();
 			boolean removed = queueService.leaveQueue(eventId, userId);
-			
-			if(removed) {
+
+			if (removed) {
 				response.put("status", "success");
 				response.put("message", "대기열에서 제거되었습니다.");
 			} else {
@@ -81,10 +87,24 @@ public class QueueController {
 			}
 		} catch (Exception e) {
 			response.put("status", "error");
-			response.put("message", "대기열 제거 중 오류 발생 : "+e.getMessage());
+			response.put("message", "대기열 제거 중 오류 발생 : " + e.getMessage());
 		}
-		
+
 		return ResponseEntity.ok(response);
+	}
+
+	// 임시 티켓팅 팝업 오픈 --> 이후 ReservationController로 이동
+	@GetMapping("/reservation")
+	public String reservation() {
+		
+		// 여기서 이벤트 타입 보내주기 (좌석인지 선착순인지 판단 여기서)
+		return "reservation/ReservationPopup_Person";
+	}
+
+	// 임시 티켓팅 팝업 오픈 --> 이후 ReservationController로 이동
+	@GetMapping("/reservationSeat")
+	public String reservationSeat() {
+		return "reservation/ReservationPopup_Seat";
 	}
 	
 }

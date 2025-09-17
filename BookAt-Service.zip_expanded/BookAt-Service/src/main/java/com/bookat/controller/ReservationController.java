@@ -113,4 +113,13 @@ public class ReservationController {
 		return false;
 	}
 	
+
+	public String reservation(@RequestParam int eventId, Model model) {
+		
+		Event event = reservationService.startReservation(eventId);
+		model.addAttribute("event", event);
+		
+		return "reservation/ReservationPopup_Seat";
+	}
+	
 }
