@@ -3,12 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <title>Bookat</title>
-  <link rel="stylesheet" type="text/css" th:href="@{/css/main_header.css}">
+  <link rel="stylesheet" th:href="@{/css/header.css}" />
+  <link rel="stylesheet" th:href="@{/css/footer.css}" />
   <link rel="stylesheet" type="text/css" th:href="@{/css/main_book.css}">
+  	<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+	<script th:src="@{/js/utils/axiosIntercepter.js}"></script>
+	<script th:src="@{/js/utils/logout.js}"></script>
+	<script th:src="@{/js/utils/userAuth.js}"></script>
+	<script th:src="@{/js/utils/header.js}"></script>
 </head>
 <body style="background-color:#f0f2f5;">
 
-  <div th:replace="~{fragments/book_header :: site-header}"></div>
+  <div th:replace="~{fragments/header :: main-header}"></div>
 
   <main class="container">
 
@@ -158,8 +164,6 @@
 
   </main>
 
-  <div th:replace="~{fragments/footer :: site-footer}"></div>
-
 <script>
   (function() {
     function setupCarousel(root) {
@@ -175,5 +179,6 @@
   })();
 </script>
 
+<div th:replace="~{fragments/footer :: main-footer}"></div>
 </body>
 </html>

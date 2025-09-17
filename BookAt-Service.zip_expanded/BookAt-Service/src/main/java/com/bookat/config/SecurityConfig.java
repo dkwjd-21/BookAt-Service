@@ -36,6 +36,7 @@ public class SecurityConfig {
         .authorizeHttpRequests(auth -> auth
         		.requestMatchers("/css/**", "/js/**", "/images/**").permitAll()			// 정적 리소스 접근 가능
         		.requestMatchers("/", "/user/**", "/auth/**", "/mainPage/**", "/infoPage/**").permitAll()
+        		 .requestMatchers("/books/**").permitAll()
         							// 홈, 로그인, 메인페이지, 상세페이지 토큰없이 접근 허용
 				.requestMatchers("/", "/events/**", "/books/**").permitAll()
         		.requestMatchers("/api/**", "/queue/**", "/myPage/**").authenticated()
