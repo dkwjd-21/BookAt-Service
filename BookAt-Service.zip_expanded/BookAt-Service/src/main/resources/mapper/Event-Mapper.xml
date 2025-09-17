@@ -59,6 +59,11 @@
     WHERE e.BOOK_ID = #{bookId}
   </select>
 
+	<select id="selectByEventDate" parameterType="Date" resultType="com.bookat.dto.EventResDto">
+		SELECT * FROM EVENT 
+		WHERE EVENT_DATE = #{eventDate}
+	</select>
+
 </mapper>
 
 

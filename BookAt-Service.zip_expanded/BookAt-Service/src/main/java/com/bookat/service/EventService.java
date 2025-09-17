@@ -1,5 +1,6 @@
 package com.bookat.service;
 
+import java.util.Date;
 import java.util.List;
 
 import com.bookat.dto.BookDto;
@@ -16,6 +17,7 @@ public interface EventService {
 	public List<EventResDto> selectByStartTime();
 	public List<EventResDto> selectByCloseTime();
 	public Book selectBookOne(String book_id);
+	public List<EventResDto> selectByEventDate(Date eventDate);
 	
 	public int insert(EventResDto dto);	//아직 사용 안함
 	public int udpate(EventResDto dto);

@@ -1,5 +1,6 @@
 package com.bookat.service.impl;
 
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,17 +103,10 @@ public class EventServiceImpl implements EventService{
         return (list != null) ? list : java.util.List.of();
     }
 
-	
-
-	
-	
-
-	
-
-	
-
-	
-
-	
+	@Override
+	public List<EventResDto> selectByEventDate(Date eventDate) {
+		List<EventResDto> list = mapper.selectByEventDate(eventDate);
+		return list;
+	}
 
 }
