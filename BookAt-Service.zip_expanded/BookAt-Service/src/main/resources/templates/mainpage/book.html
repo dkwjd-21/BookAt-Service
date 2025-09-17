@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8">
+  <title>Bookat</title>
+  <link rel="stylesheet" th:href="@{/css/header.css}" />
+  <link rel="stylesheet" th:href="@{/css/footer.css}" />
+  <link rel="stylesheet" type="text/css" th:href="@{/css/main_book.css}">
+  	<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+	<script th:src="@{/js/utils/axiosIntercepter.js}"></script>
+	<script th:src="@{/js/utils/logout.js}"></script>
+	<script th:src="@{/js/utils/userAuth.js}"></script>
+	<script th:src="@{/js/utils/header.js}"></script>
+</head>
+<body style="background-color:#f0f2f5;">
+
+  <div th:replace="~{fragments/header :: main-header}"></div>
+
+  <main class="container">
+
+    <!-- 히어로 배너 -->
+    <section class="banner">
+      <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1200&auto=format&fit=crop" alt="">
+    </section>
+
+    <!-- 카테고리 칩 -->
+    <div class="chip-row">
+
+      <a class="chip" th:classappend="${selectedCategory}=='FICTION_POETRY'? ' chip--on' : ''"
+         th:href="@{/books(category='FICTION_POETRY')}" data-category="FICTION_POETRY">소설/시</a>
+
+      <a class="chip" th:classappend="${selectedCategory}=='ESSAY'? ' chip--on' : ''"
+         th:href="@{/books(category='ESSAY')}" data-category="ESSAY">에세이</a>
+
+      <a class="chip" th:classappend="${selectedCategory}=='HUMANITY'? ' chip--on' : ''"
+         th:href="@{/books(category='HUMANITY')}" data-category="HUMANITY">인문</a>
+
+      <a class="chip" th:classappend="${selectedCategory}=='SELF-HELP'? ' chip--on' : ''"
+         th:href="@{/books(category='SELF-HELP')}" data-category="SELF-HELP">자기계발</a>
+
+      <a class="chip" th:classappend="${selectedCategory}=='MAGAZINE'? ' chip--on' : ''"
+         th:href="@{/books(category='MAGAZINE')}" data-category="MAGAZINE">잡지</a>
+
+      <a class="chip" th:classappend="${selectedCategory}=='KIDS'? ' chip--on' : ''"
+         th:href="@{/books(category='KIDS')}" data-category="KIDS">아동도서</a>
+
+      <a class="chip" th:classappend="${selectedCategory}=='HOBBY'? ' chip--on' : ''"
+         th:href="@{/books(category='HOBBY')}" data-category="HOBBY">취미</a>
+    </div>
+
+    <!-- 메인 섹션들(베스트/신간/이벤트) : selectedCategory가 없을 때만 -->
+<div th:if="${selectedCategory == null}">
+
+  <!-- 베스트셀러 -->
+  <section class="book-carousel-section">
+    <h2 class="section-title">베스트셀러 도서</h2>
+
+    <div class="carousel">
+      <button class="carousel-nav carousel-nav--prev" type="button" aria-label="이전">&lt;</button>
+
+      <div class="carousel-viewport">
+        <div class="carousel-track">
+          <article class="card" th:each="b : ${best}">
+            <a class="card-link" th:href="@{'/books/' + ${b.bookId}}">
+              <img th:src="${b.imageUrl}" alt="">
+              <div class="body">
+                <div class="meta" th:text="${b.author}">저자</div>
+                <div class="title" th:text="${b.title}">제목</div>
+                <div class="price" th:text="${#numbers.formatInteger(b.price,3,'COMMA')} + '원'">0원</div>
+              </div>
+            </a>
+          </article>
+        </div>
+      </div>
+
+      <button class="carousel-nav carousel-nav--next" type="button" aria-label="다음">&gt;</button>
+    </div>
+  </section>
+
+  <!-- 신간 -->
+  <section class="book-carousel-section">
+    <h2 class="section-title">신간 도서</h2>
+
+    <div class="carousel">
+      <button class="carousel-nav carousel-nav--prev" type="button" aria-label="이전">&lt;</button>
+
+      <div class="carousel-viewport">
+        <div class="carousel-track">
+          <article class="card" th:each="b : ${newest}">
+            <a class="card-link" th:href="@{'/books/' + ${b.bookId}}">
+              <img th:src="${b.imageUrl}" alt="">
+              <div class="body">
+                <div class="meta" th:text="${b.author}">저자</div>
+                <div class="title" th:text="${b.title}">제목</div>
+                <div class="price" th:text="${#numbers.formatInteger(b.price,3,'COMMA')} + '원'">0원</div>
+              </div>
+            </a>
+          </article>
+        </div>
+      </div>
+
+      <button class="carousel-nav carousel-nav--next" type="button" aria-label="다음">&gt;</button>
+    </div>
+  </section>
+
+  <!-- 이벤트 진행 중인 도서 -->
+  <section class="book-carousel-section">
+    <h2 class="section-title">이벤트 진행 중인 도서</h2>
+
+    <div class="carousel">
+      <button class="carousel-nav carousel-nav--prev" type="button" aria-label="이전">&lt;</button>
+
+      <div class="carousel-viewport">
+        <div class="carousel-track">
+          <article class="card" th:each="b : ${events}">
+            <a class="card-link" th:href="@{'/books/' + ${b.bookId}}">
+              <img th:src="${b.imageUrl}" alt="">
+              <div class="body">
+                <div class="meta" th:text="${b.author}">저자</div>
+                <div class="title" th:text="${b.title}">제목</div>
+                <div class="price" th:text="${#numbers.formatInteger(b.price,3,'COMMA')} + '원'">0원</div>
+              </div>
+            </a>
+          </article>
+        </div>
+      </div>
+
+      <button class="carousel-nav carousel-nav--next" type="button" aria-label="다음">&gt;</button>
+    </div>
+  </section>
+
+</div>
+
+    <section th:if="${selectedCategory != null}" style="margin-top:28px;">
+      <h2 class="category-title">
+        <span th:switch="${selectedCategory}">
+          <span th:case="'FICTION_POETRY'">소설/시</span>
+          <span th:case="'FICTION'">소설</span>
+          <span th:case="'POETRY'">시</span>
+          <span th:case="'ESSAY'">에세이</span>
+          <span th:case="'HUMANITY'">인문</span>
+          <span th:case="'SELF-HELP'">자기계발</span>
+          <span th:case="'MAGAZINE'">잡지</span>
+          <span th:case="'KIDS'">아동도서</span>
+          <span th:case="'HOBBY'">취미</span>
+          <span th:case="*">전체 도서</span>
+        </span>
+        <span class="category-count" th:text="| 전체 보기 (${#lists.size(books)}권)|"></span>
+      </h2>
+
+      <div class="grid">
+        <article class="card" th:each="b : ${books}">
+          <a class="card-link" th:href="@{'/books/' + ${b.bookId}}">
+            <img loading="lazy" th:src="${b.imageUrl}" alt="">
+            <div class="body">
+              <div class="meta" th:text="${b.author}">저자</div>
+              <div class="title" th:text="${b.title}">제목</div>
+              <div class="price" th:text="${#numbers.formatInteger(b.price,3,'COMMA')} + '원'">0원</div>
+            </div>
+          </a>
+        </article>
+      </div>
+    </section>
+
+  </main>
+
+<script>
+  (function() {
+    function setupCarousel(root) {
+      const viewport = root.querySelector('.carousel-viewport');
+      const prev = root.querySelector('.carousel-nav--prev');
+      const next = root.querySelector('.carousel-nav--next');
+      const stepLeft  = () => viewport.scrollBy({ left: -viewport.clientWidth, behavior: 'smooth' });
+      const stepRight = () => viewport.scrollBy({ left:  viewport.clientWidth, behavior: 'smooth' });
+      prev.addEventListener('click', stepLeft);
+      next.addEventListener('click', stepRight);
+    }
+    document.querySelectorAll('.carousel').forEach(setupCarousel);
+  })();
+</script>
+
+<div th:replace="~{fragments/footer :: main-footer}"></div>
+</body>
+</html>

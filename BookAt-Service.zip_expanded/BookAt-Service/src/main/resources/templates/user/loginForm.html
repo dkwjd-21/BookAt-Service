@@ -7,13 +7,17 @@
 <script type="text/javascript" src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script type="text/javascript">
     $(document).ready(function() {
-        const accessToken = "accessToken";
+		
+		const ACCESSTOKEN_KEY = "accessToken";
 
         $("#input-form").submit(function(e) {
             e.preventDefault();
+			
+			const $userId = $("#userId");
+			const $userPw = $("#userPw");
 
-			const userId = $("#userId").val().trim();
-		    const userPw = $("#userPw").val().trim();
+			const userId = $userId.val().trim();
+			const userPw = $userPw.val().trim();
 
 		    // 기존 에러 초기화
 		    $("#user-id-error, #user-pw-error").hide().text("");
@@ -22,28 +26,31 @@
 			// 공란 검증은 프론트에서만 진행
 			if(userId === "") {
 			    $("#user-id-error").text("아이디를 입력해주세요.").show();
-				userId.focus();
+				$userId.focus();
 			    return;
 			}
 
 			if(userPw === "") {
 			    $("#user-pw-error").text("비밀번호를 입력해주세요.").show();
-			    userPw.focus();
+			    $userPw.focus();
 			    return;
 			}
 
             $.ajax({
                 url: "/user/login",
                 type: "POST",
-                contentType: "application/json",
+                contentType: "application/json; charset=UTF-8",
                 data: JSON.stringify({ userId, userPw }),
                 success: function(data) {
                     // access token 은 localStorage 저장
-                    localStorage.setItem(accessToken, data.accessToken);
-                    window.location.href = "/";
+					if (data && data.accessToken) {
+                    	localStorage.setItem(ACCESSTOKEN_KEY, data.accessToken);
+					}
+					// 헤더를 붙일 수 없어서 그냥 이동
+					window.location.href = "/";
                 },
-                error: function(xhr) {
-					const errMsg = xhr.responseText;
+                error: function(err) {
+					const errMsg = err.responseJSON?.error || "로그인에 실패했습니다.";
 
 				    // 아이디 관련 에러
 				    if (errMsg.includes("아이디")) {

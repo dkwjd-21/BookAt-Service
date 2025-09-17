@@ -31,6 +31,7 @@
 		<oracle.jdbc.version>21.12.0.0</oracle.jdbc.version>
 	</properties>
 	<dependencies>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
@@ -127,12 +128,20 @@
 		    <artifactId>spring-boot-starter-validation</artifactId>
 		</dependency>
 
+
         <!--결제 시 필요한 비동기 WebClient 추가-->
         <dependency>
            <groupId>org.springframework.boot</groupId>
            <artifactId>spring-boot-starter-webflux</artifactId>
         </dependency>
         
+		
+		<!-- redis 관련 의존성 추가 -->
+		<dependency>
+		    <groupId>org.springframework.boot</groupId>
+		    <artifactId>spring-boot-starter-data-redis</artifactId>
+		</dependency>
+
 	</dependencies>
 
 	<build>
