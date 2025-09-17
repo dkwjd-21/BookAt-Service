@@ -11,11 +11,12 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Schedule {
-
+public class EventPart {
+	
 	private int scheduleId;
 	private Date scheduleTime;
 	private String scheduleName;
 	private int eventId;
-	
+	private int remainingSeat;
+
 }

@@ -57,3 +57,5 @@ SELECT * FROM ticket;
 
 SELECT * FROM payment;
 SELECT * FROM event_part;
+-- 이벤트 회차 테이블에 잔여수량 컬럼 추가
+ALTER TABLE EVENT_PART ADD (REMAINING_SEAT NUMBER NOT NULL);

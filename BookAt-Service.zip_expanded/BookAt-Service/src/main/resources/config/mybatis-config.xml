@@ -18,7 +18,7 @@
 		<typeAlias type="com.bookat.entity.Event" alias="Event"/>
 		<typeAlias type="com.bookat.entity.Payment" alias="Payment"/>
 		<typeAlias type="com.bookat.entity.reservation.Reservation" alias="Reservation"/>
-		<typeAlias type="com.bookat.entity.reservation.Schedule" alias="Schedule"/>
+		<typeAlias type="com.bookat.entity.reservation.EventPart" alias="EventPart"/>
 		<typeAlias type="com.bookat.entity.reservation.SeatType" alias="SeatType"/>
 		<typeAlias type="com.bookat.entity.reservation.Ticket" alias="Ticket"/>
 	</typeAliases>
