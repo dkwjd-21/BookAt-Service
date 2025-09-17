@@ -24,19 +24,8 @@ body {
   color: #333;
   background-color: #f7f8fa;
 }
-
-.main-header {
-  font-family: Arial, sans-serif;
-}
-
-/* 상단 섹션 스타일 */
-.header-top {
-  background: var(--Navy-100, #003274);
-  color: white;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px 5%;
+.search-bar {
+  padding-right: 0px;
 }
 
 .main-logo-img {
@@ -55,9 +44,7 @@ a {
 a:link {
   color: #6b7280;
 }
-a:visited {
-  color: #6b7280;
-}
+
 a:hover {
   color: #6b7280;
 }
@@ -109,35 +96,8 @@ a:active {
   transform: translateY(10px);
 }
 
-/* 검색창 스타일 */
-.search-bar {
-  position: relative;
-  width: 300px;
-  padding-right: 50px;
-}
-
-.search-bar input {
-  width: 100%;
-  border: none;
-  border-radius: 20px;
-  padding: 10px 40px 10px 15px;
-  background-color: white;
-  outline: none;
-  font-size: 14px;
-}
-
-.search-icon {
-  position: absolute;
-  right: 15px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 20px;
-  height: 20px;
-  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23888"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16a6.471 6.471 0 0 0 3.23-.88l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>') no-repeat center center;
-  background-size: contain;
-  cursor: pointer;
-}
 .main_container {
+  width: 1200px;
   max-width: 1200px;
   margin: 20px auto;
   margin-top: 0;
@@ -212,6 +172,7 @@ a:active {
   line-height: normal;
 }
 .price-info {
+  gap: 30px;
   display: flex;
   position: absolute;
   bottom: 50px;
@@ -374,11 +335,6 @@ a:active {
   border-radius: 10px;
   width: 150px;
   text-align: center;
-}
-
-.cancellation-info {
-  /* margin-top: 30px; */
-  /* padding-left: 20px; */
 }
 
 .info_text {
