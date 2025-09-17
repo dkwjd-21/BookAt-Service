@@ -7,15 +7,23 @@
   <title th:text="'BookAt - '+${book.title}">BookAt</title>
 
   <!-- 기존 공통 CSS -->
-  <link rel="stylesheet" th:href="@{/css/main_header.css}">
+  <link rel="stylesheet" th:href="@{/css/header.css}" />
+  <link rel="stylesheet" th:href="@{/css/footer.css}" />
   <link rel="stylesheet" th:href="@{/css/main_book.css}">
   <link rel="stylesheet" th:href="@{/css/event_mainpage.css}">
   <!-- 상세 전용 CSS -->
   <link rel="stylesheet" th:href="@{/css/detail_book.css}">
+  
+  	<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+	<script th:src="@{/js/utils/axiosIntercepter.js}"></script>
+	<script th:src="@{/js/utils/logout.js}"></script>
+	<script th:src="@{/js/utils/userAuth.js}"></script>
+	<script th:src="@{/js/utils/header.js}"></script>
+	
 </head>
 
 <body style="background:#f7f8fa;">
-  <div th:replace="~{fragments/book_header :: site-header}"></div>
+ <div th:replace="~{fragments/header :: main-header}"></div>
   
   <!-- 상단 카테고리 패널 -->
 <div class="panel panel-crumb">
@@ -172,7 +180,6 @@
     <form id="reviewForm"
           th:action="@{|/books/${book.bookId}/reviews|}"
           method="post">
-      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
       <input type="hidden" name="bookId" th:value="${book.bookId}" />
 
       <div class="form-group">
@@ -243,9 +250,7 @@
     </ol>
   </div>
 </section>
-
-<div th:replace="~{fragments/footer :: site-footer}"></div>
-
+<div th:replace="~{fragments/footer :: main-footer}"></div>
 </body>
 <script>
   (function(){
