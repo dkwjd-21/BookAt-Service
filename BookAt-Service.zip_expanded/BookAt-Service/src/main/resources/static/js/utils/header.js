@@ -57,7 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   updateHeaderUI();
 });
-// /event가 포함된 url일 때 이벤트 nav-item에 active 클래스 추가
+// /event가 포함된 url일 때 이벤트 nav-item에 active 클래스 추가, 아니면 도서에 active 추가
 document.addEventListener("DOMContentLoaded", function () {
   const navLinks = document.querySelectorAll(".nav-links .nav-item");
   const currentPath = window.location.pathname;
@@ -66,12 +66,13 @@ document.addEventListener("DOMContentLoaded", function () {
     navLinks.forEach((link) => {
       // 모든 nav-item에서 active 제거
       link.classList.remove("active");
+
       // /event가 포함된 url이면 이벤트 메뉴에 active 추가
-      if (currentPath.includes("/events") && link.textContent.trim() === "이벤트") {
+      if (currentPath.includes("/event") && link.textContent.trim() === "이벤트") {
         link.classList.add("active");
       }
-      // /books가 포함된 url이면 도서 메뉴에 active 추가 (기존 동작 보완)
-      else if (currentPath.includes("/books") && link.textContent.trim() === "도서") {
+      // /event가 포함되지 않은 url이면 도서 메뉴에 active 추가
+      else if (!currentPath.includes("/event") && link.textContent.trim() === "도서") {
         link.classList.add("active");
       }
     });
