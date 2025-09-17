@@ -90,30 +90,140 @@ header {
 	overflow: hidden;
 }
 
-.selection-area,
-.calendar-container {
-	width: 100%;
-	height: 100%;
+/* --- 핵심 레이아웃 코드 --- */
+.firstSection {
+	display: flex;
+	align-items: center;
+	gap: 10px;
 }
 
 .calendar-container {
-	min-height: 400px;
-	display: flex;
-	flex-direction: column;
-	align-items: stretch;
-	justify-content: flex-start;
-	font-size: 20px;
-	color: #ccc;
-	border: 1px dashed #e0e0e0;
-	border-radius: 8px;
+	/* 왼쪽 달력 영역이 오른쪽보다 2배 넓게 설정 */
+	flex: 2;
+
 	background-color: white;
-	padding: 30px;
-	text-align: center;
+	padding: 20px;
+	height: 500px;
+}
+
+.select-container {
+	/* 오른쪽 선택 영역이 공간의 1만큼 차지 */
+	flex: 1;
+
+	background-color: white;
+	padding: 20px;
+	height: 500px;
 }
 
 .calendar-container h3 {
 	margin-bottom: 20px;
 	align-self: flex-start;
+}
+
+/* 달력 부분 */
+/* 달력 헤더 (년/월 표시) */
+#Date {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	margin-bottom: 20px;
+	font-size: 20px;
+	font-weight: 700;
+	position: relative;
+}
+
+#Date b {
+	cursor: pointer;
+}
+
+.changeMon {
+	position: absolute;
+	right: 0;
+}
+
+.changeMon button {
+	background: none;
+	border: none;
+	cursor: pointer;
+	font-size: 16px;
+	color: #555;
+}
+
+/* 달력 테이블 */
+#Calender table {
+	width: 100%;
+	border-collapse: collapse;
+	table-layout: fixed;
+	/* 모든 셀 너비 동일하게 */
+}
+
+#Calender th,
+#Calender td {
+	padding: 15px 0;
+	text-align: center;
+	font-size: 15px;
+}
+
+#Calender th {
+	font-weight: 500;
+	color: #888;
+}
+
+#Calender td {
+	border-radius: 50%;
+	width: 40px;
+	height: 52px;
+}
+
+/* --- JavaScript로 제어될 달력 날짜 스타일 --- */
+/* 이벤트가 있는 활성화된 날짜 */
+.event-day {
+	cursor: pointer;
+	font-weight: 700;
+	background-color: #FCECA4;
+}
+
+/* 이벤트가 없는 비활성화된 날짜 */
+.disabled-day {
+	color: #ccc;
+	/* 흐린 회색 글씨 */
+	cursor: not-allowed;
+	/* 클릭할 수 없다는 커서 모양 */
+}
+
+/* 제목 스타일 (날짜 선택, 회차 선택) */
+.select-day,
+.select-part {
+	font-size: 18px;
+	font-weight: 700;
+	margin-bottom: 10px;
+	/* 제목과 옵션 박스 사이 간격 */
+}
+
+/* 선택 옵션 박스 스타일 */
+.option-day,
+.option-part {
+	width: fit-content;
+	padding: 12px 15px;
+	border: 1px solid #ddd;
+	border-radius: 6px;
+	font-size: 15px;
+	cursor: pointer;
+	transition: border-color 0.2s, background-color 0.2s;
+	margin-bottom: 30px;
+	/* 다음 제목과의 간격 */
+}
+
+.option-day:hover,
+.option-part:hover{
+	background-color: #FCECA4;
+}
+
+/* 선택된 날짜 및 회차 옵션에 적용될 스타일 */
+.selected {
+  background-color: #FCECA4; 
+  font-weight: bold;
+  border-radius: 4px;
 }
 
 .person-select-table {
@@ -122,6 +232,7 @@ header {
 	border-collapse: collapse;
 }
 
+/* 등급 인원 선택 */
 .person-select-table th,
 .person-select-table td {
 	text-align: left;
@@ -249,3 +360,4 @@ header {
 .next-button:hover {
 	background-color: rgb(0, 32, 74);
 }
+

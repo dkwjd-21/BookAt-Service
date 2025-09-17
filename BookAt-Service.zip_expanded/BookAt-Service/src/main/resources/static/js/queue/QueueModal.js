@@ -27,8 +27,8 @@ async function onModal() {
     modal.style.display = "flex";
 
     // eventId를 DB의 이벤트ID 1개
-	//const eventId = "98";
-    const eventId = "100";
+	const eventId = "98";
+    //const eventId = "100";
 	//const eventId = "700";
 	//const eventId = "21";
 	
@@ -54,6 +54,8 @@ async function onModal() {
      console.error("대기열 진입 에러:", err);
      modal.style.display = "none";
     }
+	
+	console.log("이벤트 아이디 : ", eventId);
   }
 }
 
@@ -225,7 +227,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 		// 팝업창 띄우기
 		try {
-			const popupRes = await axiosInstance.get("/reservation/", {
+			const popupRes = await axiosInstance.get("/reservation", {
 				params: {eventId},
 				responseType: "text",
 			});
@@ -238,21 +240,6 @@ document.addEventListener("DOMContentLoaded", () => {
 			alert("로그인이 필요합니다.");
 		}
 
-        // 팝업창 띄우기
-		/*
-        try {
-          const popupRes = await axiosInstance.get("/queue/reservation", {
-            responseType: "text",
-          });
-
-          const popup = window.open("", "_blank", "width=1000,height=700");
-          popup.document.write(popupRes.data);
-          popup.document.close();
-        } catch (err) {
-          console.log("예약 팝업 열기 실패 : ", err);
-          alert("로그인이 필요합니다.");
-        }
-		*/
       } else {
         alert("대기열 제거 실패: " + data.message);
       }

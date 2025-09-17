@@ -2,6 +2,14 @@
 document.addEventListener("DOMContentLoaded", function() {
 });
 
+// 캡챠 모달 열기 함수 (콜백 받아서 저장)
+function showCaptchaModal(callbackAfterSuccess) {
+    const modal = document.getElementById('captchaModal');
+    modal.style.display = 'block';
+    // 인증 성공 시 실행할 콜백 저장
+    window.captchaSuccessCallback = callbackAfterSuccess;
+}
+
 // 캡챠 모달을 숨기는 함수
 function hideCaptchaModal() {
     const modal = document.getElementById('captchaModal');
@@ -48,6 +56,13 @@ async function verifyCaptcha(){
 		
 		if(result.success){
 			hideCaptchaModal();
+			
+			// 성공 시 콜백 실행
+			if (typeof window.captchaSuccessCallback === "function") {
+			    window.captchaSuccessCallback();
+			    window.captchaSuccessCallback = null;
+			}
+			
 		} else {
 			message.style.display = 'block';
 			answerInput.value = '';
