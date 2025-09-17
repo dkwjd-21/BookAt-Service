@@ -108,6 +108,20 @@
       </div>
     </form>
 
+    <!-- 추천 도서 섹션 (타임리프 서버사이드 렌더링) -->
+    <section class="recommend-section">
+      <h2>추천 도서</h2>
+      <div class="recommend-list">
+        <a th:each="b : ${recommendations}" th:href="@{'/books/' + ${b.bookId}}" class="rec-card">
+          <div class="rec-card__img-wrap">
+            <img class="rec-card__img" th:src="${b.imageUrl}" th:alt="${b.title}" />
+          </div>
+          <div class="rec-card__title" th:text="${b.title}">제목</div>
+          <div class="rec-card__author" th:text="${b.author}">작가</div>
+        </a>
+      </div>
+    </section>
+
     <script th:src="@{/js/cart.js}"></script>
 
     <footer th:fragment="site-footer" class="footer" style="border: 1px solid #bfbfbf; margin: 0 auto; color: #bfbfbf; background: #eaeaea">

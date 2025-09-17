@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
   // --- DOM 요소 가져오기 ---
-  const form = document.querySelector("form");
+  const form = document.querySelector('form[action="/order"]') || document.querySelector('form[action$="/order"]') || document.querySelector('form[action*="/order"]') || document.querySelector("form");
   const selectAllCheckbox = document.getElementById("select-all");
 
   // --- 함수 정의 (Function Definitions) ---
@@ -49,6 +49,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const allItemCheckboxes = document.querySelectorAll(".item-checkbox");
     const checkedItemCheckboxes = document.querySelectorAll(".item-checkbox:checked");
 
+    if (!selectAllCheckbox) return;
+
     if (allItemCheckboxes.length === 0) {
       selectAllCheckbox.checked = false;
       selectAllCheckbox.disabled = true;
@@ -63,16 +65,18 @@ document.addEventListener("DOMContentLoaded", () => {
   // 이렇게 하면 각 버튼에 개별적으로 리스너를 추가할 필요가 없어 코드가 효율적입니다.
 
   // [전체 선택] 체크박스 변경 시
-  selectAllCheckbox.addEventListener("change", () => {
-    const allItemCheckboxes = document.querySelectorAll(".item-checkbox");
-    allItemCheckboxes.forEach((checkbox) => {
-      checkbox.checked = selectAllCheckbox.checked;
+  if (selectAllCheckbox) {
+    selectAllCheckbox.addEventListener("change", () => {
+      const allItemCheckboxes = document.querySelectorAll(".item-checkbox");
+      allItemCheckboxes.forEach((checkbox) => {
+        checkbox.checked = selectAllCheckbox.checked;
+      });
+      updateSummary();
     });
-    updateSummary();
-  });
+  }
 
   // [개별 상품] 체크박스 변경 시
-  form.addEventListener("change", (event) => {
+  document.addEventListener("change", (event) => {
     if (event.target.classList.contains("item-checkbox")) {
       updateSelectAllCheckboxState();
       updateSummary();
@@ -80,7 +84,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // [수량 변경] 또는 [삭제] 버튼 클릭 시
-  form.addEventListener("click", (event) => {
+  document.addEventListener("click", (event) => {
     const target = event.target;
     const cartItem = target.closest(".cart-item");
     if (!cartItem) return;
@@ -120,7 +124,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // [수량] 직접 입력 시
-  form.addEventListener("input", (event) => {
+  document.addEventListener("input", (event) => {
     const target = event.target;
     if (target.classList.contains("quantity-input")) {
       // 숫자가 아니거나 1보다 작으면 1로 강제
