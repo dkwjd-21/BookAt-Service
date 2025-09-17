@@ -20,7 +20,7 @@
 			const ticketType = document.getElementById("ticket-type").value;
 			
 			// 등급선택
-			const selects = document.querySelectorAll(".person-select-table select");
+			const selects = document.querySelectorAll(".input-count");
 			const sumPriceEl = document.getElementById("sumPrice");
 			const feeEl = document.getElementById("fee");
 			
@@ -133,7 +133,7 @@
 					personInfoEl.innerHTML = personSummary.length ? personSummary.join("") : "<p>선택된 인원이 없습니다.</p>";
 				}
 				
-				selects.forEach((sel) => sel.addEventListener("change", updateSummary));
+				selects.forEach((sel) => sel.addEventListener("input", updateSummary));
 			
 			}
 			
@@ -201,42 +201,33 @@
 												<td>성인</td>
 												<td th:text="${#numbers.formatInteger(event.eventPrice, 3, 'COMMA')} + ' 원'"></td>
 												<td>
-													<select name="adultCount" id="adultCount"
-													        th:attr="data-unit-price=${event.eventPrice}">
-													  <option value="0">선택</option>
-													  <option th:each="i : ${#numbers.sequence(1,10)}"
-													          th:value="${i}"
-													          th:text="${i} + '명'">
-													  </option>
-													</select>
+													<div class="person-count-row">
+														<label for="adultCount" class="hidden"></label>
+														<input class="input-count" id="adultCount" name="adultCount" type="number" 
+														value="0" min="0" th:attr="data-unit-price=${event.eventPrice}">
+													</div>
 												</td>
 											</tr>
 											<tr>
-												<td>청소년</td>
+												<td>청소년(80%)</td>
 												<td th:text="${#numbers.formatInteger(event.eventPrice * 8 / 10, 3, 'COMMA')} + ' 원'"></td>
 												<td>
-													<select name="youthCount" id="youthCount"
-													        th:attr="data-unit-price=${event.eventPrice * 8 / 10}">
-													  <option value="0">선택</option>
-													  <option th:each="i : ${#numbers.sequence(1,10)}"
-													          th:value="${i}"
-													          th:text="${i} + '명'">
-													  </option>
-													</select>
+													<div class="person-count-row">
+														<label for="youthCount" class="hidden"></label>
+														<input class="input-count" id="youthCount" name="youthCount" type="number" 
+														value="0" min="0" th:attr="data-unit-price=${event.eventPrice * 8 / 10}">
+													</div>
 												</td>
 											</tr>
 											<tr>
-												<td>유아</td>
+												<td>유아(50%)</td>
 												<td th:text="${#numbers.formatInteger(event.eventPrice / 2, 3, 'COMMA')} + ' 원'"></td>
 												<td>
-													<select name="childCount" id="childCount"
-													        th:attr="data-unit-price=${event.eventPrice / 2}">
-													  <option value="0">선택</option>
-													  <option th:each="i : ${#numbers.sequence(1,10)}"
-													          th:value="${i}"
-													          th:text="${i} + '명'">
-													  </option>
-													</select>
+													<div class="person-count-row">
+														<label for="childCount" class="hidden"></label>
+														<input class="input-count" id="childCount" name="childCount" type="number" 
+														value="0" min="0" th:attr="data-unit-price=${event.eventPrice / 2}">
+													</div>
 												</td>
 											</tr>
 										</tbody>

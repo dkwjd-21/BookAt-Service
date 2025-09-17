@@ -149,6 +149,21 @@ header {
     font-size: 14px;
 }
 
+.input-count {
+  width: 60px;
+  height: 28px;
+  text-align: center;
+  border: 1px solid #D1D5DB;
+  border-radius: 6px;
+  padding: 0;
+}
+
+.select-count::-webkit-outer-spin-button,
+.select-count::-webkit-inner-spin-button {
+  -webkit-appearance: auto;
+  margin: 0;
+}
+
 /* 정보입력 */
 .pay-info-container {
 	width: 100%;
