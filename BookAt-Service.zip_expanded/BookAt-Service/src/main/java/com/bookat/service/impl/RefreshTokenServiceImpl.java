@@ -69,12 +69,12 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 	}
 
 	@Override
-	public void storeRefreshToken(String userId, String refreshToken, String loginTime, int storeTime) {
+	public void storeRefreshToken(String userId, String refreshToken, String loginTime) {
 		Map<String, String> values = new HashMap<>();
 		values.put("refreshToken", refreshToken);
 		values.put("loginTime", loginTime);
 		redisTemplate.opsForHash().putAll(userId, values);
-		redisTemplate.expire(userId, storeTime, TimeUnit.SECONDS);
+		redisTemplate.expire(userId, JwtTokenProvider.EXPIRATION_1D, TimeUnit.SECONDS);
 	}
 
 }

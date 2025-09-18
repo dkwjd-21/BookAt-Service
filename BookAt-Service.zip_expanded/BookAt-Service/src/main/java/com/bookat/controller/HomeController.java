@@ -20,11 +20,4 @@ public class HomeController {
 	public String queue(Model model) {
 		return "reservation/QueueModal";
 	}
-	
-	// 테스트를 위한 메인 페이지 
-	@GetMapping("/infoPage/reservationTest")
-	public String queue(Model model) {
-		return "reservation/QueueModal";
-	}
-
 }
