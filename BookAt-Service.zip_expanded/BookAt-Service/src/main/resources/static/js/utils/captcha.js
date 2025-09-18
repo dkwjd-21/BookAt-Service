@@ -2,12 +2,14 @@
 document.addEventListener("DOMContentLoaded", function() {
 });
 
+// redis key 저장 전역 변수 : 전역으로 captchaId 관리
+let currentCaptchaId = null;
+
 // 캡챠 모달 열기 함수 (콜백 받아서 저장)
-function showCaptchaModal(callbackAfterSuccess) {
-    const modal = document.getElementById('captchaModal');
-    modal.style.display = 'block';
-    // 인증 성공 시 실행할 콜백 저장
-    window.captchaSuccessCallback = callbackAfterSuccess;
+function showCaptchaModal() {
+	const modal = document.getElementById("captchaModal");
+	modal.style.display = "block";
+	refreshImage();
 }
 
 // 캡챠 모달을 숨기는 함수
@@ -17,17 +19,41 @@ function hideCaptchaModal() {
 }
 
 // 이미지 새로고침
-function refreshImage(){
+async function refreshImage() {
 	const captchaImage = document.getElementById('captchaImg');
 	
-	captchaImage.src = "/api/captcha/image";
+	try {
+		const res = await axiosInstance.get("/api/captcha/image");
+		// redis에 저장된 key
+		currentCaptchaId = res.data.captchaId;
+		const url = "data:image/png;base64," + res.data.image;
+		captchaImage.src = url;
+	} catch(err) {
+		console.log("캡챠 이미지 새로고침 실패 : ", err);
+	}
 }
 
 // 음성듣기
-function playAudio(){
+async function playAudio(){
 	const audioUrl = "/api/captcha/audio";
-	const audio = new Audio(audioUrl);
-	audio.play();
+	
+	if(!currentCaptchaId) {
+		alert("먼저 캡챠 이미지를 불러와주세요.");
+		return;
+	}
+	
+	try {
+		const res = await axiosInstance.get(audioUrl, {
+			params: {captchaId: currentCaptchaId},
+			responseType: "blob"
+		});
+		
+		const url = URL.createObjectURL(res.data);
+		const audio = new Audio(url);
+		audio.play();
+	} catch(err) {
+		console.log("캡챠 음성듣기 실패 : ", err);
+	}
 }
 
 // 사용자 입력값 검증
@@ -44,25 +70,15 @@ async function verifyCaptcha(){
 	const verifyUrl = "/api/captcha/verify"
 	
 	try {
-		const response = await fetch(verifyUrl, {
-			method: 'POST',
-			headers: {
-				'Content-Type' : 'application/x-www-form-urlencoded',
-			}, 
-			body : 'answer=' + encodeURIComponent(userAnswer)
-		});
+		const res = await axiosInstance.post(verifyUrl, new URLSearchParams({
+			captchaId: currentCaptchaId,
+			answer: userAnswer
+		}),
+		{headers: {'Content-Type': 'application/x-www-form-urlencoded'}}
+	);
 		
-		const result = await response.json(); 
-		
-		if(result.success){
+		if(res.data.success){
 			hideCaptchaModal();
-			
-			// 성공 시 콜백 실행
-			if (typeof window.captchaSuccessCallback === "function") {
-			    window.captchaSuccessCallback();
-			    window.captchaSuccessCallback = null;
-			}
-			
 		} else {
 			message.style.display = 'block';
 			answerInput.value = '';
@@ -74,3 +90,5 @@ async function verifyCaptcha(){
 	}
 	
 }
+
+window.showCaptchaModal = showCaptchaModal;

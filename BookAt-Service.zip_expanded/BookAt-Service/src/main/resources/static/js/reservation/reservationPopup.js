@@ -29,6 +29,8 @@ document.addEventListener("DOMContentLoaded", () => {
 	let currentStep = 1;
 	let totalPrice = 0;
 	
+	showCaptchaModal();
+	
 	buildCalendar();
 	
 	nextBtn.addEventListener("click", () => {
