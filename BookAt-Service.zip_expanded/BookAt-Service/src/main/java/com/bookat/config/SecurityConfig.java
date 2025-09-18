@@ -38,7 +38,8 @@ public class SecurityConfig {
         		 .requestMatchers("/books/**").permitAll()
         							// 홈, 로그인, 메인페이지, 상세페이지 토큰없이 접근 허용
 				.requestMatchers("/", "/events/**", "/books/**").permitAll()
-        		.requestMatchers("/api/**", "/queue/**", "/myPage/**", "/payment").authenticated()
+        		.requestMatchers("/api/**", "/queue/**", "/myPage/**").authenticated()
+
         							// 예약 기능 토큰 필요
                 .anyRequest().denyAll()
        ).addFilterBefore(accessTokenFilter, UsernamePasswordAuthenticationFilter.class)

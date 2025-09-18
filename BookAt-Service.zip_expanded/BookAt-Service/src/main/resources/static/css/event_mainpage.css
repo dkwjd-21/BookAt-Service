@@ -104,6 +104,10 @@ a {
   cursor: pointer;
 }
 
+.search-bar {
+  padding-right: 0px;
+}
+
 /*  본문  */
 
 body {

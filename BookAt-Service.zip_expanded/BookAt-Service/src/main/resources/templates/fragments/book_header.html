@@ -1,21 +1,21 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
   <!-- 로그인 구현 후 isLoggedIn 로그인 여부 판별 후 추가  -->
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>BookAt</title>
-    <link rel="stylesheet" href="../../static/css/main_header.css" />
+    <link rel="stylesheet" th:href="@{/css/main_header.css}" />
   </head>
   <body>
-    <header class="main-header">
+    <header th:fragment="site-header" class="main-header">
       <div class="header-top">
-        <a href="@{/}"><img src="../../static/images/BookAt-Logo.png" class="main-logo-img" /></a>
+        <img th:src="@{/images/BookAt-Logo.png}" class="main-logo-img" /></a>
 
-        <div class="auth-links">
+        <!--  <div class="auth-links">
           <th:block th:if="${!isLoggedIn}">
-            <a th:href="@{/user/signup}">회원가입</a>
-            <a th:href="@{/user/login}">로그인</a>
+            <a th:href="@{/signup}">회원가입</a>
+            <a th:href="@{/login}">로그인</a>
           </th:block>
 
           <!-- <th:block th:if="${isLoggedIn}">
@@ -23,16 +23,16 @@
             <a th:href="@{/logout}">로그아웃</a>
           </th:block> -->
           <!-- 로그인 구현 후 로그인 시 바뀌는 부분 -->
-        </div>
+        <!-- </div> -->
       </div>
 
       <div class="header-bottom">
         <nav class="nav-links">
-          <a th:href="@{/books}" class="nav-item">도서</a>
-          <a th:href="@{/event}" class="nav-item active">이벤트</a>
+          <a th:href="@{/books}" class="nav-item active">도서</a>
+          <a href="./event_header.html" class="nav-item">이벤트</a>
         </nav>
         <div class="search-bar">
-          <form id="searchForm" action="#" method="get">
+          <form id="searchForm" th:action="@{/search}" method="get">
             <input type="text" name="search-query" placeholder="검색어를 입력하세요" />
             <span class="search-icon" onclick="document.getElementById('searchForm').submit();"></span>
           </form>
