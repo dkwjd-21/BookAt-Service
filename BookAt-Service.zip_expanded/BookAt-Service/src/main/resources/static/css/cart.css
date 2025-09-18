@@ -15,105 +15,6 @@ body {
   min-height: 100vh;
 }
 
-/* Header */
-
-.main-header {
-  font-family: Arial, sans-serif;
-}
-
-/* 상단 섹션 스타일 */
-.header-top {
-  background: var(--Navy-100, #003274);
-  color: white;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px 5%;
-}
-
-.main-logo-img {
-  width: 150px;
-}
-
-.auth-links {
-  display: flex;
-  gap: 10px;
-  cursor: pointer;
-}
-
-.auth-links a {
-  text-decoration: none;
-  color: #003274;
-  border: 1px solid #003274;
-  border-radius: 20px;
-  padding: 5px 15px;
-  font-size: 14px;
-  background-color: white;
-  /* height: 20px; */
-}
-
-/* 하단 섹션 스타일 */
-.header-bottom {
-  background-color: #003274;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 5%;
-}
-
-.nav-links {
-  display: flex;
-  gap: 20px;
-}
-
-.nav-item {
-  color: white;
-  text-decoration: none;
-  font-size: 16px;
-  padding: 10px 20px;
-  border-radius: 25px;
-  transition: background-color 0.3s;
-  border-radius: 15px 15px 0px 0px;
-  transform: translateY(10px);
-  cursor: pointer;
-}
-
-.nav-item.active {
-  background-color: white;
-  color: #003274;
-  border-radius: 15px 15px 0px 0px;
-  transform: translateY(10px);
-}
-
-/* 검색창 스타일 */
-.search-bar {
-  position: relative;
-  width: 300px;
-  padding-right: 50px;
-}
-
-.search-bar input {
-  width: 100%;
-  border: none;
-  border-radius: 20px;
-  padding: 10px 40px 10px 15px;
-  background-color: white;
-  outline: none;
-  font-size: 14px;
-}
-
-.search-icon {
-  position: absolute;
-  right: 15px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 20px;
-  height: 20px;
-  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23888"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16a6.471 6.471 0 0 0 3.23-.88l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>') no-repeat center center;
-  background-size: contain;
-  cursor: pointer;
-}
-
 @import url("https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap");
 
 :root {
@@ -323,9 +224,11 @@ body {
 
 /* --- 추천 도서 섹션 --- */
 .recommend-section {
-  max-width: 1200px;
-  margin: 40px auto;
-  margin-top: 0px;
+  margin-top: 20px;
+  background-color: var(--background-color);
+  padding: 2rem;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
 }
 
 .recommend-section h2 {
@@ -333,12 +236,14 @@ body {
 }
 
 .recommend-list {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  display: flex;
   gap: 16px;
+  overflow-x: auto; /* 아이템이 많을 경우 가로 스크롤 */
+  padding-bottom: 10px; /* 스크롤바와 아이템 간 여백 */
 }
 
-.rec-card {
+.rec-card,
+a.rec-card {
   background-color: #fff;
   border-radius: 8px;
   overflow: hidden;
@@ -346,6 +251,12 @@ body {
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   text-align: center;
   width: 150px;
+  text-decoration-line: none !important; /* !important 추가로 브라우저 기본 스타일 덮어쓰기 */
+  color: inherit; /* 링크 기본 색상(파란색) 제거 */
+}
+
+a.rec-card:hover {
+  text-decoration: none !important; /* 마우스 호버 시에도 밑줄 제거 */
 }
 
 .rec-card__img-wrap {
@@ -374,6 +285,8 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: var(--accent-color, #000); /* 제목 색상 검은색으로 변경 */
+  text-decoration-line: none;
 }
 
 .rec-card__author {
@@ -383,4 +296,5 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-decoration-line: none;
 }

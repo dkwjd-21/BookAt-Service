@@ -16,18 +16,12 @@ import com.bookat.service.CartService;
 @Service
 public class CartServiceImpl implements CartService {
 
- @Autowired
- private CartMapper cartMapper;
+	@Autowired
+	private CartMapper cartMapper;
 
- @Override
- public List<CartResponse> getCartItemsForCurrentUser(String userId) {
-     // 1. 현재 로그인한 사용자의 인증 정보 가져오기
-     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-     
-     // 2. 인증 정보에서 사용자 ID (username) 가져오기
-     String currentUserId = authentication.getName();
-
-     // 3. Mapper 메서드에 사용자 ID를 파라미터로 전달
-     return cartMapper.getCartItemsForCurrentUser(userId); 
- }
+	@Override
+	public List<CartResponse> getCartItemsForCurrentUser(String userId) {
+		// 컨트롤러에서 이미 인증된 사용자의 ID를 전달받았으므로, 그대로 매퍼에 전달합니다.
+		return cartMapper.getCartItemsForCurrentUser(userId);
+	}
 }

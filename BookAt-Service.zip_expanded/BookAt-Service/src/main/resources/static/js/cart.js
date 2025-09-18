@@ -1,7 +1,116 @@
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   // --- DOM 요소 가져오기 ---
   const form = document.querySelector('form[action="/order"]') || document.querySelector('form[action$="/order"]') || document.querySelector('form[action*="/order"]') || document.querySelector("form");
   const selectAllCheckbox = document.getElementById("select-all");
+  const cartItemsContainer = document.querySelector(".cart-items-container");
+
+  // --- 비동기 데이터 로딩 함수 ---
+  const fetchCartItems = async () => {
+    const accessToken = localStorage.getItem("accessToken");
+    if (!accessToken) {
+      cartItemsContainer.innerHTML = `
+        <section class="cart-section">
+          <h2>장바구니</h2>
+          <div class="empty-cart-message">
+            <p>장바구니는 로그인 후 이용 가능합니다.</p>
+            <a href="/user/login" class="login-link">로그인 하러 가기</a>
+          </div>
+        </section>`;
+      updateSummary();
+      updateSelectAllCheckboxState();
+      return;
+    }
+
+    try {
+      const response = await fetch("/cart/api/cart", {
+        method: "GET",
+        headers: {
+          Authorization: "Bearer " + accessToken,
+        },
+      });
+
+      if (response.status === 401 || response.status === 403) {
+        // 토큰이 유효하지 않거나 만료된 경우
+        localStorage.removeItem("accessToken");
+        alert("로그인 정보가 만료되었습니다. 다시 로그인해주세요.");
+        window.location.href = "/user/login";
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error("장바구니 정보를 불러오는데 실패했습니다.");
+      }
+
+      const cartItems = await response.json();
+
+      if (!cartItems || cartItems.length === 0) {
+        // 장바구니가 비어있는 경우
+        cartItemsContainer.innerHTML = `
+        <section class="cart-section">
+          <h2>장바구니</h2>
+          <div class="empty-cart-message">
+            <p>장바구니가 비어 있습니다.</p>
+          </div>
+        </section>`;
+      } else {
+        // 장바구니에 상품이 있는 경우
+        const itemsHtml = cartItems
+          .map(
+            (item) => `
+            <div class="cart-item" data-price="${item.price}" data-cart-id="${item.cartId}">
+              <div class="item-selector">
+                <input type="checkbox" class="item-checkbox" name="selectedCartIds" value="${item.cartId}" checked />
+              </div>
+              <div class="cart-item-image">
+                <img src="${item.coverImage}" alt="Product Image" />
+              </div>
+              <div class="cart-item-details">
+                <div class="item-info">
+                  <h3>${item.title}</h3>
+                  <p>${item.author}</p>
+                </div>
+                <div class="item-actions">
+                  <div class="quantity-control">
+                    <button type="button" class="quantity-minus">-</button>
+                    <input type="number" class="quantity-input" name="quantity" value="${item.cartQuantity}" min="1" />
+                    <button type="button" class="quantity-plus">+</button>
+                  </div>
+                  <div class="item-price-delete">
+                    <span class="item-price">${(item.price * item.cartQuantity).toLocaleString()} 원</span>
+                    <button type="button" class="delete-btn" data-cart-id="${item.cartId}">🗑️</button>
+                  </div>
+                </div>
+              </div>
+            </div>`
+          )
+          .join("");
+
+        cartItemsContainer.innerHTML = `
+          <section class="cart-section">
+            <h2>장바구니</h2>
+            <div class="select-all-container">
+              <input type="checkbox" id="select-all" checked />
+              <label for="select-all">전체선택</label>
+            </div>
+            <div class="cart-items">
+              ${itemsHtml}
+            </div>
+          </section>`;
+      }
+
+      // --- 페이지 첫 로드 시 초기 계산 실행 ---
+      document.querySelectorAll(".cart-item").forEach(updateItemPrice);
+      updateSelectAllCheckboxState();
+      updateSummary();
+    } catch (error) {
+      console.error("Error fetching cart items:", error);
+      cartItemsContainer.innerHTML = `
+        <section class="cart-section">
+          <h2>장바구니</h2>
+          <div class="empty-cart-message"><p>오류가 발생했습니다. 잠시 후 다시 시도해주세요.</p></div>
+        </section>`;
+    }
+  };
 
   // --- 함수 정의 (Function Definitions) ---
 
@@ -60,20 +169,19 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
-  // --- 이벤트 리스너 설정 (Event Listener Setup) ---
-  // 이벤트 위임(Event Delegation)을 사용하여 form 요소 하나에만 리스너를 추가합니다.
-  // 이렇게 하면 각 버튼에 개별적으로 리스너를 추가할 필요가 없어 코드가 효율적입니다.
+  // --- 이벤트 리스너 설정 (일부 수정) ---
 
-  // [전체 선택] 체크박스 변경 시
-  if (selectAllCheckbox) {
-    selectAllCheckbox.addEventListener("change", () => {
+  // '전체선택'은 동적으로 생성되므로, 이벤트 위임 방식으로 변경
+  document.addEventListener("change", (event) => {
+    if (event.target.id === "select-all") {
+      const selectAllCheckbox = event.target;
       const allItemCheckboxes = document.querySelectorAll(".item-checkbox");
       allItemCheckboxes.forEach((checkbox) => {
         checkbox.checked = selectAllCheckbox.checked;
       });
       updateSummary();
-    });
-  }
+    }
+  });
 
   // [개별 상품] 체크박스 변경 시
   document.addEventListener("change", (event) => {
@@ -137,8 +245,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // --- 페이지 첫 로드 시 초기 계산 실행 ---
-  document.querySelectorAll(".cart-item").forEach(updateItemPrice);
-  updateSelectAllCheckboxState();
-  updateSummary();
+  // --- 페이지 로드 시 장바구니 데이터 가져오기 실행 ---
+  fetchCartItems();
 });

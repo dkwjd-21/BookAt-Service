@@ -5,39 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
     <link rel="stylesheet" th:href="@{/css/cart.css}" />
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script th:src="@{/js/utils/axiosIntercepter.js}"></script>
+    <script th:src="@{/js/utils/logout.js}"></script>
+    <script th:src="@{/js/utils/userAuth.js}"></script>
+    <script th:src="@{/js/utils/header.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/header.css}" />
+    <link rel="stylesheet" th:href="@{/css/footer.css}" />
   </head>
   <body>
-    <header class="main-header">
-      <div class="header-top">
-        <a th:href="@{/event}"><img th:src="@{/images/BookAt-Logo.png}" class="main-logo-img" /></a>
-
-        <div class="auth-links">
-          <!--<th:block th:if="${isLoggedIn == null}">-->
-          <a th:href="@{/user/signup}">회원가입</a>
-          <a th:href="@{/user/login}">로그인</a>
-          <!--</th:block>-->
-
-          <!-- <th:block th:if="${isLoggedIn}">
-            <a th:href="@{/mypage}">마이페이지</a>
-            <a th:href="@{/logout}">로그아웃</a>
-          </th:block> -->
-          <!-- 로그인 구현 후 로그인 시 바뀌는 부분 -->
-        </div>
-      </div>
-
-      <div class="header-bottom">
-        <nav class="nav-links">
-          <a th:href="@{/books}" class="nav-item active">도서</a>
-          <a th:href="@{/event}" class="nav-item">이벤트</a>
-        </nav>
-        <div class="search-bar">
-          <form id="searchForm" action="#" method="get">
-            <input type="text" name="search-query" placeholder="검색어를 입력하세요" />
-            <span class="search-icon" onclick="document.getElementById('searchForm').submit();"></span>
-          </form>
-        </div>
-      </div>
-    </header>
+    <div th:replace="~{fragments/header :: main-header}"></div>
 
     <form th:action="@{/order}" method="post">
       <div class="container">
@@ -105,44 +82,29 @@
             </section>
           </div>
         </div>
+
+        <!-- 추천 도서 섹션 -->
+        <div class="recommend-container">
+          <section class="recommend-section book-carousel-section">
+            <h2>추천 도서</h2>
+            <div class="recommend-list">
+              <article class="rec-card" th:each="b : ${recommendations}">
+                <a class="card-link" th:href="@{'/books/' + ${b.bookId}}" style="text-decoration: none; color: inherit">
+                  <img th:src="${b.imageUrl}" th:alt="${b.title}" class="rec-card__img" />
+                  <div class="body">
+                    <div class="rec-card__author" th:text="${b.author}">작가</div>
+                    <div class="rec-card__title" th:text="${b.title}">제목</div>
+                  </div>
+                </a>
+              </article>
+            </div>
+          </section>
+        </div>
       </div>
     </form>
 
-    <!-- 추천 도서 섹션 (타임리프 서버사이드 렌더링) -->
-    <section class="recommend-section">
-      <h2>추천 도서</h2>
-      <div class="recommend-list">
-        <a th:each="b : ${recommendations}" th:href="@{'/books/' + ${b.bookId}}" class="rec-card">
-          <div class="rec-card__img-wrap">
-            <img class="rec-card__img" th:src="${b.imageUrl}" th:alt="${b.title}" />
-          </div>
-          <div class="rec-card__title" th:text="${b.title}">제목</div>
-          <div class="rec-card__author" th:text="${b.author}">작가</div>
-        </a>
-      </div>
-    </section>
-
     <script th:src="@{/js/cart.js}"></script>
 
-    <footer th:fragment="site-footer" class="footer" style="border: 1px solid #bfbfbf; margin: 0 auto; color: #bfbfbf; background: #eaeaea">
-      <div class="ft_content" style="padding: 40px 100px">
-        <div class="ft_logo">
-          <img th:src="@{/images/BookAt-LogoTypo.png}" alt="eventAt" style="width: 120.645px; height: 26.525px" />
-        </div>
-
-        <div class="ft__left" style="float: left">
-          <div style="margin-top: 6px; font-size: 18px; font-style: normal; font-weight: 400; line-height: 28px">
-            (주) 북캣 | 현대이지웰 Java 풀스택 개발자 5회차<br />
-            책읽는고양이 송아정 김명주 박태욱 서지나
-          </div>
-        </div>
-
-        <div class="ft__right" style="text-align: right; font-size: 18px; font-style: normal; font-weight: 400; line-height: 28px">
-          <div>Copyright ⓒ BookAt. ALL RIGHTS RESERVED</div>
-          <div><a href="">관리자로그인</a></div>
-          <!--관리자페이지 이동 추가해야함-->
-        </div>
-      </div>
-    </footer>
+    <div th:replace="~{fragments/footer :: main-footer}"></div>
   </body>
 </html>

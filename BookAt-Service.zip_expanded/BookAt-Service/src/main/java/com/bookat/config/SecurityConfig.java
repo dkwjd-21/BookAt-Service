@@ -35,8 +35,7 @@ public class SecurityConfig {
 //        .httpBasic(Customizer.withDefaults())
         .authorizeHttpRequests(auth -> auth
         		.requestMatchers("/css/**", "/js/**", "/images/**").permitAll()	// 정적 리소스 접근 가능
-        		.requestMatchers("/","/cart/**").permitAll()
-        		.requestMatchers("/mainpage/**", "/books/**", "/events/**").permitAll()
+        		.requestMatchers("/mainpage/**", "/books/**", "/event/**","/cart/**").permitAll()
         		.requestMatchers("/pay/**").authenticated()
         		.requestMatchers("/", "/user/**", "/auth/**", "/mainPage/**", "/infoPage/**").permitAll()
         					// 홈, 로그인, 메인페이지, 상세페이지 토큰없이 접근 허용
