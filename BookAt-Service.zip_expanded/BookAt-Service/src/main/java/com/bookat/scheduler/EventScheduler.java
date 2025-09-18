@@ -151,8 +151,8 @@ public class EventScheduler {
 						int scheduleId = part.getScheduleId();
 						int remainingSeat = part.getRemainingSeat();
 
-						String totalKey = "event:" + eventId + ":schedule:" + scheduleId + ":TOTAL_SEAT";
-						String availKey = "event:" + eventId + ":schedule:" + scheduleId + ":AVAILABLE_SEAT";
+						String totalKey = "EVENT:" + eventId + ":SCHEDULE:" + scheduleId + ":TOTAL_SEAT";
+						String availKey = "EVENT:" + eventId + ":SCHEDULE:" + scheduleId + ":AVAILABLE_SEAT";
 
 						// Redis에 좌석 수 & TTL(만료시간) 저장
 						redisTemplate.opsForValue().set(totalKey, String.valueOf(remainingSeat));
