@@ -1,4 +1,4 @@
-package com.bookat.util;
+/*package com.bookat.util;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -63,4 +63,4 @@ public class CaptchaUtil {
 		return baos.toByteArray();
 	}
 	
-}
+}*/

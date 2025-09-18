@@ -21,10 +21,11 @@ public class PortOneClient {
 
     private final WebClient webClient; 
 
-    @Value("${iamport.api.key}")
+    
+    @Value("${pay.portone.api.key}")
     private String apiKey;
 
-    @Value("${iamport.api.secret}")
+    @Value("${pay.portone.api.secret}")
     private String apiSecret;
 
     public Mono<String> getAccessToken() {

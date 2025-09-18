@@ -1,5 +1,6 @@
 package com.bookat.controller;
 
+import java.math.BigDecimal;
 import java.util.Map;
 
 import org.springframework.stereotype.Controller;
@@ -8,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 import com.bookat.dto.PaymentDto;
+import com.bookat.service.BookService;
 import com.bookat.service.PaymentService;
 import com.bookat.util.PortOneClient;
 
@@ -20,6 +22,7 @@ public class PaymentController {
 
   private final PaymentService paymentService;
   private final PortOneClient portOneClient;
+  private final BookService bookService;
 
 
   
@@ -40,20 +43,40 @@ public class PaymentController {
   
 
   /** 프래그먼트 포함 페이지 테스트 */
-  @GetMapping("/frag-test")
-  public String fragTest(@RequestParam Integer amount,
-                         @RequestParam String method,
-                         Model model,
-                         @AuthenticationPrincipal(expression = "userId") String userId) {
-	  
+  public String fragTest(@RequestParam String bookId,
+          @RequestParam(defaultValue = "1") Integer qty,
+          @RequestParam String method,
+          Model model,
+          @AuthenticationPrincipal(expression = "userId") String userId) {
 
-    PaymentDto pay = paymentService.createReadyPayment(amount, method, "프래그먼트 테스트", userId);
-    model.addAttribute("merchantUid", pay.getMerchantUid());
-    model.addAttribute("amount", pay.getPaymentPrice());
-    model.addAttribute("userId", userId);
-    return "payment/frag-test";
-  }
+          if (userId == null || userId.isBlank()) {
+          // 로그인 후 돌려보낼 위치는 그대로 유지
+          return "redirect:/user/Login?next=/payment/frag-test?bookId=" + bookId + "&qty=" + qty + "&method=" + method;
+          }
 
+          // 가격 조회 (주문 생성 X, 조회만)
+          var book = bookService.selectOne(bookId);
+
+          // 금액 계산
+          BigDecimal unitPrice = book.getPrice(); // BigDecimal
+          int safeQty = (qty == null || qty < 1) ? 1 : qty;
+          BigDecimal amount = unitPrice.multiply(BigDecimal.valueOf(safeQty));
+
+          // 실제 결제 준비
+          PaymentDto pay = paymentService.createReadyPayment(amount.intValueExact(),method,"결제연동 테스트",userId);
+
+          
+          model.addAttribute("merchantUid", pay.getMerchantUid());
+          model.addAttribute("amount", pay.getPaymentPrice());
+          model.addAttribute("userId", userId);
+          model.addAttribute("bookId", bookId);
+          model.addAttribute("qty", qty);
+          model.addAttribute("book", book);
+
+         // book_order 연동: 나중에 bookId/qty 대신 orderId를 받아서 orderId 기반으로 금액/항목 요약
+
+         return "payment/frag-test";
+         }
   /** 결제 완료 콜백 (IMP.request_pay 성공시) */
   @PostMapping("/complete")
   public String complete(@RequestParam String imp_uid,

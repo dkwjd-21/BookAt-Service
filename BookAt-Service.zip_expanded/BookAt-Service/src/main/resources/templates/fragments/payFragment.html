@@ -7,26 +7,24 @@
     <!-- vbank 추가데이터를 숨은필드로 같이 보냄 -->
     <input type="hidden" name="depositor_name" id="depositor_name_hidden">
     <input type="hidden" name="cash_receipt_apply" id="cash_receipt_apply_hidden">
-    <input type="hidden" name="cash_receipt_type" id="cash_receipt_type_hidden"><!-- DED | BIZ -->
+    <input type="hidden" name="cash_receipt_type" id="cash_receipt_type_hidden">
     <input type="hidden" name="cash_receipt_number" id="cash_receipt_number_hidden">
+
+    <!-- CSRF -->
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
   </form>
 
-  <!-- 결제수단 버튼 -->
   <style>
-    .pay-method-btn {
-      padding:8px 12px; border:1px solid #ddd; background:#fff; cursor:pointer;
-      border-radius:6px; font-size:14px;
-    }
+    .pay-method-btn { padding:8px 12px; border:1px solid #ddd; background:#fff; cursor:pointer;
+      border-radius:6px; font-size:14px; }
     .pay-method-btn.is-active { border-color:#444; background:#B5D173; font-weight:600; }
-    .vbank-box {
-      border:1px solid #eee; border-radius:8px; padding:12px; margin-bottom:10px;
-      background:#fafafa;
-    }
+    .vbank-box { border:1px solid #eee; border-radius:8px; padding:12px; margin-bottom:10px; background:#fafafa; }
     .vbank-input { width:100%; box-sizing:border-box; padding:10px; border:1px solid #ddd; border-radius:6px; }
     .row { margin-top:10px; }
     .muted { color:#666; font-size:13px; }
   </style>
 
+  <!-- 결제수단 버튼 -->
   <div class="pay-method-group" style="display:flex; gap:8px; margin:8px 0;">
     <button type="button" class="pay-method-btn is-active" data-method="card">신용카드</button>
     <button type="button" class="pay-method-btn" data-method="vbank">무통장입금</button>
@@ -34,20 +32,17 @@
 
   <!-- 무통장입금 내용 (기본 숨김, vbank 선택 시 표시) -->
   <div id="vbankSection" style="display:none; margin:12px 0 16px;">
-    <!-- 박스 1: 고정 안내 -->
     <div class="vbank-box">
       <div><strong>입금계좌</strong></div>
       <div class="row">국민은행 <strong>000000-00-000-000</strong></div>
       <div class="row muted">예금주: <strong>주식회사 북캣</strong></div>
     </div>
 
-    <!-- 박스 2: 입금자명 입력 -->
     <div class="vbank-box">
       <input id="depositor_name_input" type="text" class="vbank-input"
              placeholder="입금자명(미입력시 주문자명)">
     </div>
 
-    <!-- 현금영수증 -->
     <div class="row">
       <label>
         <input type="checkbox" id="cash_rcpt_check">
@@ -66,7 +61,9 @@
     </div>
   </div>
 
-  <button id="payBtn" th:attr="data-merchant=${merchantUid},data-amount=${amount}">
+  <!-- payment.js가 이 data-merchant / data-amount 를 읽어 결제 실행 -->
+  <button id="payBtn"
+          th:attr="data-merchant=${merchantUid},data-amount=${amount}">
     결제하기
   </button>
 </div>

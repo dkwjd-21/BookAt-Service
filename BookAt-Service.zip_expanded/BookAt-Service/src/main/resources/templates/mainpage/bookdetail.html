@@ -108,6 +108,8 @@
   <!-- 바로구매 -->
   <form th:action="@{|/books/${book.bookId}/order|}" method="post">
     <input type="hidden" id="orderQty" name="qty" value="1">
+    <input type="hidden" name="method" value="CARD">
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
     <button class="btn btn--primary" type="submit">바로구매</button>
   </form>
 </div>
