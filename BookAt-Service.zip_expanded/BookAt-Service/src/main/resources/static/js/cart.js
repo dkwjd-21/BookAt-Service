@@ -1,4 +1,30 @@
 document.addEventListener("DOMContentLoaded", async () => {
+  let debounceTimer;
+
+  const updateQuantityOnServer = (cartId, quantity) => {
+    axios
+      .put(`/cart/api/${cartId}`, { quantity })
+      .then((response) => {
+        if (response.status !== 200) {
+          console.error("수량 변경 서버 응답 실패:", response);
+          alert("수량 변경에 실패했습니다.");
+        }
+      })
+      .catch((error) => {
+        console.error("Error updating quantity:", error);
+        alert("수량 변경 중 오류가 발생했습니다.");
+      });
+  };
+
+  const debouncedUpdate = (cartItem) => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      const cartId = cartItem.dataset.cartId;
+      const quantity = parseInt(cartItem.querySelector(".quantity-input").value);
+      updateQuantityOnServer(cartId, quantity);
+    }, 500); // 500ms debounce delay
+  };
+
   // --- DOM 요소 가져오기 ---
   const form = document.querySelector('form[action="/order"]') || document.querySelector('form[action$="/order"]') || document.querySelector('form[action*="/order"]') || document.querySelector("form");
   const selectAllCheckbox = document.getElementById("select-all");
@@ -22,7 +48,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     try {
-      const response = await fetch("/cart/api/cart", {
+      const response = await fetch("/cart/api", {
+        // API 경로 수정
         method: "GET",
         headers: {
           Authorization: "Bearer " + accessToken,
@@ -157,6 +184,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const updateSelectAllCheckboxState = () => {
     const allItemCheckboxes = document.querySelectorAll(".item-checkbox");
     const checkedItemCheckboxes = document.querySelectorAll(".item-checkbox:checked");
+    const selectAllCheckbox = document.getElementById("select-all"); // 함수 내에서 다시 찾기
 
     if (!selectAllCheckbox) return;
 
@@ -206,6 +234,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       quantityInput.value = quantity;
       updateItemPrice(cartItem);
       updateSummary();
+      debouncedUpdate(cartItem);
     }
 
     // [-] 버튼
@@ -215,19 +244,30 @@ document.addEventListener("DOMContentLoaded", async () => {
         quantityInput.value = quantity;
         updateItemPrice(cartItem);
         updateSummary();
+        debouncedUpdate(cartItem);
       }
     }
 
     // [삭제] 버튼
     if (target.classList.contains("delete-btn")) {
       const cartId = target.dataset.cartId;
-      console.log(`서버에 삭제 요청: cartId ${cartId}`);
-      // TODO: fetch API 등을 사용하여 실제 서버에 삭제 요청을 보내야 합니다.
-      // 예: fetch(`/api/cart/${cartId}`, { method: 'DELETE' });
-
-      cartItem.remove(); // 화면에서 즉시 삭제
-      updateSelectAllCheckboxState();
-      updateSummary();
+      if (confirm("이 상품을 장바구니에서 삭제하시겠습니까?")) {
+        axios
+          .delete(`/cart/api/${cartId}`)
+          .then((response) => {
+            if (response.status === 200) {
+              cartItem.remove();
+              updateSelectAllCheckboxState();
+              updateSummary();
+            } else {
+              alert("삭제에 실패했습니다. 다시 시도해주세요.");
+            }
+          })
+          .catch((error) => {
+            console.error("Error deleting item:", error);
+            alert("삭제 중 오류가 발생했습니다.");
+          });
+      }
     }
   });
 
@@ -242,6 +282,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const cartItem = target.closest(".cart-item");
       updateItemPrice(cartItem);
       updateSummary();
+      debouncedUpdate(cartItem);
     }
   });
 

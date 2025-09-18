@@ -222,6 +222,25 @@ body {
   opacity: 0.85;
 }
 
+.empty-cart-message .login-link {
+  display: inline-block; /* 버튼처럼 보이게 하기 위해 추가 */
+  width: auto; /* 내용에 맞게 너비 자동 조절 */
+  padding: 0.6rem 1.2rem; /* 패딩을 줄여서 크기 작게 조절 */
+  background-color: #003274;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem; /* 폰트 크기 작게 조절 */
+  font-weight: 700;
+  margin-top: 1.5rem; /* 위쪽 여백 추가 */
+  border-radius: 8px;
+  text-decoration: none; /* 링크 밑줄 제거 */
+}
+
+.empty-cart-message .login-link:hover {
+  opacity: 0.85;
+}
+
 /* --- 추천 도서 섹션 --- */
 .recommend-section {
   margin-top: 20px;

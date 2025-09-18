@@ -30,5 +30,16 @@
         ORDER BY
             C.CART_REGDATE DESC
     </select>
+    
+    <delete id="deleteCartItem" parameterType="string">
+        DELETE FROM CART
+        WHERE CART_ID = #{cartId}
+    </delete>
+
+    <update id="updateCartItemQuantity">
+        UPDATE CART
+        SET CART_QUANTITY = #{quantity}
+        WHERE CART_ID = #{cartId}
+    </update>
 
 </mapper>

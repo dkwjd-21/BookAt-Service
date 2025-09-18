@@ -24,4 +24,14 @@ public class CartServiceImpl implements CartService {
 		// 컨트롤러에서 이미 인증된 사용자의 ID를 전달받았으므로, 그대로 매퍼에 전달합니다.
 		return cartMapper.getCartItemsForCurrentUser(userId);
 	}
+
+	@Override
+	public void deleteCartItem(String cartId) {
+		cartMapper.deleteCartItem(cartId);
+	}
+
+	@Override
+	public void updateCartItemQuantity(String cartId, int quantity) {
+		cartMapper.updateCartItemQuantity(cartId, quantity);
+	}
 }
