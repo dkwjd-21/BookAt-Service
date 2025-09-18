@@ -25,14 +25,14 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Controller
-//@RequestMapping("/reservation")
+@RequestMapping("/reservation")
 @RequiredArgsConstructor
 public class ReservationController {
 
 	private final ReservationService reservationService;
 	
 	// 임시 티켓팅 팝업 오픈
-	@GetMapping("/reservation")
+	@GetMapping("/start")
 	public String reservation(@RequestParam int eventId, @AuthenticationPrincipal User user, Model model) {
 		
 		/*
@@ -48,34 +48,34 @@ public class ReservationController {
 		log.info("이벤트 좌석 타입 : {}", event.getTicketType());
 		
 		// 이벤트 티켓 타입 저장
-//		Ticket ticket = new Ticket();
-//		ticket.setTicketType(event.getTicketType());
-//		
-//		// 예약하는 유저 저장
-//		Reservation reservation = new Reservation();
-//		reservation.setUserId(user.getUserId());
-//		log.info("예약 컨트롤러 유저아이디 : {}", reservation.getUserId());
-//		
-//		// 이벤트 회차에 해당 이벤트 아이디 저장
-//		EventPart eventPart = new EventPart();
-//		eventPart.setEventId(event.getEventId());
-//		log.info("예약 컨트롤러 이벤트아이디 : {}", eventPart.getEventId());
-//		
-//		// 좌석 유형에 해당 이벤트 아이디 저장
-//		SeatType seatType = new SeatType();
-//		seatType.setEventId(event.getEventId());
+		Ticket ticket = new Ticket();
+		ticket.setTicketType(event.getTicketType());
+		
+		// 예약하는 유저 저장
+		Reservation reservation = new Reservation();
+		reservation.setUserId(user.getUserId());
+		log.info("예약 컨트롤러 유저아이디 : {}", reservation.getUserId());
+		
+		// 이벤트 회차에 해당 이벤트 아이디 저장
+		EventPart eventPart = new EventPart();
+		eventPart.setEventId(event.getEventId());
+		log.info("예약 컨트롤러 이벤트아이디 : {}", eventPart.getEventId());
+		
+		// 좌석 유형에 해당 이벤트 아이디 저장
+		SeatType seatType = new SeatType();
+		seatType.setEventId(event.getEventId());
 
 		model.addAttribute("event", event);
-//		model.addAttribute("ticket", ticket);
-//		model.addAttribute("seatType", seatType);
-//		model.addAttribute("schedule", eventPart);
-//		model.addAttribute("payment", new Payment());
-//		model.addAttribute("reservation", new Reservation());
+		model.addAttribute("ticket", ticket);
+		model.addAttribute("seatType", seatType);
+		model.addAttribute("schedule", eventPart);
+		model.addAttribute("payment", new Payment());
+		model.addAttribute("reservation", new Reservation());
 
 		return "reservation/ReservationPopup";
 	}
 	
-	// 인원 등급 선택
+	// 날짜 회차 선택
 	@PostMapping("/eventSchedule")
 	public String eventSchedule(@AuthenticationPrincipal User user) {
 		boolean existUser = userIsNotNull(user);
@@ -107,21 +107,28 @@ public class ReservationController {
 		return ResponseEntity.ok(Map.of("", ""));
 	}
 	
+	// 주문자 정보 입력
+	@PostMapping("/inputUserInfo")
+	public ResponseEntity<?> inputUserInfo(@AuthenticationPrincipal User user) {
+		boolean existUser = userIsNotNull(user);
+		
+		/*
+		 * 요청
+		 * 주문자 이름, 전화번호, 이메일
+		 * 
+		 * 응답
+		 * 사용자 인증 여부?
+		 * 
+		 * */
+		return ResponseEntity.ok(Map.of("", ""));
+	}
+	
 	// 사용자가 존재하면 true, null 이면 false
 	private boolean userIsNotNull(User user) {
 		if(user != null) {
 			return true;
 		}
 		return false;
-	}
-	
-
-	public String reservation(@RequestParam int eventId, Model model) {
-		
-		Event event = reservationService.startReservation(eventId);
-		model.addAttribute("event", event);
-		
-		return "reservation/ReservationPopup_Seat";
 	}
 	
 }

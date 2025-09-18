@@ -27,8 +27,8 @@ async function onModal() {
     modal.style.display = "flex";
 
     // eventId를 DB의 이벤트ID 1개
-	const eventId = "98";
-    //const eventId = "100";
+	//const eventId = "98";
+    const eventId = "100";
 	//const eventId = "700";
 	//const eventId = "21";
 	
@@ -227,7 +227,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 		// 팝업창 띄우기
 		try {
-			const popupRes = await axiosInstance.get("/reservation", {
+			const popupRes = await axiosInstance.get("/reservation/start", {
 				params: {eventId},
 				responseType: "text",
 			});

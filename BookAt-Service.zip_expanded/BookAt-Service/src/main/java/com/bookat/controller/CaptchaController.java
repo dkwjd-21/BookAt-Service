@@ -39,7 +39,6 @@ public class CaptchaController {
 		
 		// redis 저장
 		captchaStore.save(captchaId, captcha.getAnswer());
-		log.info("captchaId={}, answer={}", captchaId, captcha.getAnswer());
 		
 		byte[] imageBytes = CaptchaUtil.toImageBytes(captcha);
 		
@@ -52,7 +51,7 @@ public class CaptchaController {
 	
 	// 캡챠 오디오 생성 API 
 	@GetMapping("/audio")
-	public ResponseEntity<byte[]> getCaptchaAudio(@RequestParam String captchaId) throws IOException{
+	public ResponseEntity<byte[]> getCaptchaAudio(@RequestParam String captchaId) throws IOException {
 		String answer = captchaStore.get(captchaId);
 		
 		if(answer == null) {

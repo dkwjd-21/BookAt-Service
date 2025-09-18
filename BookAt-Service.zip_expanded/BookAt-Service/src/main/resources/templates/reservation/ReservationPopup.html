@@ -34,7 +34,7 @@
 
 				<main class="content-wrapper">
 					<form action="/reservation" method="post" id="reservation-form">
-						<section class="selection-area step firstSection" data-step="1">
+						<section class="selection-area step firstSection active" data-step="1">
 							<input type="hidden" id="eventDate" th:value="${#dates.format(event.eventDate, 'yyyy-MM-dd')}">
 							<div class="calendar-container">
 								<div id="Date">
@@ -63,21 +63,21 @@
 								</div>
 							</div>
 							<div class="select-container">
-									<div class="select-day">
-										날짜 선택
-									</div>
-									<div class="option-day" th:text="${#dates.format(event.eventDate, 'M월 d일')}">9월 17일</div>
-									<div class="select-part">
-										회차 선택
-									</div>
-									<div class="part-options-container">
-										<div class="option-part" data-session-id="1">9월 17일 10:00 1회차</div>
-										<div class="option-part" data-session-id="2">9월 17일 14:00 2회차</div>
-										<div class="option-part" data-session-id="3">9월 17일 19:00 3회차</div>
-									</div>
+								<div class="select-day">
+									날짜 선택
 								</div>
+								<div class="option-day" th:text="${#dates.format(event.eventDate, 'M월 d일')}">9월 17일</div>
+								<div class="select-part">
+									회차 선택
+								</div>
+								<div class="part-options-container">
+									<div class="option-part" data-session-id="1">9월 17일 10:00 1회차</div>
+									<div class="option-part" data-session-id="2">9월 17일 14:00 2회차</div>
+									<div class="option-part" data-session-id="3">9월 17일 19:00 3회차</div>
+								</div>
+							</div>
 						</section>
-						<section class="selection-area step" data-step="2" style="display: none;">
+						<section class="selection-area step" data-step="2">
 							<input type="hidden" id="ticket-type" th:value="${event.ticketType}">
 							<div class="calendar-container">
 								<div th:if="${event.ticketType == 'PERSON_TYPE'}">
@@ -147,11 +147,12 @@
 								<div th:if="${event.ticketType == 'SEAT_TYPE'}">
 									
 									<!-- 좌석 선택 섹션 미작성! -->
+									<h2>좌석 선택 UI 영역</h2>
 								
 								</div>
 							</div>
 						</section>
-						<section class="selection-area step" data-step="3" style="display: none;">
+						<section class="selection-area step" data-step="3">
 							<div class="calendar-container pay-info-container">
 								<h2>주문자 정보 입력</h2>
 								<div class="pay-info-form">
@@ -170,7 +171,7 @@
 								</div>
 							</div>
 						</section>
-						<section class="selection-area step" data-step="4" style="display: none;">
+						<section class="selection-area step" data-step="4">
 							<div class="calendar-container">결제<br>컨텐츠 추가 영역</div>
 						</section>
 					</form>
@@ -181,8 +182,8 @@
 				<div class="event-poster">
 					<img class="posterImg" th:src="@{${event.eventImage}}" alt="포스터">
 					<h2>[[${event.eventName}]]</h2>
-					<p>2025년 9월 17일</p>
-					<p>10:00 1회차</p>
+					<p id="selected-date" th:text="${#dates.format(event.eventDate, 'yyyy년 M월 d일')}">이벤트날짜</p>
+					<p id="selected-session">선택회차</p>
 				</div>
 				<div class="person-info">
 					

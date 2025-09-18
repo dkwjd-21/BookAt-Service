@@ -92,19 +92,5 @@ public class QueueController {
 
 		return ResponseEntity.ok(response);
 	}
-
-	// 임시 티켓팅 팝업 오픈 --> 이후 ReservationController로 이동
-	@GetMapping("/reservation")
-	public String reservation() {
-		
-		// 여기서 이벤트 타입 보내주기 (좌석인지 선착순인지 판단 여기서)
-		return "reservation/ReservationPopup_Person";
-	}
-
-	// 임시 티켓팅 팝업 오픈 --> 이후 ReservationController로 이동
-	@GetMapping("/reservationSeat")
-	public String reservationSeat() {
-		return "reservation/ReservationPopup_Seat";
-	}
 	
 }

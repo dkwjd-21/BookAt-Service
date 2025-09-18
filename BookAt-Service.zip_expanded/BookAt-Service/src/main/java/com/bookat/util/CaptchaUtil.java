@@ -26,7 +26,7 @@ public class CaptchaUtil {
 				  .build();
 	}
 	
-	// 이미지 데이터를 byte[]로 반환 
+	// 이미지 데이터를 byte 로 반환 
 	public static byte[] toImageBytes(Captcha captcha) throws IOException {
 		// 이미지를 byte[]로 변환하여 반환
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -34,7 +34,7 @@ public class CaptchaUtil {
 		return baos.toByteArray();
 	}
 	
-	// 오디오 데이터를 byte로 변환 
+	// 오디오 데이터를 byte 로 변환 
 	public static byte[] toAudioBytes(String answer) throws IOException {
 		TextProducer textProducer = () -> answer;
 		

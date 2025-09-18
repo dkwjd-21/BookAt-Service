@@ -8,7 +8,7 @@ let currentCaptchaId = null;
 // 캡챠 모달 열기 함수 (콜백 받아서 저장)
 function showCaptchaModal() {
 	const modal = document.getElementById("captchaModal");
-	modal.style.display = "block";
+	modal.style.display = "flex";
 	refreshImage();
 }
 
@@ -71,11 +71,11 @@ async function verifyCaptcha(){
 	
 	try {
 		const res = await axiosInstance.post(verifyUrl, new URLSearchParams({
-			captchaId: currentCaptchaId,
-			answer: userAnswer
-		}),
-		{headers: {'Content-Type': 'application/x-www-form-urlencoded'}}
-	);
+				captchaId: currentCaptchaId,
+				answer: userAnswer
+			}),
+			{headers: {'Content-Type': 'application/x-www-form-urlencoded'}}
+		);
 		
 		if(res.data.success){
 			hideCaptchaModal();

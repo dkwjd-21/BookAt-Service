@@ -90,8 +90,17 @@ header {
 	overflow: hidden;
 }
 
+.selection-area {
+  display: none;
+}
+
+/* 활성화된 step 표시 */
+.selection-area.active {
+  display: block;
+}
+
 /* --- 핵심 레이아웃 코드 --- */
-.firstSection {
+.selection-area.firstSection.active {
 	display: flex;
 	align-items: center;
 	gap: 10px;
