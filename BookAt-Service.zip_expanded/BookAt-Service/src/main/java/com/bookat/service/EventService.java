@@ -3,8 +3,9 @@ package com.bookat.service;
 import java.util.Date;
 import java.util.List;
 
-import com.bookat.dto.BookDto;
+import com.bookat.dto.EventPartDto;
 import com.bookat.dto.EventResDto;
+import com.bookat.dto.EventSeatDto;
 import com.bookat.entity.Book;
 
 public interface EventService {
@@ -24,4 +25,10 @@ public interface EventService {
 	public int delete(int event_id);
 	
 	public List<EventResDto> selectByBookId(String bookId);
+	
+	// 이벤트 아이디로 회차 조회 
+	public List<EventPartDto> selectPartByEventId(int event_id);
+	
+	// 좌석 insert 
+	public int insertSeat(EventSeatDto dto);
 }

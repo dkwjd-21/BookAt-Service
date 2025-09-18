@@ -64,6 +64,15 @@
 		WHERE EVENT_DATE = #{eventDate}
 	</select>
 
+	<select id="selectPartByEventId" parameterType="int" resultType="com.bookat.dto.EventPartDto">
+		SELECT * FROM EVENT_PART
+		WHERE EVENT_ID = #{eventId}
+	</select>
+	
+	<insert id="insertSeat" parameterType="com.bookat.dto.EventSeatDto">
+		INSERT INTO SEAT_TYPE 
+		VALUES(SEQ_SEAT_TYPE.NEXTVAL, #{seatName}, #{seatStatus},
+			   #{seatGradeType}, #{eventId}, #{scheduleId})
+	</insert>
+	
 </mapper>
-
-
