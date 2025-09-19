@@ -37,6 +37,7 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 15px 5%;
+}
 
 .search-bar {
   padding-right: 0px;
@@ -381,12 +382,6 @@ a:active {
   border-radius: 10px;
   width: 150px;
   text-align: center;
-}
-
-
-.cancellation-info {
-  /* margin-top: 30px; */
-  /* padding-left: 20px; */
 }
 
 .info_text {
