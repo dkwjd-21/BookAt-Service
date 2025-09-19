@@ -19,8 +19,10 @@ public class JwtTokenProvider {
 	@Value("${jwt.secret}")
     private String secret;
     private Key key;
-    private final long expiration_30m = TimeUnit.MINUTES.toMillis(30); 	// 30분 (access token)
-    private final long expiration_7d = TimeUnit.DAYS.toMillis(7); 		// 7일 (refresh token)
+    
+    public final static int EXPIRATION_30M = (int) TimeUnit.MINUTES.toMillis(30); 	// 30분 (access token)
+    public final static int EXPIRATION_1D = (int) TimeUnit.DAYS.toMillis(1); 		// 1일 (refresh token)
+    public final static int EXPIRATION_7D = (int) TimeUnit.DAYS.toMillis(7); 		// 7일 (refresh token)
     
     @PostConstruct
     public void init() {
@@ -32,7 +34,7 @@ public class JwtTokenProvider {
 		return Jwts.builder()
 				.setSubject(userId)
 				.setIssuedAt(new Date())
-				.setExpiration(new Date(System.currentTimeMillis() + expiration_30m))
+				.setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_30M))
 				.signWith(key, SignatureAlgorithm.HS256)
 				.compact();
 	}
@@ -42,7 +44,7 @@ public class JwtTokenProvider {
 		return Jwts.builder()
 				.setSubject(userId)
 				.setIssuedAt(new Date())
-				.setExpiration(new Date(System.currentTimeMillis() + expiration_7d))
+				.setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_1D))
 				.signWith(key, SignatureAlgorithm.HS256)
 				.compact();
 	}

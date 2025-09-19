@@ -1,5 +1,18 @@
 package com.bookat.entity;
 
+/*
+ * 	CREATE TABLE EVENT (
+	    EVENT_ID          NUMBER          PRIMARY KEY,
+	    BOOK_ID           VARCHAR2(20)    NULL,
+	    TICKET_TYPE       VARCHAR2(20)    NOT NULL,
+	    EVENT_NAME        VARCHAR2(200)   NOT NULL,
+	    EVENT_DESCRIPTION  VARCHAR2(4000)  NOT NULL,
+	    EVENT_PRICE       NUMBER          NOT NULL,
+	    EVENT_IMAGE       VARCHAR2(1000)  NULL,
+	    LOCAL_CODE        VARCHAR2(20)    NOT NULL,
+	    ADDRESS           VARCHAR2(2000)  NOT NULL
+	);
+ * */
 import java.util.Date;
 
 // 이 클래스는 EVENT 테이블과 매핑되는 엔티티
