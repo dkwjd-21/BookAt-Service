@@ -84,7 +84,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const itemsHtml = cartItems
           .map(
             (item) => `
-            <div class="cart-item" data-price="${item.price}" data-cart-id="${item.cartId}">
+            <div class="cart-item" data-price="${item.price}" data-cart-id="${item.cartId}" data-book-id="${item.bookId}">
               <div class="item-selector">
                 <input type="checkbox" class="item-checkbox" name="selectedCartIds" value="${item.cartId}" checked />
               </div>
@@ -283,6 +283,90 @@ document.addEventListener("DOMContentLoaded", async () => {
       updateItemPrice(cartItem);
       updateSummary();
       debouncedUpdate(cartItem);
+    }
+  });
+
+  // --- 주문하기 버튼 클릭 이벤트 ---
+  document.addEventListener("click", (event) => {
+    if (event.target.id === "orderBtn") {
+      const checkedItems = document.querySelectorAll(".item-checkbox:checked");
+      if (checkedItems.length === 0) {
+        alert("주문할 상품을 선택해주세요.");
+        return;
+      }
+
+      const selectedCartIds = Array.from(checkedItems).map((checkbox) => checkbox.value);
+      const orderItems = [];
+
+      checkedItems.forEach((checkbox) => {
+        const cartItem = checkbox.closest(".cart-item");
+        const price = parseFloat(cartItem.dataset.price);
+        const quantity = parseInt(cartItem.querySelector(".quantity-input").value);
+        const title = cartItem.querySelector("h3").textContent;
+        const author = cartItem.querySelector("p").textContent;
+        const coverImage = cartItem.querySelector("img").src;
+
+        orderItems.push({
+          cartId: checkbox.value,
+          bookId: cartItem.dataset.bookId,
+          title: title,
+          author: author,
+          price: price,
+          quantity: quantity,
+          coverImage: coverImage,
+        });
+      });
+
+      // 주문할 상품 정보를 세션스토리지에 저장 (URL에 노출되지 않음)
+      sessionStorage.setItem("orderItems", JSON.stringify(orderItems));
+
+      // 디버깅을 위한 로그
+      console.log("=== 장바구니에서 주문페이지로 이동 ===");
+      console.log("현재 로컬스토리지 액세스토큰:", localStorage.getItem("accessToken"));
+      console.log("주문할 상품들:", orderItems);
+
+      // 토큰을 포함한 요청으로 주문페이지 접근
+      const accessToken = localStorage.getItem("accessToken");
+      if (!accessToken) {
+        alert("로그인이 필요합니다.");
+        window.location.href = "/user/login";
+        return;
+      }
+
+      // Authorization 헤더를 포함한 요청으로 주문페이지 접근
+      fetch("/order", {
+        method: "GET",
+        headers: {
+          Authorization: "Bearer " + accessToken,
+          "Content-Type": "application/json",
+        },
+      })
+        .then((response) => {
+          if (response.redirected) {
+            // 리다이렉트된 경우 (로그인 페이지로)
+            localStorage.removeItem("accessToken");
+            localStorage.removeItem("refreshToken");
+            alert("세션이 만료되었습니다. 다시 로그인해주세요.");
+            window.location.href = "/user/login";
+          } else if (response.ok) {
+            // 성공적으로 응답을 받으면 페이지 내용을 현재 페이지에 표시
+            return response.text();
+          } else {
+            throw new Error("주문페이지 접근 실패");
+          }
+        })
+        .then((html) => {
+          if (html) {
+            // 현재 페이지를 주문페이지 내용으로 교체
+            document.open();
+            document.write(html);
+            document.close();
+          }
+        })
+        .catch((error) => {
+          console.error("주문페이지 접근 중 오류:", error);
+          alert("주문페이지 접근 중 오류가 발생했습니다.");
+        });
     }
   });
 

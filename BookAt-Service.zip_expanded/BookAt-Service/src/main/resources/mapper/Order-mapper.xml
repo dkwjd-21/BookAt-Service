@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.bookat.mapper.OrderMapper">
+    <insert id="insertOrder" parameterType="com.bookat.dto.BookOrderRequestDto">
+        <selectKey keyProperty="orderId" resultType="long" order="BEFORE">
+            SELECT ORDERS_SEQ.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO ORDERS (ORDER_ID, ORDER_DATE, ORDER_STATUS, TOTAL_PRICE, USER_ID)
+        VALUES (#{orderId}, SYSDATE, 0, #{totalPrice}, #{userId})
+    </insert>
+
+    <insert id="insertOrderItem" parameterType="com.bookat.dto.BookOrderItemRequestDto">
+        <selectKey keyProperty="orderItemId" resultType="long" order="BEFORE">
+            SELECT ORDER_ITEMS_SEQ.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO ORDER_ITEMS (ORDER_ITEM_ID, BOOK_ID, ORDER_ID, QUANTITY, PRICE)
+        VALUES (#{orderItemId}, #{bookId}, #{orderId}, #{quantity}, #{price})
+    </insert>
+</mapper>

@@ -42,4 +42,34 @@
         WHERE CART_ID = #{cartId}
     </update>
 
+    <delete id="deleteCartItems" parameterType="java.util.List">
+        DELETE FROM CART
+        WHERE CART_ID IN
+        <foreach item="cartId" collection="list" open="(" separator="," close=")">
+            #{cartId}
+        </foreach>
+    </delete>
+
+    <select id="getCartItemsByIds" resultMap="cartResponseMap" parameterType="java.util.List">
+        SELECT
+            C.CART_ID,
+            C.CART_QUANTITY,
+            B.BOOK_ID,
+            B.BOOK_TITLE,
+            B.AUTHOR,
+            B.BOOK_PRICE,
+            B.BOOK_COVER
+        FROM
+            CART C
+        JOIN
+            BOOK B ON C.BOOK_ID = B.BOOK_ID
+        WHERE
+            C.CART_ID IN
+        <foreach item="cartId" collection="list" open="(" separator="," close=")">
+            #{cartId}
+        </foreach>
+        ORDER BY
+            C.CART_REGDATE DESC
+    </select>
+
 </mapper>

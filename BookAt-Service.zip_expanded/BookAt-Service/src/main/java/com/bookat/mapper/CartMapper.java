@@ -13,4 +13,8 @@ public interface CartMapper {
     void deleteCartItem(String cartId);
 
     void updateCartItemQuantity(@Param("cartId") String cartId, @Param("quantity") int quantity);
+
+    void deleteCartItems(List<String> cartIds);
+
+    List<CartResponse> getCartItemsByIds(List<String> cartIds);
 }

@@ -37,7 +37,7 @@ public class SecurityConfig {
         		.requestMatchers("/css/**", "/js/**", "/images/**").permitAll()	// 정적 리소스 접근 가능
         		.requestMatchers("/mainpage/**", "/books/**", "/event/**","/cart/**").permitAll()
         		.requestMatchers("/pay/**").authenticated()
-        		.requestMatchers("/", "/user/**", "/auth/**", "/mainPage/**", "/infoPage/**").permitAll()
+        		.requestMatchers("/", "/user/**", "/auth/**", "/mainPage/**", "/infoPage/**","/order/**").permitAll()
         					// 홈, 로그인, 메인페이지, 상세페이지 토큰없이 접근 허용
         		.requestMatchers("/api/**", "/queue/**", "/myPage/**").authenticated()
         							// 예약 기능 토큰 필요
