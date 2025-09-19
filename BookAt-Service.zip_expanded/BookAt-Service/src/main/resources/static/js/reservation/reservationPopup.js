@@ -39,8 +39,12 @@ document.addEventListener("DOMContentLoaded", () => {
 	let currentStep = 1;
 	let totalPrice = 0;
 	
+	// 서버에서 넘어온 예약 토큰 세션스토리지에 저장
+	const reservationToken = document.getElementById("reservation-token").value;
+	sessionStorage.setItem("reservationToken", reservationToken);
+	
 	// 캡챠 모달
-	showCaptchaModal();
+	//showCaptchaModal();
 	
 	// 초기 달력 세팅
 	initCalendar();
@@ -113,7 +117,8 @@ document.addEventListener("DOMContentLoaded", () => {
 	});
 	
 	// 다음 단계 버튼
-	nextBtn.addEventListener("click", () => {
+	nextBtn.addEventListener("click", async () => {
+		const token = sessionStorage.getItem("reservationToken");
 		
 		// step1, 날짜 / 회차 예약 : 회차 선택 필수
 		if(currentStep === 1) {
@@ -124,6 +129,25 @@ document.addEventListener("DOMContentLoaded", () => {
 				alert("회차를 선택해주세요.");
 				return;
 			}
+			
+			const scheduleId = chosen.getAttribute("data-session-id");
+			
+			try {
+				const res = await axiosInstance.post(`/reservation/${token}/step1`, {
+					scheduleId: parseInt(scheduleId)
+				});
+				
+				console.log("응답 : ", res.data);
+				
+				if(res.data.status === "STEP2") {
+					showStep(currentStep + 1);
+				} else {
+					console.log("회차 선택 실패");
+				}
+			} catch(err) {
+				console.log("회차선택 오류 : ", err);
+			}
+			return;
 		}
 		
 		// step2, 인원 / 등급 선택 버전
@@ -132,6 +156,37 @@ document.addEventListener("DOMContentLoaded", () => {
 				alert("예약인원을 선택해주세요!");
 				return;
 			}
+			
+			const payload = {
+				personCounts: {
+					ADULT: parseInt(document.getElementById("adultCount").value),
+					YOUTH: parseInt(document.getElementById("youthCount").value),
+					CHILD: parseInt(document.getElementById("childCount").value),
+				},
+				totalPrice: parseInt(document.getElementById("total-price").value),
+			}
+			
+			try {
+				const res = await axiosInstance.post(`/reservation/${token}/step2`, payload);
+				
+				console.log("응답 : ", res.data);
+
+				if(res.data.status === "STEP3") {
+					showStep(currentStep + 1);
+				} else {
+					console.log("인원 등급 실패");
+				}
+			} catch(err) {
+				if(err.response && err.response.data) {
+					alert(err.response.data.error || "예약 중 오류가 발생했습니다.");
+				} else {
+					alert("네트워크 오류가 발생했습니다.");
+				}
+				
+				console.error("인원 선택 오류:", err);
+			}
+			return;
+			
 		}
 		
 		// step3, 주문자 정보 입력
@@ -156,6 +211,26 @@ document.addEventListener("DOMContentLoaded", () => {
 				emailInput.focus();
 				return;
 			}
+			
+			const payload = {
+				userName: userNameInput.value.trim(),
+				phone: phoneInput.value.trim(),
+				email: emailInput.value.trim(),
+			};
+			
+			try {
+				const res = await axiosInstance.post(`/reservation/${token}/step3`, payload);
+				
+				if(res.data.status === "STEP4") {
+					showStep(currentStep + 1);
+				} else {
+					console.log("사용자 정보 저장 실패");
+				}
+			} catch(err) {
+				console.log("사용자 정보 저장 오류:", err);
+			}
+
+			return;
 		}
 
 		// step 이동
@@ -168,6 +243,8 @@ document.addEventListener("DOMContentLoaded", () => {
 	submitBtn.addEventListener("click", (e) => {
 		e.preventDefault();
 		alert("예매 완료되었습니다.");
+		sessionStorage.removeItem("reservationToken");
+		sessionStorage.removeItem("eventId");
 	});
 	
 	function updateSummary() {

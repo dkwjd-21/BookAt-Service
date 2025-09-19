@@ -223,6 +223,15 @@ header {
 	/* 다음 제목과의 간격 */
 }
 
+/* 회차선택 잔여석 0 이면 적용 */
+.option-part.disabled {
+    background-color: #e0e0e0;
+    color: #888;
+    cursor: not-allowed;
+    pointer-events: none;
+    opacity: 0.6;
+}
+
 .option-day:hover,
 .option-part:hover{
 	background-color: #FCECA4;

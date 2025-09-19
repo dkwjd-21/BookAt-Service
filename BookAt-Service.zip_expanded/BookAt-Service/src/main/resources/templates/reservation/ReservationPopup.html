@@ -34,6 +34,7 @@
 
 				<main class="content-wrapper">
 					<form action="/reservation" method="post" id="reservation-form">
+						<input type="hidden" id="reservation-token" th:value="${reservationToken}">
 						<section class="selection-area step firstSection active" data-step="1">
 							<input type="hidden" id="eventDate" th:value="${#dates.format(event.eventDate, 'yyyy-MM-dd')}">
 							<div class="calendar-container">
@@ -71,9 +72,11 @@
 									회차 선택
 								</div>
 								<div class="part-options-container">
-									<div class="option-part" data-session-id="1">9월 17일 10:00 1회차</div>
-									<div class="option-part" data-session-id="2">9월 17일 14:00 2회차</div>
-									<div class="option-part" data-session-id="3">9월 17일 19:00 3회차</div>
+									<div th:each="eventTime : ${eventParts}" class="option-part" 
+										th:attr="data-session-id=${eventTime.scheduleId}"
+										th:text="${#dates.format(eventTime.scheduleTime, 'HH:mm')} + ' ' + ${eventTime.scheduleName}"
+										th:classappend="${eventTime.remainingSeat == 0} ? ' disabled' : ''">
+									</div>
 								</div>
 							</div>
 						</section>
