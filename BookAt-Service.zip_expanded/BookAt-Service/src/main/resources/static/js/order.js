@@ -65,25 +65,77 @@ document.addEventListener("DOMContentLoaded", function () {
     alert("주문할 상품이 없습니다.");
     window.location.href = "/cart";
   }
+
+  // 결제하기 버튼 클릭 이벤트
+  document.getElementById("paymentBtn").addEventListener("click", function () {
+    const accessToken = localStorage.getItem("accessToken");
+
+    if (!accessToken) {
+      alert("로그인이 필요합니다.");
+      window.location.href = "/user/login";
+      return;
+    }
+
+    // 주문 생성 요청
+    const cartIds = orderItems.map((item) => item.cartId || item.bookId); // cartId가 없으면 bookId 사용
+
+    // 배송비 포함 총 금액 계산
+    const subtotal = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const shippingFee = subtotal > 0 && subtotal < 15000 ? 3000 : 0;
+    const totalAmount = subtotal + shippingFee;
+
+    console.log("=== 주문 요청 시작 ===");
+    console.log("cartIds:", cartIds);
+    console.log("subtotal:", subtotal);
+    console.log("shippingFee:", shippingFee);
+    console.log("totalAmount:", totalAmount);
+
+    axiosInstance
+      .post("/order/create", {
+        cartIds: cartIds,
+        subtotal: subtotal,
+        shippingFee: shippingFee,
+        totalAmount: totalAmount,
+      })
+      .then((response) => {
+        console.log("=== 주문 응답 받음 ===");
+        console.log("response:", response);
+        console.log("response.data:", response.data);
+
+        if (response.data) {
+          alert(response.data);
+          if (response.data === "주문이 완료되었습니다.") {
+            // 주문 완료 후 장바구니나 메인페이지로 이동
+            window.location.href = "/cart";
+          }
+        }
+      })
+      .catch((error) => {
+        console.error("=== 주문 처리 중 오류 ===");
+        console.error("error:", error);
+        console.error("error.response:", error.response);
+
+        if (error.response && error.response.status === 401) {
+          localStorage.removeItem("accessToken");
+          localStorage.removeItem("refreshToken");
+          alert("세션이 만료되었습니다. 다시 로그인해주세요.");
+          window.location.href = "/user/login";
+        } else {
+          alert("주문 처리 중 오류가 발생했습니다.");
+        }
+      });
+  });
 });
 
 // 로그인 상태 확인 함수 (서버에서 이미 검증했으므로 간단히 체크)
 function checkLoginStatus() {
   const accessToken = localStorage.getItem("accessToken");
 
-  // 디버깅을 위한 로그
-  console.log("=== 로그인 상태 확인 ===");
-  console.log("로컬스토리지에서 가져온 액세스토큰:", accessToken);
-
   if (!accessToken) {
-    console.log("액세스토큰이 없습니다. 로그인 페이지로 이동합니다.");
     alert("로그인이 필요합니다.");
     window.location.href = "/user/login";
     return;
   }
-
-  // 서버에서 이미 토큰을 검증했으므로 추가 검증은 생략
-  console.log("토큰이 존재합니다. 주문페이지를 계속 진행합니다.");
 }
 
 // 주문 상품 목록을 렌더링
@@ -114,61 +166,18 @@ function renderOrderItems() {
 // 주문 요약 업데이트
 function updateOrderSummary() {
   const subtotal = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+  // 배송비 정책: 15,000원 미만은 3,000원, 그 이상은 무료
+  const shippingFee = subtotal > 0 && subtotal < 15000 ? 3000 : 0;
+  const totalAmount = subtotal + shippingFee;
   const points = Math.floor(subtotal * 0.01); // 1% 적립
 
   document.getElementById("subtotal").textContent = subtotal.toLocaleString() + "원";
-  document.getElementById("total").textContent = subtotal.toLocaleString() + "원";
-  document.getElementById("totalAmount").textContent = subtotal.toLocaleString() + "원";
+  document.getElementById("shippingFee").textContent = shippingFee === 0 ? "무료" : `${shippingFee.toLocaleString()}원`;
+  document.getElementById("total").textContent = totalAmount.toLocaleString() + "원";
+  document.getElementById("totalAmount").textContent = totalAmount.toLocaleString() + "원";
   document.getElementById("points").textContent = points.toLocaleString() + "P";
 }
-
-// 결제하기 버튼 클릭 이벤트
-document.getElementById("paymentBtn").addEventListener("click", function () {
-  const accessToken = localStorage.getItem("accessToken");
-
-  if (!accessToken) {
-    alert("로그인이 필요합니다.");
-    window.location.href = "/user/login";
-    return;
-  }
-
-  // 주문 생성 요청
-  const cartIds = orderItems.map((item) => item.cartId || item.bookId); // cartId가 없으면 bookId 사용
-
-  fetch("/order/create", {
-    method: "POST",
-    headers: {
-      Authorization: "Bearer " + accessToken,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      cartIds: cartIds,
-    }),
-  })
-    .then((response) => {
-      if (response.redirected) {
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
-        alert("세션이 만료되었습니다. 다시 로그인해주세요.");
-        window.location.href = "/user/login";
-        return;
-      }
-      return response.json();
-    })
-    .then((data) => {
-      if (data) {
-        alert(data);
-        if (data === "주문이 완료되었습니다.") {
-          // 주문 완료 후 장바구니나 메인페이지로 이동
-          window.location.href = "/cart";
-        }
-      }
-    })
-    .catch((error) => {
-      console.error("주문 처리 중 오류:", error);
-      alert("주문 처리 중 오류가 발생했습니다.");
-    });
-});
 
 // 주소 모달 관련 함수들
 

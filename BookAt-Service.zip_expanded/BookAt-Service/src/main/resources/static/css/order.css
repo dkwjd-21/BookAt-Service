@@ -12,6 +12,7 @@
 }
 
 .order-layout {
+  width: 1200px;
   display: flex;
   gap: 2rem;
   align-items: flex-start;
@@ -141,7 +142,7 @@
 
 .item-price .price {
   font-weight: bold;
-  color: #003274;
+  color: #b5d173;
 }
 
 .item-price .quantity {

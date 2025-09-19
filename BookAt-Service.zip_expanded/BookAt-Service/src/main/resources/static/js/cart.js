@@ -320,11 +320,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       // 주문할 상품 정보를 세션스토리지에 저장 (URL에 노출되지 않음)
       sessionStorage.setItem("orderItems", JSON.stringify(orderItems));
 
-      // 디버깅을 위한 로그
-      console.log("=== 장바구니에서 주문페이지로 이동 ===");
-      console.log("현재 로컬스토리지 액세스토큰:", localStorage.getItem("accessToken"));
-      console.log("주문할 상품들:", orderItems);
-
       // 토큰을 포함한 요청으로 주문페이지 접근
       const accessToken = localStorage.getItem("accessToken");
       if (!accessToken) {
@@ -333,39 +328,29 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
       }
 
-      // Authorization 헤더를 포함한 요청으로 주문페이지 접근
-      fetch("/order", {
-        method: "GET",
-        headers: {
-          Authorization: "Bearer " + accessToken,
-          "Content-Type": "application/json",
-        },
-      })
+      // axiosInstance를 사용한 요청으로 주문페이지 접근 (토큰 자동 포함)
+      axiosInstance
+        .get("/order")
         .then((response) => {
-          if (response.redirected) {
-            // 리다이렉트된 경우 (로그인 페이지로)
+          // URL 변경
+          history.pushState(null, null, "/order");
+
+          // 현재 페이지를 주문페이지 내용으로 교체
+          document.open();
+          document.write(response.data);
+          document.close();
+        })
+        .catch((error) => {
+          console.error("주문페이지 접근 중 오류:", error);
+          if (error.response && error.response.status === 401) {
+            // 인증 실패 시 로그인 페이지로 이동
             localStorage.removeItem("accessToken");
             localStorage.removeItem("refreshToken");
             alert("세션이 만료되었습니다. 다시 로그인해주세요.");
             window.location.href = "/user/login";
-          } else if (response.ok) {
-            // 성공적으로 응답을 받으면 페이지 내용을 현재 페이지에 표시
-            return response.text();
           } else {
-            throw new Error("주문페이지 접근 실패");
+            alert("주문페이지 접근 중 오류가 발생했습니다.");
           }
-        })
-        .then((html) => {
-          if (html) {
-            // 현재 페이지를 주문페이지 내용으로 교체
-            document.open();
-            document.write(html);
-            document.close();
-          }
-        })
-        .catch((error) => {
-          console.error("주문페이지 접근 중 오류:", error);
-          alert("주문페이지 접근 중 오류가 발생했습니다.");
         });
     }
   });
