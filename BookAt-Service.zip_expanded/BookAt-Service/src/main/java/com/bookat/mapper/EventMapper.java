@@ -1,16 +1,14 @@
 package com.bookat.mapper;
 
+import java.util.Date;
 import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
-
-
 import org.apache.ibatis.annotations.Param;
-import org.apache.ibatis.annotations.Select;
 
-
-
+import com.bookat.dto.EventPartDto;
 import com.bookat.dto.EventResDto;
+import com.bookat.dto.EventSeatDto;
 import com.bookat.entity.Book;
 
 @Mapper
@@ -44,7 +42,11 @@ public interface EventMapper {
 
 	List<EventResDto> selectByBookId(@Param("bookId") String bookId);
 	
-	
+ 	List<EventResDto> selectByEventDate(Date eventDate);
 
-	
+	// 이벤트 아이디로 회차 조회
+ 	List<EventPartDto> selectPartByEventId(int eventId);
+ 	
+ 	// 회차별 좌석 insert
+ 	int insertSeat(EventSeatDto dto);
 }

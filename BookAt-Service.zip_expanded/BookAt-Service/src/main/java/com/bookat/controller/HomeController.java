@@ -20,4 +20,5 @@ public class HomeController {
 	public String queue(Model model) {
 		return "reservation/QueueModal";
 	}
+	
 }
