@@ -105,6 +105,7 @@ public class BookController{
 	@PostMapping("/{bookId}/order")
 	public String order(@PathVariable String bookId,
 			            @RequestParam("qty") Integer qty,
+			            @RequestParam(name = "method", defaultValue = "CARD") String method,
                         @AuthenticationPrincipal(expression = "userId") String userId) {
 		
 		  // 로그인 후 돌아올 위치

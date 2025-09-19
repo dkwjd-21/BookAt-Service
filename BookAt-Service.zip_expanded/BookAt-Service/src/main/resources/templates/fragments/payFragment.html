@@ -1,69 +1,77 @@
-<div th:fragment="payFragment(merchantUid, amount)">
-  <form id="payCompleteForm" th:action="@{/payment/complete}" method="post" style="display:none;">
-    <input type="hidden" name="imp_uid" id="imp_uid">
-    <input type="hidden" name="merchant_uid" th:value="${merchantUid}">
-    <input type="hidden" name="method" id="method" value="card"><!-- 기본값: card -->
+<div th:fragment="payFragment (merchantUid, amount, title, method)">
+<link rel="stylesheet" th:href="@{/css/payment.css}">
+  <div class="pay-wrap">
+    <input type="hidden" id="method" th:value="${method != null ? method : 'card'}">
+    <input type="hidden" id="item_name" th:value="${title}">
 
-    <!-- vbank 추가데이터를 숨은필드로 같이 보냄 -->
-    <input type="hidden" name="depositor_name" id="depositor_name_hidden">
-    <input type="hidden" name="cash_receipt_apply" id="cash_receipt_apply_hidden">
-    <input type="hidden" name="cash_receipt_type" id="cash_receipt_type_hidden">
-    <input type="hidden" name="cash_receipt_number" id="cash_receipt_number_hidden">
-
-    <!-- CSRF -->
-    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-  </form>
-
-  <style>
-    .pay-method-btn { padding:8px 12px; border:1px solid #ddd; background:#fff; cursor:pointer;
-      border-radius:6px; font-size:14px; }
-    .pay-method-btn.is-active { border-color:#444; background:#B5D173; font-weight:600; }
-    .vbank-box { border:1px solid #eee; border-radius:8px; padding:12px; margin-bottom:10px; background:#fafafa; }
-    .vbank-input { width:100%; box-sizing:border-box; padding:10px; border:1px solid #ddd; border-radius:6px; }
-    .row { margin-top:10px; }
-    .muted { color:#666; font-size:13px; }
-  </style>
-
-  <!-- 결제수단 버튼 -->
-  <div class="pay-method-group" style="display:flex; gap:8px; margin:8px 0;">
-    <button type="button" class="pay-method-btn is-active" data-method="card">신용카드</button>
-    <button type="button" class="pay-method-btn" data-method="vbank">무통장입금</button>
-  </div>
-
-  <!-- 무통장입금 내용 (기본 숨김, vbank 선택 시 표시) -->
-  <div id="vbankSection" style="display:none; margin:12px 0 16px;">
-    <div class="vbank-box">
-      <div><strong>입금계좌</strong></div>
-      <div class="row">국민은행 <strong>000000-00-000-000</strong></div>
-      <div class="row muted">예금주: <strong>주식회사 북캣</strong></div>
+    <div class="pay-tabs">
+      <button type="button" class="pay-method-btn" data-method="card">신용카드</button>
+      <button type="button" class="pay-method-btn is-active" data-method="vbank">무통장입금</button>
     </div>
 
-    <div class="vbank-box">
-      <input id="depositor_name_input" type="text" class="vbank-input"
-             placeholder="입금자명(미입력시 주문자명)">
-    </div>
+    <!-- 여기: 패널 적용 + 고정 문구 -->
+    <div id="vbankSection" class="panel pay-card open">
+      <h4>입금계좌</h4>
+      <div class="bank-line">국민은행 000000-00-000-000</div>
+      <div class="bank-meta">예금주: 주식회사 북캣</div>
 
-    <div class="row">
-      <label>
-        <input type="checkbox" id="cash_rcpt_check">
-        현금영수증 신청
-      </label>
-    </div>
-
-    <div id="cash_rcpt_detail" style="display:none; margin-top:8px;">
-      <div class="row">
-        <label><input type="radio" name="cash_rcpt_type" value="DED" checked> 소득공제용</label>
-        <label style="margin-left:12px;"><input type="radio" name="cash_rcpt_type" value="BIZ"> 지출증빙용</label>
+      <div class="field" style="margin-top:12px;">
+        <div class="label">입금자명</div>
+        <input id="depositor_name_input" class="input" type="text" placeholder="입금자명(미입력시 주문자명)">
       </div>
-      <div class="row">
-        <input type="text" id="cash_rcpt_number_input" class="vbank-input" placeholder="휴대폰번호 입력">
+
+      <div class="ctrl-row">
+        <input type="checkbox" id="cash_rcpt_check" class="check">
+        <label for="cash_rcpt_check">현금영수증 신청</label>
+      </div>
+
+      <div id="cash_rcpt_detail">
+        <div class="ctrl-row" style="margin-left:1px;">
+          <input type="radio" name="cash_rcpt_type" id="rcpt_ded" value="DED" class="radio" checked>
+          <label for="rcpt_ded">소득공제용</label>
+          <input type="radio" name="cash_rcpt_type" id="rcpt_biz" value="BIZ" class="radio" style="margin-left:14px;">
+          <label for="rcpt_biz">지출증빙용</label>
+        </div>
+        <input id="cash_rcpt_number_input" class="input" type="text" placeholder="휴대폰번호 입력">
+        <div class="help">(-) 없이 숫자만 입력</div>
       </div>
     </div>
-  </div>
 
-  <!-- payment.js가 이 data-merchant / data-amount 를 읽어 결제 실행 -->
-  <button id="payBtn"
-          th:attr="data-merchant=${merchantUid},data-amount=${amount}">
-    결제하기
-  </button>
+    <button id="payBtn"
+            type="button"
+            class="btn pay-button"
+            th:attr="data-merchant=${merchantUid},data-amount=${amount},data-title=${title}">
+      결제하기
+    </button>
+
+    <form id="payCompleteForm" th:action="@{/payment/complete}" method="post" style="display:none;">
+      <input type="hidden" id="imp_uid" name="impUid">
+      <input type="hidden" id="merchantUid" name="merchantUid" th:value="${merchantUid}">
+      <input type="hidden" id="merchant_uid" name="merchant_uid" th:value="${merchantUid}">
+      <input type="hidden" name="amount" th:value="${amount}">
+      <input type="hidden" name="itemName" th:value="${title}">
+      <input type="hidden" name="payMethod" id="pay_method_hidden" th:value="${method != null ? method : 'card'}">
+      <input type="hidden" id="depositor_name_hidden" name="depositor">
+      <input type="hidden" id="cash_receipt_apply_hidden" name="cashReceiptApply">
+      <input type="hidden" id="cash_receipt_type_hidden" name="cashReceiptType">
+      <input type="hidden" id="cash_receipt_number_hidden" name="cashReceiptNumber">
+    </form>
+  </div>
 </div>
+
+  <!--
+    BOOK_ORDER / ORDER_ITEM 값 매핑
+
+    - BOOK_ORDER 컬럼: ORDER_ID, PAYMENT_ID, ORDER_DATE, ORDER_STATUS, TOTAL_PRICE, USER_ID, ADDR_ID
+      * 결제 직전/직후 주문 생성 플로우:
+        1) 주문 생성(ORDER_ID 발급), BOOK_ORDER.TOTAL_PRICE = amount, USER_ID/ADDR_ID 세팅
+        2) 결제 성공 시 BOOK_ORDER.PAYMENT_ID update, ORDER_STATUS 전이(예: CREATED -> PAID)
+
+    - ORDER_ITEM 컬럼: ORDER_ITEM_ID, BOOK_ID, ORDER_ID, ORDER_QUANTITY, ITEM_PRICE
+      * 한 권 결제 기준: BOOK_ID = session.bookId, ORDER_QUANTITY = qty, ITEM_PRICE = 단가(할인/쿠폰 없으면 BOOK.price)
+      * 다중 도서 결제 시: 장바구니/주문 생성 시점에서 각 항목별로 INSERT
+
+    - 본 프래그먼트에서 내려보내는 값(title, amount, method 등)은
+      Controller: model.addAttribute("title", ctx.title()); 로 세팅됨.
+      JS는 #item_name(hidden)과 #payBtn(data-title)에서 동일 값 사용.
+  -->

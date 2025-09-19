@@ -8,9 +8,12 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
+import com.bookat.dto.PaymentCompleteRequest;
 import com.bookat.dto.PaymentDto;
+import com.bookat.dto.PaymentSession;
 import com.bookat.service.BookService;
 import com.bookat.service.PaymentService;
+import com.bookat.util.PaymentSessionStore;
 import com.bookat.util.PortOneClient;
 
 import lombok.RequiredArgsConstructor;
@@ -23,100 +26,159 @@ public class PaymentController {
   private final PaymentService paymentService;
   private final PortOneClient portOneClient;
   private final BookService bookService;
+  private final PaymentSessionStore sessionStore;
 
+  @PostMapping("/session/start")
+  @ResponseBody
+  public Map<String, Object> start(@RequestParam String bookId,
+                                   @RequestParam(defaultValue = "1") Integer qty,
+                                   @RequestParam(defaultValue = "CARD") String method,
+                                   @AuthenticationPrincipal(expression = "userId") String userId) {
 
+    if (userId == null || userId.isBlank()) {
+      return Map.of("status","error","message","unauthorized");
+    }
+
+    var book = bookService.selectOne(bookId);
+    if (book == null) {
+      return Map.of("status","error","message","invalid bookId");
+    }
+
+    int safeQty = (qty == null || qty < 1) ? 1 : qty;
+    BigDecimal amount = book.getPrice().multiply(BigDecimal.valueOf(safeQty));
+    String rawTitle = book.getTitle();
+    String payTitle = safeQty > 1 ? rawTitle + " 외 " + (safeQty - 1) + "권" : rawTitle;
+
+    // 무통장입금 실제 구현 x CARD로 강제
+    String enforcedMethod = "CARD";
+
+    var pay = paymentService.createReadyPayment(
+          amount.intValueExact(), enforcedMethod, payTitle, userId);
+
+    PaymentSession session = PaymentSessionStore.of(
+          bookId, safeQty, enforcedMethod, amount, pay.getMerchantUid(), userId, payTitle);
+
+    String token = sessionStore.create(session);
+
+    return Map.of("status","success",
+                  "redirectUrl","/payment/frag-test?token=" + token);
+  }
+
+  @GetMapping("/session/context")
+  @ResponseBody
+  public Map<String, Object> context(@RequestParam String token,
+                                     @AuthenticationPrincipal(expression = "userId") String userId) {
+      if (userId == null || userId.isBlank()) {
+          return Map.of("status","error","message","unauthorized");
+      }
+      // ★ 중요: 조회 전용이므로 소비하지 말 것(두 번째 인자를 false로)
+      var ctx = sessionStore.get(token, false);
+      if (ctx == null) {
+          return Map.of("status","error","message","session_not_found");
+      }
+      if (!userId.equals(ctx.userId())) {
+          return Map.of("status","error","message","forbidden");
+      }
+      return Map.of(
+          "status","success",
+          "merchantUid", ctx.merchantUid(),
+          "amount", ctx.amount(),
+          "title", ctx.title(),
+          "method", ctx.method(),
+          "token", token
+      );
+  }
   
-  /** 개발용: 페이지 전체 결제 테스트 */
-  @GetMapping("/dev/new")
-  public String devNew(@RequestParam Integer amount,
-                       @RequestParam String method,
-                       Model model,
-                       @AuthenticationPrincipal(expression = "userId") String userId) {
+  @GetMapping("/frag-test")
+  public String fragTest(@RequestParam String token, Model model) {
+      model.addAttribute("token", token); 
+      return "payment/frag-test";
+  }
+
+
+
+/* 개발용: 페이지 전체 결제 테스트 
+@GetMapping("/dev/new")
+public String devNew(@RequestParam Integer amount,
+                     @RequestParam String method,
+                     Model model,
+                     @AuthenticationPrincipal(expression = "userId") String userId) {
 	  
 
-    PaymentDto pay = paymentService.createReadyPayment(amount, method, "개발용 결제",userId);
-    model.addAttribute("merchantUid", pay.getMerchantUid());
-    model.addAttribute("amount", pay.getPaymentPrice());
-    model.addAttribute("userId", userId);
-    return "payment/pay";
-  }
-  
-
-  /** 프래그먼트 포함 페이지 테스트 */
-  public String fragTest(@RequestParam String bookId,
-          @RequestParam(defaultValue = "1") Integer qty,
-          @RequestParam String method,
-          Model model,
-          @AuthenticationPrincipal(expression = "userId") String userId) {
-
-          if (userId == null || userId.isBlank()) {
-          // 로그인 후 돌려보낼 위치는 그대로 유지
-          return "redirect:/user/Login?next=/payment/frag-test?bookId=" + bookId + "&qty=" + qty + "&method=" + method;
+  PaymentDto pay = paymentService.createReadyPayment(amount, method, "개발용 결제",userId);
+  model.addAttribute("merchantUid", pay.getMerchantUid());
+  model.addAttribute("amount", pay.getPaymentPrice());
+  model.addAttribute("userId", userId);
+  return "payment/pay";
+}*/
+  @PostMapping("/api/complete")
+  @ResponseBody
+  public Map<String, Object> apiComplete(@RequestBody PaymentCompleteRequest req,
+                                         @AuthenticationPrincipal(expression = "userId") String userId) {
+      if (userId == null || userId.isBlank()) {
+          return Map.of("status","error","message","unauthorized");
+      }
+      try {
+          // 1) 세션 토큰 검증(세션은 소비하지 않음)
+          var ctx = sessionStore.get(req.getToken(), false);
+          if (ctx == null || !userId.equals(ctx.userId())) {
+              return Map.of("status","error","message","session_invalid");
           }
 
-          // 가격 조회 (주문 생성 X, 조회만)
-          var book = bookService.selectOne(bookId);
+          // 2) 포트원 조회/금액/상태 검증 (기존 로직 재사용)
+          String accessToken = portOneClient.getAccessToken().block();
+          var impPayment = portOneClient.getPaymentByImpUid(accessToken, req.getImpUid()).block();
+          @SuppressWarnings("unchecked")
+          var resp = (java.util.Map<String, Object>) impPayment.get("response");
 
-          // 금액 계산
-          BigDecimal unitPrice = book.getPrice(); // BigDecimal
-          int safeQty = (qty == null || qty < 1) ? 1 : qty;
-          BigDecimal amount = unitPrice.multiply(BigDecimal.valueOf(safeQty));
+          int paidAmount = ((Number) resp.get("amount")).intValue();
+          String status   = (String) resp.get("status");
+          String pgTid    = (String) resp.get("pg_tid");
+          String receipt  = (String) resp.get("receipt_url");
 
-          // 실제 결제 준비
-          PaymentDto pay = paymentService.createReadyPayment(amount.intValueExact(),method,"결제연동 테스트",userId);
+          var local = paymentService.findByMerchantUid(req.getMerchantUid());
+          if (!"paid".equals(status) || local.getPaymentPrice() != paidAmount) {
+              paymentService.markFailed(req.getMerchantUid(), "검증불일치 또는 미결제");
+              return Map.of("status","error","message","verify_failed");
+          }
 
-          
-          model.addAttribute("merchantUid", pay.getMerchantUid());
-          model.addAttribute("amount", pay.getPaymentPrice());
-          model.addAttribute("userId", userId);
-          model.addAttribute("bookId", bookId);
-          model.addAttribute("qty", qty);
-          model.addAttribute("book", book);
+          // 3) 성공 처리
+          paymentService.markPaid(req.getMerchantUid(), req.getImpUid(), pgTid, receipt);
 
-         // book_order 연동: 나중에 bookId/qty 대신 orderId를 받아서 orderId 기반으로 금액/항목 요약
+          // 4) 프런트가 이동할 URL만 내려줌
+          return Map.of(
+              "status","success",
+              "successRedirect", "/payment/success?m=" + req.getMerchantUid() + "&i=" + req.getImpUid()
+          );
 
-         return "payment/frag-test";
-         }
-  /** 결제 완료 콜백 (IMP.request_pay 성공시) */
-  @PostMapping("/complete")
-  public String complete(@RequestParam String imp_uid,
-                         @RequestParam String merchant_uid,
-                         Model model) {
-    try {
-      // 1) 서버 토큰 + 결제 조회
-      String accessToken = portOneClient.getAccessToken().block();
-      Map<String, Object> impPayment = portOneClient.getPaymentByImpUid(accessToken, imp_uid).block();
-      Map<?, ?> resp = (Map<?, ?>) impPayment.get("response");
-
-      // 2) 로컬/원격 금액·상태 검증
-      PaymentDto local = paymentService.findByMerchantUid(merchant_uid);
-      int paidAmount = ((Number) resp.get("amount")).intValue();
-      String status   = (String) resp.get("status");      
-      String pgTid    = (String) resp.get("pg_tid");
-      String receipt  = (String) resp.get("receipt_url");
-      // String payMethodActual = (String) resp.get("pay_method"); // 필요 시 사용
-
-      if (!"paid".equals(status) || local.getPaymentPrice() != paidAmount) {
-        paymentService.markFailed(merchant_uid, "검증불일치 또는 미결제");
-        model.addAttribute("reason", "검증 실패(금액/상태)");
-        return "payment/fail";
+      } catch (Exception e) {
+          paymentService.markFailed(req.getMerchantUid(), "서버오류: " + e.getMessage());
+          return Map.of("status","error","message","server_error");
       }
+  }
+  
+  @GetMapping("/success")
+  public String success(@RequestParam("m") String merchantUid,
+                        @RequestParam(value = "i", required = false) String impUid,
+                        Model model) {
+    var pay = paymentService.findByMerchantUid(merchantUid);
+    if (pay == null) return "error/404";
 
-      // 3) 성공 처리
-      paymentService.markPaid(merchant_uid, imp_uid, pgTid, receipt);
+    model.addAttribute("merchantUid", merchantUid);
+    model.addAttribute("impUid", impUid);
+    model.addAttribute("amount", pay.getPaymentPrice());
+    model.addAttribute("method", pay.getPaymentMethod());
+    model.addAttribute("status", pay.getPaymentStatus());
+    model.addAttribute("receiptUrl", pay.getReceiptUrl());
+    model.addAttribute("pgTid", pay.getPgTid());
 
-      model.addAttribute("amount", paidAmount);
-      model.addAttribute("receiptUrl", receipt);
-      model.addAttribute("merchantUid", merchant_uid);
-      return "payment/success";
-
-    } catch (Exception e) {
-      paymentService.markFailed(merchant_uid, "서버오류: " + e.getMessage());
-      model.addAttribute("reason", "서버오류");
-      return "payment/fail";
-    }
+    return "payment/success"; 
   }
 
+
+  
+  
+  
   /* 포트원 웹훅 */
   @PostMapping("/webhook")
   @ResponseBody

@@ -2,16 +2,16 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
   <meta charset="UTF-8">
-  <title>결제 프래그먼트 테스트</title>
-
-  <!-- (중요) iamport 스크립트 & payment.js 로드 -->
+  <title>북캣 결제</title>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script th:src="@{/js/utils/axiosIntercepter.js}"></script>
+  <script th:src="@{/js/utils/userAuth.js}"></script>
   <script src="https://cdn.iamport.kr/v1/iamport.js"></script>
   <script th:src="@{/js/payment.js}"></script>
 </head>
 <body>
   <h1>결제 프래그먼트 테스트</h1>
 
-  <!-- 프래그먼트 포함: 컨트롤러에서 내려준 merchantUid, amount 사용 -->
-  <div th:replace="~{payment/payFragment :: payFragment(${merchantUid}, ${amount})}"></div>
+  <div th:replace="~{fragments/payFragment :: payFragment(${merchantUid}, ${amount}, ${title}, ${method})}"></div>
 </body>
 </html>

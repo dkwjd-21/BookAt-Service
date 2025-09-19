@@ -42,15 +42,15 @@
   )
   VALUES (
     SEQ_PAYMENT.NEXTVAL,
-    #{orderId, jdbcType=NUMERIC},
-    #{userId},
-    #{totalPrice},
-    #{paymentPrice},
-    #{paymentMethod},
-    #{paymentStatus},
+    #{orderId,      jdbcType=NUMERIC}, 
+    #{userId,       jdbcType=VARCHAR},
+    #{totalPrice,   jdbcType=NUMERIC},
+    #{paymentPrice, jdbcType=NUMERIC},
+    #{paymentMethod,jdbcType=VARCHAR},
+    #{paymentStatus,jdbcType=VARCHAR},
     SYSDATE,
-    #{paymentInfo},
-    #{merchantUid}
+    #{paymentInfo,  jdbcType=VARCHAR},
+    #{merchantUid,  jdbcType=VARCHAR}
   )
 </insert>
 

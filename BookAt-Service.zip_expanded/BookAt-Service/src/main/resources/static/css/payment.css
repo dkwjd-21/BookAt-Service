@@ -97,3 +97,74 @@
   box-shadow:0 2px 10px rgba(181,209,115,.35);
 }
 .btn--primary:hover{ filter:brightness(0.98); }
+
+/* =========================
+ * payFragment
+ * ========================= */
+/* ========== Payment Fragment (global) ========== */
+
+/* 패널(캡쳐 톤) */
+
+
+/* 래퍼/텍스트 */
+.pay-wrap{ max-width:480px; color:#111827; font-size:15px; }
+.pay-muted{ color:#6b7280; }            /* gray-500 */
+.pay-amount strong{ font-size:18px; }
+
+/* 결제수단 탭 */
+.pay-tabs{ display:flex; gap:8px; margin:10px 0 14px; }
+.pay-method-btn{
+  appearance:none; border:1px solid #e5e7eb; background:#f9fafb; /* gray-50 */
+  padding:8px 14px; border-radius:999px; font-weight:600; line-height:1;
+  box-shadow:0 1px 0 rgba(0,0,0,0.02); transition:all .15s; cursor:pointer;
+}
+.pay-method-btn:hover{ transform:translateY(-1px); }
+.pay-method-btn.is-active{
+  background:#B5D173; border-color:#a6c55f; color:#1b2a13;
+  box-shadow:0 1px 0 rgba(0,0,0,0.02), inset 0 -2px 0 rgba(0,0,0,0.03);
+}
+
+/* 입금계좌 카드 내부 타이틀/문구 */
+.pay-card h4{ margin:0 0 6px; font-size:16px; }
+.bank-line{ color:#111; font-weight:700; letter-spacing:.2px; }
+.bank-meta{ margin-top:4px; color:#6b7280; }
+
+/* 필드 */
+.field{ display:flex; align-items:center; gap:10px; margin:10px 0; }
+.field .label{ min-width:90px; color:#374151; }  /* gray-700 */
+.input, .text{
+  width:100%; padding:10px 12px; border:1px solid #e5e7eb;
+  border-radius:10px; outline:none; background:#fff;
+  transition:border-color .15s, box-shadow .15s;
+}
+.input:focus, .text:focus{
+  border-color:#cbd5e1; box-shadow:0 0 0 4px rgba(181,209,115,0.18);
+}
+.help{ font-size:12.5px; color:#6b7280; margin-top:4px; }
+
+/* 체크/라디오(커스텀) */
+.ctrl-row{ display:flex; align-items:center; gap:10px; margin:8px 0; }
+.check, .radio{
+  appearance:none; width:16px; height:16px; border:1.8px solid #9ca3af;
+  display:inline-block; position:relative; cursor:pointer; transition:all .15s; background:#fff;
+}
+.check{ border-radius:4px; }
+.check:checked{ background:#B5D173; border-color:#7fa43f; }
+.check:checked::after{
+  content:""; position:absolute; inset:3px; border:2px solid #fff; border-top:none; border-left:none; transform:rotate(45deg);
+}
+.radio{ border-radius:999px; }
+.radio:checked{ border-color:#7fa43f; }
+.radio:checked::after{
+  content:""; position:absolute; inset:4px; background:#B5D173; border-radius:999px;
+}
+
+/* 결제 버튼(공통 .btn 위에 강화) */
+.pay-button{
+  width:100%; padding:12px 16px; font-weight:700; border-radius:14px;
+  box-shadow:0 6px 16px rgba(17,24,39,.18);
+}
+
+/* show/hide */
+#vbankSection, #cash_rcpt_detail{ display:none; }
+.open{ display:block !important; }
