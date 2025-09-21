@@ -20,13 +20,13 @@
         <div class="breadcrumb">
           <span class="crumb-label">이벤트 카테고리 </span>
           <span th:switch="${event.localCode}" style="color: #6b7280">
-            <a th:href="@{/events/category(local_code='SEOUL')}"><span th:case="'GYEONGGI_INCHEON'" style="color: #6b7280">경기/인천</span></a>
-            <a th:href="@{/events/category(local_code='SEOUL')}"><span th:case="'SEOUL'" style="color: #6b7280">서울</span></a>
-            <a th:href="@{/events/category(local_code='JEOLLA')}"><span th:case="'JEOLLA'" style="color: #6b7280">전라</span></a>
-            <a th:href="@{/events/category(local_code='JEJU')}"><span th:case="'JEJU'" style="color: #6b7280">제주</span></a>
-            <a th:href="@{/events/category(local_code='GANGWON')}"><span th:case="'GANGWON'" style="color: #6b7280">강원</span></a>
-            <a th:href="@{/events/category(local_code='CHUNGCHEONG')}"><span th:case="'CHUNGCHEONG'" style="color: #6b7280">충청</span></a>
-            <a th:href="@{/events/category(local_code='GYEONGSANG')}"><span th:case="'GYEONGSANG'" style="color: #6b7280">경상</span></a>
+            <a th:href="@{/events/category(local_code='SEOUL')}" class="crumb-link"><span th:case="'GYEONGGI_INCHEON'" style="color: #6b7280">경기/인천</span></a>
+            <a th:href="@{/events/category(local_code='SEOUL')}" class="crumb-link"><span th:case="'SEOUL'" style="color: #6b7280">서울</span></a>
+            <a th:href="@{/events/category(local_code='JEOLLA')}" class="crumb-link"><span th:case="'JEOLLA'" style="color: #6b7280">전라</span></a>
+            <a th:href="@{/events/category(local_code='JEJU')}" class="crumb-link"><span th:case="'JEJU'" style="color: #6b7280">제주</span></a>
+            <a th:href="@{/events/category(local_code='GANGWON')}" class="crumb-link"><span th:case="'GANGWON'" style="color: #6b7280">강원</span></a>
+            <a th:href="@{/events/category(local_code='CHUNGCHEONG')}" class="crumb-link"><span th:case="'CHUNGCHEONG'" style="color: #6b7280">충청</span></a>
+            <a th:href="@{/events/category(local_code='GYEONGSANG')}" class="crumb-link"><span th:case="'GYEONGSANG'" style="color: #6b7280">경상</span></a>
           </span>
         </div>
       </main>

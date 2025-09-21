@@ -53,24 +53,6 @@ body {
   cursor: pointer;
 }
 
-a {
-  text-decoration: none;
-}
-a:link {
-  color: #6b7280;
-}
-
-a:visited {
-  color: #6b7280;
-}
-
-a:hover {
-  color: #6b7280;
-}
-a:active {
-  color: #6b7280;
-}
-
 .auth-links a {
   text-decoration: none;
   color: #003274;
@@ -179,7 +161,9 @@ a:active {
   color: #222;
   padding-right: 10px;
 }
-
+.crumb-link {
+  text-decoration: none !important;
+}
 .event-header {
   display: flex;
   gap: 30px;
