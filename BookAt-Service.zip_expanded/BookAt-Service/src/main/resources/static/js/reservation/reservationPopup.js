@@ -124,6 +124,11 @@ document.addEventListener("DOMContentLoaded", () => {
 				alert("회차를 선택해주세요.");
 				return;
 			}
+			
+			// 선택된 회차의 ID 
+			const scheduleId = chosen.getAttribute("data-session-id")
+			console.log("선택된 회차 ID : "+scheduleId);
+			
 		}
 		
 		// step2, 인원 / 등급 선택 버전
@@ -314,3 +319,23 @@ function defaultCalendar() {
 	today = eventDay;
 	buildCalendar();
 }
+
+
+// 이벤트 ID와 회차 ID로 Redis에서 좌석 정보 조회를 요청하는 함수
+async function fetchSeatInfo(eventId, scheduleId){
+	try {
+		const response = await axios.get('/seat/', {
+			
+		});
+		
+		
+	} catch {
+		
+		
+		
+	}
+	
+}
+
+
+

@@ -1,7 +1,9 @@
 package com.bookat.controller;
 
+import java.util.List;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
@@ -12,12 +14,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.bookat.entity.Event;
-import com.bookat.entity.Payment;
 import com.bookat.entity.User;
-import com.bookat.entity.reservation.Reservation;
 import com.bookat.entity.reservation.EventPart;
-import com.bookat.entity.reservation.SeatType;
-import com.bookat.entity.reservation.Ticket;
 import com.bookat.service.ReservationService;
 
 import lombok.RequiredArgsConstructor;
@@ -29,50 +27,30 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class ReservationController {
 
+	@Autowired
 	private final ReservationService reservationService;
 	
 	// 임시 티켓팅 팝업 오픈
 	@GetMapping("/start")
 	public String reservation(@RequestParam int eventId, @AuthenticationPrincipal User user, Model model) {
 		
-		/*
-		 * 알고있어야 하는 정보
-		 * 
-		 * eventId, scheduleId
-		 * 
-		 * 좌석 및 선착순 잔여수량
-		 * 
-		 * */
+		if(user == null) {
+			throw new RuntimeException("예약 가능 유저가 없습니다.");
+		}
+		
 		Event event = reservationService.startReservation(eventId);
 		log.info("이벤트 아이디 : {}", event.getEventId());
 		log.info("이벤트 좌석 타입 : {}", event.getTicketType());
 		
-		// 이벤트 티켓 타입 저장
-		Ticket ticket = new Ticket();
-		ticket.setTicketType(event.getTicketType());
+		// eventId로 회차 리스트 조회
+		List<EventPart> partList = reservationService.selectPartsByEventId(eventId);
+		log.info("회차 리스트 : {}", partList);
 		
-		// 예약하는 유저 저장
-		Reservation reservation = new Reservation();
-		reservation.setUserId(user.getUserId());
-		log.info("예약 컨트롤러 유저아이디 : {}", reservation.getUserId());
-		
-		// 이벤트 회차에 해당 이벤트 아이디 저장
-		EventPart eventPart = new EventPart();
-		eventPart.setEventId(event.getEventId());
-		log.info("예약 컨트롤러 이벤트아이디 : {}", eventPart.getEventId());
-		
-		// 좌석 유형에 해당 이벤트 아이디 저장
-		SeatType seatType = new SeatType();
-		seatType.setEventId(event.getEventId());
-
 		model.addAttribute("event", event);
-		model.addAttribute("ticket", ticket);
-		model.addAttribute("seatType", seatType);
-		model.addAttribute("schedule", eventPart);
-		model.addAttribute("payment", new Payment());
-		model.addAttribute("reservation", new Reservation());
+		model.addAttribute("partList", partList);
 
-		return "reservation/ReservationPopup";
+		// 테스트용으로 ReservationPopup_Seat2.html에서 진행
+		return "reservation/ReservationPopup_Seat2";
 	}
 	
 	// 날짜 회차 선택
