@@ -84,7 +84,7 @@ public class ReservationServiceImpl implements ReservationService {
 		redisTemplate.opsForHash().put(reservationKey, "status", "STEP2");
 	}
 	
-	// step1 : 인원등급/인원수 선택
+	// step2 : 인원등급/인원수 선택
 	@Override
 	public void selectPersonType(String reservationToken, PersonTypeReqDto personTypeReqDto) {
 		String reservationKey = getReservationTokenKey(reservationToken);
