@@ -11,7 +11,7 @@
 	<script th:src="@{/js/utils/logout.js}"></script>
 	<script th:src="@{/js/utils/userAuth.js}"></script>
 	<script th:src="@{/js/utils/captcha.js}"></script>
-	<script th:src="@{/js/reservation/reservationPopup.js}"></script>
+	<script th:src="@{/js/reservation/reservationPopup2.js}"></script>
 </head>
 
 <body>
@@ -36,6 +36,7 @@
 					<form action="/reservation" method="post" id="reservation-form">
 						<section class="selection-area step firstSection active" data-step="1">
 							<input type="hidden" id="eventDate" th:value="${#dates.format(event.eventDate, 'yyyy-MM-dd')}">
+							<input type="hidden" id="eventId" th:value="${event.eventId}">
 							<div class="calendar-container">
 								<div id="Date">
 									<b onclick="defaultCalendar()" style="cursor: pointer;">2025년 5월</b>
