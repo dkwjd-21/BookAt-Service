@@ -20,7 +20,6 @@ import com.bookat.enums.PersonType;
 import com.bookat.mapper.EventPartMapper;
 import com.bookat.mapper.ReservationMapper;
 import com.bookat.service.ReservationService;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -33,6 +32,7 @@ public class ReservationServiceImpl implements ReservationService {
 	private final EventPartMapper eventPartMapper;
 	private final StringRedisTemplate redisTemplate;
 	private static final long TTL_SECONDS = 900;	// 15분
+//	private static final long TTL_SECONDS = 100;	// 테스트 용
 
 	// 예매 시작 (초기 진입)
 	@Override
@@ -80,6 +80,41 @@ public class ReservationServiceImpl implements ReservationService {
 	public void selectSchedule(String reservationToken, int scheduleId) {
 		String reservationKey = getReservationTokenKey(reservationToken);
 		
+		Map<Object, Object> existingData = redisTemplate.opsForHash().entries(reservationKey);
+		
+		String prevEventId = (String) existingData.get("eventId");
+		String prevScheduleId = (String) existingData.get("scheduleId");
+		
+		// 회차 변경 희망 시 이전 회차와 동일하면 (그냥 변경없이 다시 이후 단계로 진행하고자 할 때) 아무 작업도 하지 않음
+		if(prevScheduleId != null && prevScheduleId.equals(String.valueOf(scheduleId))) {
+			log.info("같은 회차 재선택: eventId={}, scheduleId={}, 변경 없음", prevEventId, prevScheduleId);
+			return;
+		}
+		
+		// 회차를 변경할 경우 기존 좌석의 복구처리
+		if(prevEventId != null && prevScheduleId != null) {
+			int prevReserved = 0;
+			for(PersonType type : PersonType.values()) {
+				Object val = existingData.get(type.name() + "_COUNT");
+				if(val != null) prevReserved += Integer.parseInt(val.toString());
+			}
+			
+			if(prevReserved > 0) {
+				String availableSeatsKey = String.format("EVENT:%s:SCHEDULE:%s:AVAILABLE_SEAT", prevEventId, prevScheduleId);
+				redisTemplate.opsForValue().increment(availableSeatsKey, prevReserved);
+				log.info("회차 변경으로 좌석 복구: eventId={}, scheduleId={}, 복구좌석={}", prevEventId, prevScheduleId, prevReserved);
+			}
+			
+			for(PersonType type : PersonType.values()) {
+				redisTemplate.opsForHash().delete(reservationKey, type.name() + "_COUNT");
+			}
+			redisTemplate.opsForHash().delete(reservationKey, "totalPrice");
+			
+			// 기존 메타 삭제
+		    redisTemplate.delete("RESERVATION_META:" + reservationToken); 
+		}
+		
+		// redis 에 정보 반영 (변경할경우는 덮어쓰기)
 		redisTemplate.opsForHash().put(reservationKey, "scheduleId", String.valueOf(scheduleId));
 		redisTemplate.opsForHash().put(reservationKey, "status", "STEP2");
 	}
@@ -145,6 +180,17 @@ public class ReservationServiceImpl implements ReservationService {
 		
 		redisTemplate.opsForHash().putAll(reservationKey, redisData);
 		
+		// TTL 만료 시 잔여 좌석 복구를 위해 필요한 메타데이터도 생성 (TTL 만료되면 예약해둔 좌석정보도 사라지기 때문)
+		// TTL 없는 별도 키에 복구용 최소 데이터 저장
+		String metaKey = "RESERVATION_META:" + reservationToken;
+		
+		Map<String, String> metaData = new HashMap<>();
+		metaData.put("eventId", eventId);
+		metaData.put("scheduleId", scheduleId);
+		metaData.put("reservedCount", String.valueOf(totalPersonCount));
+		
+		 redisTemplate.opsForHash().putAll(metaKey, metaData);
+		
 	}
 	
 	// step3 : 주문자 정보 입력
@@ -168,11 +214,61 @@ public class ReservationServiceImpl implements ReservationService {
 		
 	}
 	
+	// 좌석 취소 로직
+	@Override
+	public void cancelReservation(String reservationToken) {
+		String reservationKey = getReservationTokenKey(reservationToken);
+		
+        if (!Boolean.TRUE.equals(redisTemplate.hasKey(reservationKey))) {
+        	log.warn("취소 시도: 유효하지 않은 예약 토큰 [{}]", reservationToken);
+            return;
+        }
+		
+		Map<Object, Object> data = redisTemplate.opsForHash().entries(reservationKey);
+		if(data.isEmpty()) return;
+		
+		String eventId = (String) data.get("eventId");
+		String scheduleId = (String) data.get("scheduleId");
+		
+		if(eventId != null && scheduleId != null) {
+			String availableSeatsKey = String.format("EVENT:%s:SCHEDULE:%s:AVAILABLE_SEAT", eventId, scheduleId);
+			
+			// 예약된 전체 인원의 수 구하기
+			int totalReserved = 0;
+			for(PersonType type : PersonType.values()) {
+				Object val = data.get(type.name() + "_COUNT");
+				if(val != null) totalReserved += Integer.parseInt(val.toString());
+			}
+			
+			// 취소시에는 예약된 인원 수만큼 잔여 좌석 복구
+			if(totalReserved > 0) {
+				redisTemplate.opsForValue().increment(availableSeatsKey, totalReserved);
+				log.info("좌석 복구 완료: eventId={}, scheduleId={}, 복구좌석={}", eventId, scheduleId, totalReserved);
+			}
+			
+		}
+		
+		redisTemplate.delete(reservationKey);
+		
+		 // meta 키 삭제 (정상 취소 시에는 TTL 만료 복구 필요 없음)
+		redisTemplate.delete("RESERVATION_META:" + reservationToken);
+		
+	}
+	
+	@Override
+	public void validateReservation(String reservationToken) {
+		String reservationKey = "RESERVATION:" + reservationToken;
+		
+		if(!Boolean.TRUE.equals(redisTemplate.hasKey(reservationKey))) {
+			throw new IllegalStateException("예약 세션이 만료되었습니다. 다시 예약해주세요.");
+		}
+	}
+	
 	private String getReservationTokenKey(String reservationToken) {
 		String reservationKey = "RESERVATION:" + reservationToken;
 		
 		if(!Boolean.TRUE.equals(redisTemplate.hasKey(reservationKey))) {
-			throw new RuntimeException("유효하지 않은 예약 토큰입니다.");
+			throw new IllegalStateException("예약 세션이 만료되었습니다. 다시 예약해주세요.");
 		}
 		
 		return reservationKey;

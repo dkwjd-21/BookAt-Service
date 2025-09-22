@@ -10,5 +10,7 @@ public interface ReservationService {
 	void selectSchedule(String reservationToken, int scheduleId);
 	void selectPersonType(String reservationToken, PersonTypeReqDto personTypeReqDto);
 	boolean inputUserInfo(String reservationToken, String userId, UserInfoReqDto userInfoReqDto);
+	void cancelReservation(String reservationToken);
+	void validateReservation(String reservationToken);
 	
 }

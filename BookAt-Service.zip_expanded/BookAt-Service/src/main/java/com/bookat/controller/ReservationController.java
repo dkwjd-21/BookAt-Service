@@ -81,11 +81,13 @@ public class ReservationController {
 			Map<String, Object> errorResponse = new HashMap<>();
 			errorResponse.put("status", "STEP2");
 			errorResponse.put("error", iae.getMessage());
+			
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
 		} catch(Exception e) {
 			Map<String, Object> errorResponse = new HashMap<>();
 			errorResponse.put("status", "STEP2");
 			errorResponse.put("error", "알 수 없는 오류가 발생했습니다.");
+			
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
 		}
 
@@ -105,6 +107,38 @@ public class ReservationController {
 		}
 		
 		return ResponseEntity.ok(Map.of("message", "사용자 정보 저장 완료", "status", "STEP4"));
+	}
+	
+	@GetMapping("/{reservationToken}/check")
+	public ResponseEntity<Map<String, Object>> checkReservation(@PathVariable String reservationToken) {
+		try {
+			reservationService.validateReservation(reservationToken);
+			
+			return ResponseEntity.ok(Map.of("valid", true));
+		} catch(IllegalStateException ie) {
+			
+			return ResponseEntity.status(HttpStatus.GONE).body(Map.of("error", ie.getMessage()));
+		}
+	}
+	
+	// 좌석 취소 : 팝업닫기, 예약 세션 만료, 결제취소(결제 구현 후에 추가 예정) 등
+	@PostMapping("/{reservationToken}/cancel")
+	public ResponseEntity<Map<String, Object>> cancelReservation(@PathVariable String reservationToken, @RequestBody(required = false) Map<String, Object> body) {
+		
+		try {
+			reservationService.cancelReservation(reservationToken);
+			
+			return ResponseEntity.ok(Map.of("message", "예약이 성공적으로 취소되었습니다.", "status", "CANCEL"));
+		} catch(IllegalStateException ie) {
+			log.warn("예약 세션 만료 : {}", ie);
+			
+			// 410 에러: 리소스가 영구적으로 사라졌다는 의미
+			return ResponseEntity.status(HttpStatus.GONE).body(Map.of("error", ie.getMessage(), "status", "EXPIRED"));
+		} catch(Exception e) {
+			log.error("예약 취소 실패 : {}", e);
+			
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "예약 취소 중 오류 발생"));
+		}
 	}
 	
 }

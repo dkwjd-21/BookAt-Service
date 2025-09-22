@@ -38,6 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 	let currentStep = 1;
 	let totalPrice = 0;
+	let currentScheduleId = null;
 	
 	// 서버에서 넘어온 예약 토큰 세션스토리지에 저장
 	const reservationToken = document.getElementById("reservation-token").value;
@@ -56,6 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
 			if(selectedSession) {
 				selectedSession.textContent = part.textContent;
 			}
+			
 			updateSummary();
 		});
 	});
@@ -116,9 +118,43 @@ document.addEventListener("DOMContentLoaded", () => {
 		});
 	});
 	
+	async function handleReservationError(err, token) {
+		if(err?.response?.status === 410) {
+			alert(err.response.data?.error || "예약 세션이 만료되었습니다. 다시 예약을 진행해주세요.");
+			sessionStorage.removeItem("reservationToken");
+			sessionStorage.removeItem("eventId");
+			try {
+				window.close();
+			} catch(err) {
+				console.log("팝업창 닫기 실패");
+			}
+			
+			return true;
+		}
+		
+		if(err?.response?.data?.error) {
+			alert(err.response.data.error);
+			return true;
+		}
+		
+		console.error("요청 처리 중 에러 발생: ", err);
+		return true;
+	}
+	
 	// 다음 단계 버튼
 	nextBtn.addEventListener("click", async () => {
 		const token = sessionStorage.getItem("reservationToken");
+		if (!token) {
+			alert("예약 세션이 없습니다. 다시 예약을 시작해주세요.");
+			return;
+		}
+		
+		try {
+			await axiosInstance.get(`/reservation/${token}/check`);
+		} catch(err) {
+			const handled = await handleReservationError(err, token);
+			if(handled) return;
+		}
 		
 		// step1, 날짜 / 회차 예약 : 회차 선택 필수
 		if(currentStep === 1) {
@@ -140,12 +176,19 @@ document.addEventListener("DOMContentLoaded", () => {
 				console.log("응답 : ", res.data);
 				
 				if(res.data.status === "STEP2") {
+					if(currentScheduleId !== scheduleId) {
+						// 사용자가 회차를 변경할 경우 인원선택 & 요약 초기화
+						resetPersonSelection();
+						currentScheduleId = scheduleId;
+					}
+
 					showStep(currentStep + 1);
 				} else {
 					console.log("회차 선택 실패");
 				}
 			} catch(err) {
 				console.log("회차선택 오류 : ", err);
+				await handleReservationError(err, token);
 			}
 			return;
 		}
@@ -184,6 +227,7 @@ document.addEventListener("DOMContentLoaded", () => {
 				}
 				
 				console.error("인원 선택 오류:", err);
+				await handleReservationError(err, token);
 			}
 			return;
 			
@@ -228,6 +272,7 @@ document.addEventListener("DOMContentLoaded", () => {
 				}
 			} catch(err) {
 				console.log("사용자 정보 저장 오류:", err);
+				await handleReservationError(err, token);
 			}
 
 			return;
@@ -240,11 +285,30 @@ document.addEventListener("DOMContentLoaded", () => {
 	});
 	
 	// 결제 후 최종 제출
-	submitBtn.addEventListener("click", (e) => {
+	submitBtn.addEventListener("click", async (e) => {
 		e.preventDefault();
+		const token = sessionStorage.getItem("reservationToken");
+		if(!token) {
+			alert("예약 세션이 없습니다. 다시 예약을 진행해주세요.");
+			return;
+		}
+		
+		try {
+			await axiosInstance.get(`/reservation/${token}/check`);
+		} catch(err) {
+			await handleReservationError(err, token);
+			return;
+		}
+		
 		alert("예매 완료되었습니다.");
 		sessionStorage.removeItem("reservationToken");
 		sessionStorage.removeItem("eventId");
+		try {
+			window.close();
+		} catch(err) {
+			console.error("팝업창 닫기 실패");
+		}
+		
 	});
 	
 	function updateSummary() {
@@ -291,6 +355,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
 		const personInfoEl = document.querySelector(".person-info");
 		personInfoEl.innerHTML = personSummary.length ? personSummary.join("") : "<p>선택된 인원이 없습니다.</p>";	
+	}
+	
+	// 인원/요약 초기화
+	function resetPersonSelection() {
+		selects.forEach((sel) => {
+			sel.value = 0;
+		});
+		
+		totalPrice = 0;
+		if(sumPriceEl) sumPriceEl.textContent = '0원';
+		if(feeEl) feeEl.textContent = '0원';
+		document.getElementById("summaryTotal").textContent = "0원";
+		document.getElementById("total-price").value = 0;
+		
+		const personInfoEl = document.querySelector(".person-info");
+		if (personInfoEl) {
+			personInfoEl.innerHTML = "<p>선택된 인원이 없습니다.</p>";
+		}
 	}
 	
 	function initCalendar() {
@@ -391,3 +473,45 @@ function defaultCalendar() {
 	today = eventDay;
 	buildCalendar();
 }
+
+// 예약 취소 함수
+async function cancelReservationSync() {
+	const token = sessionStorage.getItem("reservationToken");
+	if (!token) return;
+	
+	const url = `/reservation/${token}/cancel`;
+	const data = JSON.stringify({ reason: "popup close" });
+	const blob = new Blob([data], { type: "application/json" });
+	const ok = navigator.sendBeacon(url, blob);
+	
+	if(!ok) {
+		fetch(url, {
+			method: "POST",
+			body: data,
+			headers: { "Content-Type": "application/json" },
+			keepalive: true,
+		}).catch((err) => {
+			console.warn("cancelReservationSync fallback error:", err);
+		});
+	}
+	
+	sessionStorage.removeItem("reservationToken");
+	sessionStorage.removeItem("eventId");
+}
+
+async function cancelReservation() {
+	const token = sessionStorage.getItem("reservationToken");
+	if (!token) return;
+	
+	try {
+		const res = await axiosInstance.post(`/reservation/${token}/cancel`);
+		alert(res.data.message || "예약이 취소되었습니다.");
+		sessionStorage.removeItem("reservationToken");
+		sessionStorage.removeItem("eventId");
+	} catch(err) {
+		await handleReservationError(err, token);
+	}
+}
+
+window.addEventListener("beforeunload", cancelReservationSync);
+window.addEventListener("pagehide", cancelReservationSync);
