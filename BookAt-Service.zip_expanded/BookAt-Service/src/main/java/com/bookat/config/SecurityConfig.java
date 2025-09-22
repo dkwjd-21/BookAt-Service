@@ -33,6 +33,8 @@ public class SecurityConfig {
         .formLogin(AbstractHttpConfigurer::disable)
 //        .httpBasic(Customizer.withDefaults())
         .authorizeHttpRequests(auth -> auth
+        		// 개발용 임시허용 
+        		.requestMatchers("/reservation/seat/**").permitAll()
         		.requestMatchers("/css/**", "/js/**", "/images/**").permitAll()			// 정적 리소스 접근 가능
         		.requestMatchers("/", "/user/**", "/auth/**", "/books/**", "/events/**", "/infoPage/**").permitAll()	// 비로그인도 접근 가능
         		.requestMatchers("/api/**", "/queue/**", "/reservation/**", "/myPage/**").authenticated()	// 로그인 한 사용자만 접근 가능
