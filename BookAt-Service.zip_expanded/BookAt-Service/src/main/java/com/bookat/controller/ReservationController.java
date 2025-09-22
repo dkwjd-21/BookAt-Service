@@ -82,7 +82,8 @@ public class ReservationController {
 			errorResponse.put("status", "STEP2");
 			errorResponse.put("error", iae.getMessage());
 			
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+			// 409 에러 :  충돌 상황 -> 잔여좌석과 선택좌석의 충돌
+			return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
 		} catch(Exception e) {
 			Map<String, Object> errorResponse = new HashMap<>();
 			errorResponse.put("status", "STEP2");

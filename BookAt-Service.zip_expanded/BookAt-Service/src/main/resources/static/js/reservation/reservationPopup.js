@@ -119,8 +119,17 @@ document.addEventListener("DOMContentLoaded", () => {
 	});
 	
 	async function handleReservationError(err, token) {
-		if(err?.response?.status === 410) {
-			alert(err.response.data?.error || "예약 세션이 만료되었습니다. 다시 예약을 진행해주세요.");
+		if(!err?.response) {
+			alert("네트워크 오류 발생");
+			return true;
+		}
+		
+		const status = err?.response?.status;
+		const errorMsg = err.response.data?.error || "알 수 없는 오류 발생";
+		
+		// 예약 세션 만료 오류
+		if(status === 410) {
+			alert(errorMsg || "예약 세션이 만료되었습니다. 다시 예약을 진행해주세요.");
 			sessionStorage.removeItem("reservationToken");
 			sessionStorage.removeItem("eventId");
 			try {
@@ -128,12 +137,18 @@ document.addEventListener("DOMContentLoaded", () => {
 			} catch(err) {
 				console.log("팝업창 닫기 실패");
 			}
-			
 			return true;
 		}
 		
-		if(err?.response?.data?.error) {
-			alert(err.response.data.error);
+		// 좌석 초과 오류
+		if(status === 409) {
+			alert(errorMsg || "잔여좌석을 초과하여 선택할 수 없습니다. 다시 선택해주세요.");
+			return true;
+		}
+		
+		// 기타 오류
+		if(errorMsg) {
+			alert(errorMsg);
 			return true;
 		}
 		
@@ -220,17 +235,10 @@ document.addEventListener("DOMContentLoaded", () => {
 					console.log("인원 등급 실패");
 				}
 			} catch(err) {
-				if(err.response && err.response.data) {
-					alert(err.response.data.error || "예약 중 오류가 발생했습니다.");
-				} else {
-					alert("네트워크 오류가 발생했습니다.");
-				}
-				
 				console.error("인원 선택 오류:", err);
 				await handleReservationError(err, token);
 			}
 			return;
-			
 		}
 		
 		// step3, 주문자 정보 입력
@@ -274,7 +282,6 @@ document.addEventListener("DOMContentLoaded", () => {
 				console.log("사용자 정보 저장 오류:", err);
 				await handleReservationError(err, token);
 			}
-
 			return;
 		}
 
