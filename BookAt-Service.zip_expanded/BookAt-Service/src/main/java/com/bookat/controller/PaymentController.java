@@ -8,10 +8,12 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
+import com.bookat.dto.EventResDto;
 import com.bookat.dto.PaymentCompleteRequest;
 import com.bookat.dto.PaymentDto;
 import com.bookat.dto.PaymentSession;
 import com.bookat.service.BookService;
+import com.bookat.service.EventService;
 import com.bookat.service.PaymentService;
 import com.bookat.util.PaymentSessionStore;
 import com.bookat.util.PortOneClient;
@@ -27,7 +29,32 @@ public class PaymentController {
   private final PortOneClient portOneClient;
   private final BookService bookService;
   private final PaymentSessionStore sessionStore;
+  private final EventService eventService;
 
+  /* 이벤트 결제 시작 (팝업 우측 요약에서 eventId/amount만 넘김)   */
+  @PostMapping("/session/start-event")
+  @ResponseBody
+  public Map<String, Object> startEvent(@RequestParam Integer eventId,
+                                        @RequestParam Integer amount,
+                                        @RequestParam String title,
+                                        @RequestParam(defaultValue = "CARD") String method,
+                                        @AuthenticationPrincipal(expression = "userId") String userId) {
+      if (userId == null || userId.isBlank()) return Map.of("status","error","message","unauthorized");
+
+      String enforcedMethod = "CARD";
+      var pay = paymentService.createReadyPayment(amount, enforcedMethod, title, userId);
+
+      PaymentSession session = PaymentSessionStore.of(
+          "EVENT:" + eventId, 1, enforcedMethod,
+          java.math.BigDecimal.valueOf(amount),
+          pay.getMerchantUid(), userId, title
+      );
+      String token = sessionStore.create(session);
+      return Map.of("status","success","redirectUrl","/payment/frag-test?token=" + token);
+  }
+  
+  
+  //도서 세션
   @PostMapping("/session/start")
   @ResponseBody
   public Map<String, Object> start(@RequestParam String bookId,
@@ -56,12 +83,11 @@ public class PaymentController {
           amount.intValueExact(), enforcedMethod, payTitle, userId);
 
     PaymentSession session = PaymentSessionStore.of(
-          bookId, safeQty, enforcedMethod, amount, pay.getMerchantUid(), userId, payTitle);
+    		"BOOK:" + bookId, safeQty, enforcedMethod, amount, pay.getMerchantUid(), userId, payTitle);
 
     String token = sessionStore.create(session);
 
-    return Map.of("status","success",
-                  "redirectUrl","/payment/frag-test?token=" + token);
+    return Map.of("status","success","redirectUrl","/payment/frag-test?token=" + token);
   }
 
   @GetMapping("/session/context")

@@ -1,146 +1,215 @@
 
 (function () {
-
-
-  // IMP 초기화
-  IMP.init("imp55525217");
+  // ====== PortOne 초기화 ======
+  if (window.IMP && typeof window.IMP.init === "function") {
+    // 가맹점 코드
+    IMP.init("imp55525217");
+  }
   const PG = "html5_inicis";
 
+  // ====== 공통: 인증 보장 ======
   async function ensureAuth() {
-    const ok = await validateUser();
+    const ok = await validateUser(); // userAuth.js
     if (!ok) throw new Error("unauthorized");
   }
 
-  function setActiveMethod(method) {
-    const hidden = document.getElementById("method");
-    if (!hidden) return;
-    const m = (method || "card").toLowerCase();
-    hidden.value = m;
-
-    document.querySelectorAll(".pay-method-btn").forEach(btn => {
-      btn.classList.toggle("is-active", btn.dataset.method === m);
-    });
-
-    const vbank = document.getElementById("vbankSection");
-    if (vbank) vbank.classList.toggle("open", m === "vbank");
+  // ====== 세션 컨텍스트 가져오기 (frag-test에서 token만 있는 경우) ======
+  async function fetchSessionContext(token) {
+    const res = await axiosInstance.get("/payment/session/context", { params: { token } });
+    if (res.data?.status !== "success") {
+      throw new Error(res.data?.message || "세션 조회 실패");
+    }
+    return res.data; // {merchantUid, amount, title, method, token}
   }
 
-  // --- 1) 진입: 세션 컨텍스트를 API로 로드해서 화면에 바인딩 ---
-  document.addEventListener("DOMContentLoaded", async () => {
-    const token = new URLSearchParams(location.search).get("token");
-    if (!token) return; 
-
-    try {
-      await ensureAuth();
-      const res = await axiosInstance.get("/payment/session/context", { params: { token } });
-      if (res.data?.status !== "success") {
-        alert(res.data?.message || "세션을 불러오지 못했습니다.");
-        return;
-      }
-      const ctx = res.data;
-
-      const methodHidden = document.getElementById("method");
-      if (methodHidden) methodHidden.value = (ctx.method || "card").toLowerCase();
-      setActiveMethod(methodHidden?.value || "card");
-
-      const itemName = document.getElementById("item_name");
-      if (itemName) itemName.value = ctx.title;
-
-      const payBtn = document.getElementById("payBtn");
-      if (payBtn) {
-        payBtn.dataset.merchant = ctx.merchantUid;
-        payBtn.dataset.amount = String(ctx.amount);
-        payBtn.dataset.title = ctx.title;
-      }
-
-
-      const chk = document.getElementById("cash_rcpt_check");
-      const detail = document.getElementById("cash_rcpt_detail");
-      if (chk && detail) {
-        chk.addEventListener("change", () => {
-          detail.classList.toggle("open", chk.checked);
-        });
-      }
-      const radios = document.querySelectorAll('input[name="cash_rcpt_type"]');
-      const numberInput = document.getElementById("cash_rcpt_number_input");
-      const updatePlaceholder = () => {
-        const type = document.querySelector('input[name="cash_rcpt_type"]:checked')?.value || "DED";
-        if (numberInput) {
-          numberInput.placeholder = (type === "BIZ") ? "사업자번호 입력" : "휴대폰번호 입력";
+  // ====== PortOne 결제 트리거 (카드) ======
+  function requestPayCard({ merchantUid, amount, itemName }) {
+    return new Promise((resolve, reject) => {
+      IMP.request_pay(
+        {
+          pg: PG,
+          pay_method: "card", // 카드 고정
+          name: itemName || "상품명",
+          merchant_uid: merchantUid,
+          amount: amount,
+        },
+        function (rsp) {
+          if (rsp?.success) return resolve(rsp);
+          return reject(new Error(rsp?.error_msg || "결제 실패"));
         }
-      };
-      radios.forEach(r => r.addEventListener("change", updatePlaceholder));
-      updatePlaceholder();
-
-    } catch (e) {
-      console.error(e);
-      alert("인증이 만료되었거나 접근 권한이 없습니다.");
-    }
-  });
-
-
-  document.addEventListener("click", (e) => {
-    const methodBtn = e.target.closest(".pay-method-btn");
-    if (methodBtn) setActiveMethod(methodBtn.dataset.method);
-  });
-
-  // --- 3) 결제 트리거: IMP 결제 → 완료 API 호출 → 성공 URL로 이동 ---
-  async function completePaymentViaApi(rsp, fallbackMerchantUid) {
-    const token = new URLSearchParams(location.search).get("token");
-
-    const depositor = document.getElementById("depositor_name_input")?.value?.trim() || "";
-    const apply = document.getElementById("cash_rcpt_check")?.checked ? "Y" : "N";
-    const type  = document.querySelector('input[name="cash_rcpt_type"]:checked')?.value || "DED";
-    const number = document.getElementById("cash_rcpt_number_input")?.value?.trim() || "";
-
-    await ensureAuth();
-
-    const body = {
-      token,
-      impUid: rsp.imp_uid,
-      merchantUid: rsp.merchant_uid || fallbackMerchantUid,
-      depositor,
-      cashReceiptApply: apply,
-      cashReceiptType: apply === "Y" ? type : null,
-      cashReceiptNumber: apply === "Y" ? number : null
-    };
-
-    const res = await axiosInstance.post("/payment/api/complete", body);
-    if (res.data?.status === "success") {
-      window.location.href = res.data.successRedirect; 
-      throw new Error(res.data?.message || "결제 검증 실패");
-    }
+      );
+    });
   }
 
-  function triggerPay(merchantUid, amount, payMethod) {
-    IMP.request_pay({
-      pg: PG,
-      pay_method: payMethod,
-      name: document.getElementById("item_name")?.value || "상품명",
-      merchant_uid: merchantUid,
-      amount: amount
-    }, (rsp) => {
-      if (!rsp.success) {
-        alert(rsp.error_msg || "결제 실패");
-        return;
-      }
-      completePaymentViaApi(rsp, merchantUid).catch(err => {
-        console.error(err);
-        alert(err.message || "결제 완료 처리 중 오류");
+  // ====== 결제 완료 검증 → 성공 리다이렉트 ======
+  async function completeAndRedirect({ merchantUid, impUid, token }) {
+    const res = await axiosInstance.post("/payment/api/complete", { merchantUid, impUid, token });
+    const data = res.data;
+    if (data?.status === "success" && data?.successRedirect) {
+      window.location.href = data.successRedirect; // /payment/success...
+      return;
+    }
+    throw new Error(data?.message || "결제 검증 실패");
+  }
+
+  // ====== 탭 UI: 기본은 카드, vbank는 클릭 시에만 표시 ======
+  function setupTabs() {
+    const tabs = document.querySelectorAll(".pay-method-btn");
+    if (!tabs.length) return;
+
+    const btnCard = document.querySelector('.pay-method-btn[data-method="card"]');
+    const btnVbank = document.querySelector('.pay-method-btn[data-method="vbank"]');
+    const vbankSection = document.getElementById("vbankSection");
+
+    // 초기 상태: 카드 on, vbank off
+    tabs.forEach(b => b.classList.remove("is-active"));
+    if (btnCard) btnCard.classList.add("is-active");
+    if (vbankSection) vbankSection.classList.remove("open");
+
+    // 전환 로직
+    tabs.forEach(btn => {
+      btn.addEventListener("click", () => {
+        tabs.forEach(b => b.classList.remove("is-active"));
+        btn.classList.add("is-active");
+
+        const method = btn.dataset.method;
+        if (vbankSection) {
+          if (method === "vbank") vbankSection.classList.add("open");
+          else vbankSection.classList.remove("open");
+        }
       });
     });
   }
 
-  document.addEventListener("click", (e) => {
-    const btn = e.target.closest("#payBtn");
-    if (!btn) return;
+  // ====== 프래그먼트 페이지용: 버튼 바인딩 ======
+  async function bindPayFragment() {
+    const btn = document.getElementById("payBtn");
+    if (!btn) return; // 프래그먼트가 없는 페이지
 
-    const payMethod = (document.getElementById("method")?.value || "card").toLowerCase();
-    const merchantUid = btn.getAttribute("data-merchant");
-    const amount = parseInt(btn.getAttribute("data-amount") || "0", 10);
+    // 탭 UI 세팅
+    setupTabs();
 
+    // token 위치: (1) data-token on #payBtn, (2) #token input
+    let token = btn.getAttribute("data-token")
+      || document.getElementById("token")?.value
+      || document.getElementById("pay_token")?.value;
 
-    triggerPay(merchantUid, amount, payMethod);
+    // 아직 버튼에 data-merchant 세팅이 없다면 → 서버에서 컨텍스트 조회해 채움
+    if (!btn.getAttribute("data-merchant")) {
+      if (!token) throw new Error("결제 토큰이 없습니다.");
+      const ctx = await fetchSessionContext(token);
+      btn.setAttribute("data-merchant", ctx.merchantUid);
+      btn.setAttribute("data-amount", String(ctx.amount));
+      btn.setAttribute("data-title", ctx.title);
+
+      const itemName = document.getElementById("item_name");
+      if (itemName) itemName.value = ctx.title;
+
+      const titleEls = document.querySelectorAll("[data-bind='title']");
+      titleEls.forEach(el => el.textContent = ctx.title);
+      const amountEls = document.querySelectorAll("[data-bind='amount']");
+      amountEls.forEach(el => el.textContent = new Intl.NumberFormat().format(ctx.amount));
+    }
+
+    // 결제 버튼 클릭
+	btn.addEventListener("click", async (e) => {
+	  try {
+	    e.preventDefault();
+	    e.stopPropagation();
+
+	    console.log("[PAY] click");
+
+	    await ensureAuth(); // /auth/validate OK
+
+	    const merchantUid = btn.getAttribute("data-merchant");
+	    const amount = parseInt(btn.getAttribute("data-amount") || "0", 10);
+	    const title = btn.getAttribute("data-title") || "상품명";
+	    let token = btn.getAttribute("data-token")
+	      || document.getElementById("token")?.value
+	      || document.getElementById("pay_token")?.value;
+
+	    if (!merchantUid || !amount) {
+	      console.error("[PAY] 결제정보 부족", { merchantUid, amount });
+	      alert("결제 정보가 준비되지 않았습니다. 새로고침 후 다시 시도해주세요.");
+	      return;
+	    }
+
+	    if (!window.IMP || typeof window.IMP.request_pay !== "function") {
+	      console.error("[PAY] PortOne SDK 미로딩");
+	      alert("결제 모듈이 로드되지 않았습니다. 잠시 후 다시 시도해주세요.");
+	      return;
+	    }
+
+	    console.log("[PAY] request_pay 호출", { merchantUid, amount, title });
+	    const rsp = await new Promise((resolve, reject) => {
+	      IMP.request_pay(
+	        {
+	          pg: "html5_inicis",
+	          pay_method: "card",
+	          name: title,
+	          merchant_uid: merchantUid,
+	          amount: amount,
+	        },
+	        function (r) {
+	          console.log("[PAY] request_pay 응답", r);
+	          r?.success ? resolve(r) : reject(new Error(r?.error_msg || "결제 실패"));
+	        }
+	      );
+	    });
+
+	    console.log("[PAY] complete 호출", { imp_uid: rsp.imp_uid });
+	    const done = await axiosInstance.post("/payment/api/complete", { merchantUid, impUid: rsp.imp_uid, token });
+	    if (done.data?.status === "success" && done.data?.successRedirect) {
+	      window.location.href = done.data.successRedirect;
+	    } else {
+	      throw new Error(done.data?.message || "결제 검증 실패");
+	    }
+	  } catch (e2) {
+	    console.error("[PAY] 에러:", e2);
+	    alert(e2.message || "결제 처리 중 오류");
+	  }
+	});
+}
+  // ====== (공통) 페이지에서 쉽게 부르는 시작 함수 2가지 ======
+  async function startBookPayment({ bookId, qty = 1, method = "CARD" }) {
+    await ensureAuth();
+    const res = await axiosInstance.post("/payment/session/start", null, { params: { bookId, qty, method } });
+    const data = res.data;
+    if (data.status === "success" && data.redirectUrl) {
+      window.location.href = data.redirectUrl;
+      return;
+    }
+    throw new Error(data.message || "결제 준비 실패");
+  }
+
+  async function startEventPayment({ eventId, amount, title, method = "CARD" }) {
+    await ensureAuth();
+    const res = await axiosInstance.post("/payment/session/start-event", null, { params: { eventId, amount, title, method } });
+    const data = res.data;
+    if (data.status === "success" && data.redirectUrl) {
+      window.location.href = data.redirectUrl;
+      return;
+    }
+    throw new Error(data.message || "결제 준비 실패");
+  }
+
+  // ====== 전역 노출 ======
+  window.PaymentStart = {
+    book: startBookPayment,
+    event: startEventPayment
+  };
+
+  // ====== DOM 로딩 후 프래그먼트 바인딩 ======
+  document.addEventListener("DOMContentLoaded", () => {
+    bindPayFragment().catch(err => {
+      // 프래그먼트가 없거나 토큰이 없으면 조용히 경고만
+      if (err && /프래그먼트|토큰/.test(String(err.message || ""))) {
+        console.warn(err);
+      }
+    });
   });
-
 })();
+
+
+
+

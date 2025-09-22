@@ -10,6 +10,7 @@
 	<script th:src="@{/js/utils/axiosIntercepter.js}"></script>
 	<script th:src="@{/js/utils/logout.js}"></script>
 	<script th:src="@{/js/utils/userAuth.js}"></script>
+	<script th:src="@{/js/payment.js}"></script>
 </head>
 
 <body>
@@ -45,10 +46,32 @@
 					<p>10:00 1회차</p>
 				</div>
 				<button class="next-button">다음 단계</button>
+<button id="eventPayBtn"
+        th:attr="data-event-id=${event.eventId},
+                 data-title=${event.eventName},
+                 data-amount=${event.eventPrice}"
+        class="next-button">결제하기</button>
+				
 			</aside>
 
 		</div>
 	</div>
 </body>
+
+<script>
+  document.getElementById('eventPayBtn')?.addEventListener('click', async (e) => {
+    const btn = e.currentTarget;
+    try {
+      await window.PaymentStart.event({
+        eventId: Number(btn.dataset.eventId),
+        amount: Number(btn.dataset.amount),
+        title:  btn.dataset.title,
+        method: "CARD"
+      });
+    } catch (err) {
+      console.error(err); alert(err.message || "결제 준비 실패");
+    }
+  });
+</script>
 
 </html>

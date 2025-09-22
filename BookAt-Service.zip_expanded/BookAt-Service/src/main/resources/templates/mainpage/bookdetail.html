@@ -18,6 +18,7 @@
 	<script th:src="@{/js/utils/logout.js}"></script>
 	<script th:src="@{/js/utils/userAuth.js}"></script>
 	<script th:src="@{/js/utils/header.js}"></script>
+	<script th:src="@{/js/payment.js}"></script>
 	
 </head>
 
@@ -107,12 +108,13 @@
 
   <!-- 바로구매 -->
   
-  <button id="buyNowBtn"
-          class="btn btn--primary"
-          th:attr="data-book-id=${book.bookId}"
-          data-qty="1"
-          data-method="CARD">바로구매</button>
-
+<button id="payBtn"
+        type="button"
+        data-merchant=""
+        data-amount=""
+        data-title="">
+  결제하기
+</button>
 </div>
     </div>
   </div>
@@ -129,7 +131,7 @@
   <div th:if="${events != null and !#lists.isEmpty(events)}" class="event-list">
 
     <a th:each="event : ${events}"
-       th:href="@{/event/detail(event_id=${event.eventId})}"
+       th:href="@{/events/detail(event_id=${event.eventId})}"
        class="event-card">
                 <img th:src="${event.eventImage}" alt="event Cover" class="event-cover" />
                 <p class="meta" th:text="${#strings.substring(event.address, 0, 2)}"></p>
@@ -259,75 +261,64 @@
 
 <script>
 (function(){
-	/* =========================
-     * 리뷰 모달
-     * ========================= */
-    const modal     = document.getElementById('reviewModal');
-    const openBtn   = document.getElementById('openReviewModalBtn');
-    const closeBtn  = modal ? modal.querySelector('.close-btn') : null;
-    const starsWrap = document.getElementById('starsInput');
-    const stars     = starsWrap ? Array.from(starsWrap.querySelectorAll('.star')) : [];
-    const ratingInp = document.getElementById('rating');
-    const form      = document.getElementById('reviewForm');
+  /* =========================
+   * 리뷰 모달 (그대로)
+   * ========================= */
+  const modal     = document.getElementById('reviewModal');
+  const openBtn   = document.getElementById('openReviewModalBtn');
+  const closeBtn  = modal ? modal.querySelector('.close-btn') : null;
+  const starsWrap = document.getElementById('starsInput');
+  const stars     = starsWrap ? Array.from(starsWrap.querySelectorAll('.star')) : [];
+  const ratingInp = document.getElementById('rating');
+  const form      = document.getElementById('reviewForm');
 
-    const openModal  = () => { if (modal) modal.style.display = 'flex'; };
-    const closeModal = () => { if (modal) modal.style.display = 'none'; };
+  const openModal  = () => { if (modal) modal.style.display = 'flex'; };
+  const closeModal = () => { if (modal) modal.style.display = 'none'; };
 
-    if (openBtn)  openBtn.addEventListener('click', (e) => { e.preventDefault(); openModal(); });
-    if (closeBtn) closeBtn.addEventListener('click', closeModal);
-    if (modal)    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+  if (openBtn)  openBtn.addEventListener('click', (e) => { e.preventDefault(); openModal(); });
+  if (closeBtn) closeBtn.addEventListener('click', closeModal);
+  if (modal)    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
 
-    if (starsWrap) {
-      starsWrap.addEventListener('click', (e) => {
-        const star = e.target.closest('.star'); if (!star) return;
-        const val = Number(star.dataset.value || 0);
-        if (ratingInp) ratingInp.value = val;
-        stars.forEach(s => s.classList.toggle('selected', Number(s.dataset.value || 0) <= val));
-      });
-    }
+  if (starsWrap) {
+    starsWrap.addEventListener('click', (e) => {
+      const star = e.target.closest('.star'); if (!star) return;
+      const val = Number(star.dataset.value || 0);
+      if (ratingInp) ratingInp.value = val;
+      stars.forEach(s => s.classList.toggle('selected', Number(s.dataset.value || 0) <= val));
+    });
+  }
 
-    if (form) {
-      form.addEventListener('submit', (e) => {
-        if (!ratingInp || Number(ratingInp.value || 0) < 1) {
-          e.preventDefault();
-          alert('별점을 선택해주세요.');
-        }
-      });
-    }
-    
-	/* =========================
-     * 결제
-     * ========================= */    
-    const buyBtn = document.getElementById('buyNowBtn');
-    if (!buyBtn) return;
-
-    buyBtn.addEventListener('click', async () => {
-      try {
-        // 1) JWT 검증
-        const ok = await validateUser();
-        if (!ok) return;
-
-        // 2) 준비 API 호출 → redirectUrl 받기
-        const bookId = buyBtn.dataset.bookId;
-        const qty    = buyBtn.dataset.qty || '1';
-        const method = (buyBtn.dataset.method || 'CARD').toUpperCase();
-
-        const res  = await axiosInstance.post('/payment/session/start', null, {
-          params: { bookId, qty, method }
-        });
-        const data = res.data;
-
-        if (data.status === 'success' && data.redirectUrl) {
-          window.location.href = data.redirectUrl; // /payment/frag-test?token=...
-        } else {
-          alert(data.message || '결제 준비 실패');
-        }
-      } catch (e) {
-        console.error(e);
-        alert('결제 준비 중 오류가 발생했습니다.');
+  if (form) {
+    form.addEventListener('submit', (e) => {
+      if (!ratingInp || Number(ratingInp.value || 0) < 1) {
+        e.preventDefault();
+        alert('별점을 선택해주세요.');
       }
     });
-  })();
+  }
+
+  /* =========================
+   * 결제 (공통 payment.js 사용)
+   * ========================= */
+  const buyBtn = document.getElementById('buyNowBtn');
+  if (!buyBtn) return;
+
+  buyBtn.addEventListener('click', async () => {
+    try {
+      // 버튼 data-*에서 값 읽어서 공통 시작 함수 호출
+      await window.PaymentStart.book({
+        bookId: buyBtn.dataset.bookId,
+        qty:    Number(buyBtn.dataset.qty || '1'),
+        method: (buyBtn.dataset.method || 'CARD').toUpperCase()
+      });
+      // 내부에서 validateUser() → /payment/session/start → redirect 까지 처리됨
+    } catch (e) {
+      console.error(e);
+      alert(e.message || '결제 준비 중 오류가 발생했습니다.');
+    }
+  });
+})();
 </script>
+
 </html>

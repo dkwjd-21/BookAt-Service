@@ -41,7 +41,7 @@ public class SecurityConfig {
         		.requestMatchers("/api/**", "/queue/**", "/myPage/**",
         				"/payment/session/start",
                         "/payment/session/context",
-                        "/payment/api/complete").authenticated()
+                        "/payment/api/complete","/reservation/**").authenticated()
 
         							// 예약 기능 토큰 필요
                 .anyRequest().denyAll()

@@ -5,12 +5,12 @@
     <input type="hidden" id="item_name" th:value="${title}">
 
     <div class="pay-tabs">
-      <button type="button" class="pay-method-btn" data-method="card">신용카드</button>
-      <button type="button" class="pay-method-btn is-active" data-method="vbank">무통장입금</button>
+      <button type="button" class="pay-method-btn is-active" data-method="card">신용카드</button>
+      <button type="button" class="pay-method-btn" data-method="vbank">무통장입금</button>
     </div>
 
     <!-- 여기: 패널 적용 + 고정 문구 -->
-    <div id="vbankSection" class="panel pay-card open">
+    <div id="vbankSection" class="panel pay-card">
       <h4>입금계좌</h4>
       <div class="bank-line">국민은행 000000-00-000-000</div>
       <div class="bank-meta">예금주: 주식회사 북캣</div>
@@ -59,18 +59,8 @@
   </div>
 </div>
 
-  <!--
-    BOOK_ORDER / ORDER_ITEM 값 매핑
 
-    - BOOK_ORDER 컬럼: ORDER_ID, PAYMENT_ID, ORDER_DATE, ORDER_STATUS, TOTAL_PRICE, USER_ID, ADDR_ID
-      * 결제 직전/직후 주문 생성 플로우:
-        1) 주문 생성(ORDER_ID 발급), BOOK_ORDER.TOTAL_PRICE = amount, USER_ID/ADDR_ID 세팅
-        2) 결제 성공 시 BOOK_ORDER.PAYMENT_ID update, ORDER_STATUS 전이(예: CREATED -> PAID)
-
-    - ORDER_ITEM 컬럼: ORDER_ITEM_ID, BOOK_ID, ORDER_ID, ORDER_QUANTITY, ITEM_PRICE
-      * 한 권 결제 기준: BOOK_ID = session.bookId, ORDER_QUANTITY = qty, ITEM_PRICE = 단가(할인/쿠폰 없으면 BOOK.price)
-      * 다중 도서 결제 시: 장바구니/주문 생성 시점에서 각 항목별로 INSERT
-
+<!--
     - 본 프래그먼트에서 내려보내는 값(title, amount, method 등)은
       Controller: model.addAttribute("title", ctx.title()); 로 세팅됨.
       JS는 #item_name(hidden)과 #payBtn(data-title)에서 동일 값 사용.
