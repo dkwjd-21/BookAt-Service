@@ -1,11 +1,14 @@
 package com.bookat.service.impl;
 
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.bookat.dto.EventPartDto;
 import com.bookat.dto.EventResDto;
+import com.bookat.dto.EventSeatDto;
 import com.bookat.entity.Book;
 import com.bookat.mapper.EventMapper;
 import com.bookat.service.EventService;
@@ -71,12 +74,6 @@ public class EventServiceImpl implements EventService{
 	}
 
 	
-	
-	
-	
-	
-	
-	
 	@Override
 	public int insert(EventResDto dto) {
 
@@ -102,17 +99,20 @@ public class EventServiceImpl implements EventService{
         return (list != null) ? list : java.util.List.of();
     }
 
-	
+	@Override
+	public List<EventResDto> selectByEventDate(Date eventDate) {
+		List<EventResDto> list = mapper.selectByEventDate(eventDate);
+		return list;
+	}
 
-	
-	
+	@Override
+	public List<EventPartDto> selectPartByEventId(int eventId) {
+		List<EventPartDto> list = mapper.selectPartByEventId(eventId);
+		return list;
+	}
 
-	
-
-	
-
-	
-
-	
-
+	@Override
+	public int insertSeat(EventSeatDto dto) {
+		return mapper.insertSeat(dto);
+	}
 }

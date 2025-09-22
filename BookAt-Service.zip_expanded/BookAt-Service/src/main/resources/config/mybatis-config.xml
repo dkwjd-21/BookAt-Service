@@ -12,10 +12,15 @@
 	</settings>
 	
 	<!--패키지 단위 등록, entity명 사용-->
-  <typeAliases>
+  	<typeAliases>
 		<typeAlias type="com.bookat.entity.User" alias="User"/>
 		<typeAlias type="com.bookat.entity.Book" alias="Book"/>
 		<typeAlias type="com.bookat.entity.Event" alias="Event"/>
+		<typeAlias type="com.bookat.entity.Payment" alias="Payment"/>
+		<typeAlias type="com.bookat.entity.reservation.Reservation" alias="Reservation"/>
+		<typeAlias type="com.bookat.entity.reservation.EventPart" alias="EventPart"/>
+		<typeAlias type="com.bookat.entity.reservation.SeatType" alias="SeatType"/>
+		<typeAlias type="com.bookat.entity.reservation.Ticket" alias="Ticket"/>
 	</typeAliases>
 	
 	<!--매퍼 xml 경로-->

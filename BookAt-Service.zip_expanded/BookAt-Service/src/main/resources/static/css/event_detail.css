@@ -39,6 +39,10 @@ body {
   padding: 15px 5%;
 }
 
+.search-bar {
+  padding-right: 0px;
+}
+
 .main-logo-img {
   width: 150px;
 }
@@ -47,22 +51,6 @@ body {
   display: flex;
   gap: 10px;
   cursor: pointer;
-}
-
-a {
-  text-decoration: none;
-}
-a:link {
-  color: #6b7280;
-}
-a:visited {
-  color: #6b7280;
-}
-a:hover {
-  color: #6b7280;
-}
-a:active {
-  color: #6b7280;
 }
 
 .auth-links a {
@@ -138,6 +126,7 @@ a:active {
   cursor: pointer;
 }
 .main_container {
+  width: 1200px;
   max-width: 1200px;
   margin: 20px auto;
   margin-top: 0;
@@ -172,7 +161,9 @@ a:active {
   color: #222;
   padding-right: 10px;
 }
-
+.crumb-link {
+  text-decoration: none !important;
+}
 .event-header {
   display: flex;
   gap: 30px;
@@ -212,6 +203,7 @@ a:active {
   line-height: normal;
 }
 .price-info {
+  gap: 30px;
   display: flex;
   position: absolute;
   bottom: 50px;
@@ -374,11 +366,6 @@ a:active {
   border-radius: 10px;
   width: 150px;
   text-align: center;
-}
-
-.cancellation-info {
-  /* margin-top: 30px; */
-  /* padding-left: 20px; */
 }
 
 .info_text {

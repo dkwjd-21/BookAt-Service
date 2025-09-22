@@ -1,0 +1,109 @@
+
+/* --- 캡챠 인증 모달 --- */
+/* 1. 모달 배경 (전체 화면을 덮는 반투명 오버레이) */
+.modal-overlay {
+	display: flex;
+	position: fixed;
+	/* 화면 스크롤과 상관없이 고정 */
+	top: 0;
+	left: 0;
+	width: 100vw;
+	/* 화면 전체 너비 */
+	height: 100vh;
+	/* 화면 전체 높이 */
+	background-color: rgba(0, 0, 0, 0.6);
+	/* 반투명 검은색 배경 */
+	z-index: 1000;
+	/* 다른 모든 요소들 위에 오도록 설정 */
+
+	/* 자식 요소(.captcha-form)를 중앙 정렬하기 위한 Flexbox 설정 */
+	justify-content: center;
+	align-items: center;
+}
+
+/* 2. 모달 콘텐츠 (.captcha-form) */
+.captcha-form {
+	width: 420px;
+	padding: 30px;
+	background-color: #fff;
+	border-radius: 12px;
+	box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	/* 내부 요소들 사이의 간격 */
+}
+
+/* 3. 모달 내부 요소 스타일 */
+.captcha-body {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.captcha-label {
+	font-size: 18px;
+	font-weight: bold;
+	margin-bottom: 10px;
+	display: block;
+	text-align: center;
+}
+
+#captchaImg {
+	width: 200px;
+	height: 60px;
+	border: 1px solid #ddd;
+}
+
+.captcha-btn {
+	padding: 10px 10px;
+	border: 1px solid #ccc;
+	background-color: #f7f7f7;
+	border-radius: 6px;
+	cursor: pointer;
+	font-size: 13px;
+	white-space: nowrap;
+}
+
+.captcha-btn:hover {
+	background-color: #e9e9e9;
+}
+
+.captcha-input-group {
+	display: flex;
+	gap: 10px;
+}
+
+#captcha-answer {
+	flex-grow: 1;
+	/* 남은 공간을 모두 차지 */
+	padding: 12px;
+	border: 1px solid #ccc;
+	border-radius: 6px;
+	font-size: 16px;
+}
+
+#captcha-answer:focus {
+	outline: none;
+	border-color: #0a254e;
+}
+
+#captcha-submit {
+	padding: 0 20px;
+	font-size: 16px;
+	font-weight: bold;
+	color: #fff;
+	background-color: #0a254e;
+	border: none;
+	border-radius: 6px;
+	cursor: pointer;
+}
+
+#captcha-submit:hover {
+	background-color: #1c3d6f;
+}
+
+.captcha-message {
+	color: red;
+	display: none;
+}

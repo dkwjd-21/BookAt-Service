@@ -10,16 +10,15 @@ import lombok.extern.slf4j.Slf4j;
 @Controller
 public class HomeController {
 	
-	@GetMapping("/")
-	public String home() {
-		
-		return "home";
-	}
+    @GetMapping("/")
+    public String root() {
+        return "redirect:/books";
+    }
 	
 	// 테스트를 위한 메인 페이지 
 	@GetMapping("/infoPage/reservationTest")
 	public String queue(Model model) {
 		return "reservation/QueueModal";
 	}
-
+	
 }

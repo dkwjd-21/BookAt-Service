@@ -11,24 +11,28 @@ let isFetching = false;
 // 예매하기 버튼을 눌렀을 때 대기열 모달 띄우기
 // 모달을 열면 대기열에 추가 -> 주기적으로 폴링 시작.
 async function onModal() {
-	
-	try {
-		await window.validateUser();
-	} catch(e) {
-		alert("로그인한 회원님만 예매 가능합니다.");
-		window.location.href = "/user/login";
-		return;
-	}
-	
+  try {
+    await window.validateUser();
+  } catch (e) {
+    alert("로그인한 회원님만 예매 가능합니다.");
+    window.location.href = "/user/login";
+    return;
+  }
+
   const modal = document.getElementsByClassName("queueModal-overlay")[0];
 
   if (modal.style.display === "none") {
-	
+
     // 모달 보여주기
     modal.style.display = "flex";
 
-    // eventId를 랜덤으로 생성
-    const eventId = "21";
+    // eventId를 DB의 이벤트ID 1개
+	//const eventId = "98";
+    const eventId = "100";
+	//const eventId = "700";
+	//const eventId = "21";
+	
+	sessionStorage.setItem("eventId", eventId);
 	
 	try {
 		const res = await axiosInstance.post("/queue/enter", null, {
@@ -50,6 +54,8 @@ async function onModal() {
      console.error("대기열 진입 에러:", err);
      modal.style.display = "none";
     }
+	
+	console.log("이벤트 아이디 : ", eventId);
   }
 }
 
@@ -101,19 +107,19 @@ async function performFetchAndUpdate(numberElement) {
     // 세션스토리지에서 userId, eventId 가져오기
     // 실제로는 쿠키 또는 인증 토큰에서 가져와야 함
     const eventId = encodeURIComponent(sessionStorage.getItem("eventId"));
-	
-	if(!eventId) {
-		console.error(
-		  "세션스토리지에서 userId 또는 eventId를 가져오지 못했습니다."
-		);
-		isFetching = false;
-		return;
-	}
-	
-	const res = await axiosInstance.get("/queue/status", {
-		params: {eventId},
-		signal,
-	});
+
+    if (!eventId) {
+      console.error(
+        "세션스토리지에서 userId 또는 eventId를 가져오지 못했습니다."
+      );
+      isFetching = false;
+      return;
+    }
+
+    const res = await axiosInstance.get("/queue/status", {
+      params: { eventId },
+      signal,
+    });
 
     const data = res.data;
     console.log("서버 응답 data:", data);
@@ -191,7 +197,7 @@ function generateRandomUserId() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  const enterButton = document.querySelector('.modal-enter');
+  const enterButton = document.querySelector(".modal-enter");
 
   // 초기 상태
   enterButton.disabled = true;
@@ -209,19 +215,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
       const res = await axiosInstance.post("/queue/leave", null, {
-		params: {eventId}
-	  });
+        params: { eventId },
+      });
 
       const data = res.data;
 
       if (data.status === "success") {
-        alert("대기열에서 제거되고 예매창으로 이동합니다!");
+        // alert("대기열에서 제거되고 예매창으로 이동합니다!");
         closeModal();
         stopQueuePolling();
-        
+
 		// 팝업창 띄우기
 		try {
-			const popupRes = await axiosInstance.get("/queue/reservation", {
+			const popupRes = await axiosInstance.get("/reservation/start", {
+				params: {eventId},
 				responseType: "text",
 			});
 			
@@ -232,7 +239,7 @@ document.addEventListener("DOMContentLoaded", () => {
 			console.log("예약 팝업 열기 실패 : ", err);
 			alert("로그인이 필요합니다.");
 		}
-		
+
       } else {
         alert("대기열 제거 실패: " + data.message);
       }
@@ -243,7 +250,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // 대기번호에 따라 버튼 활성화 업데이트
-  window.updateEnterButton = function(parsedRank) {
+  window.updateEnterButton = function (parsedRank) {
     if (parsedRank === 1) {
       enterButton.disabled = false;
       enterButton.style.opacity = 1;
@@ -256,21 +263,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // 탭/창 종료, 새로고침 시 실행
 window.addEventListener("beforeunload", async (event) => {
-    //const userId = encodeURIComponent(sessionStorage.getItem("userId"));
-    const eventId = encodeURIComponent(sessionStorage.getItem("eventId"));
+  //const userId = encodeURIComponent(sessionStorage.getItem("userId"));
+  const eventId = encodeURIComponent(sessionStorage.getItem("eventId"));
 
-    if (!eventId) return;
+  if (!eventId) return;
 
-    try {
-        // navigator.sendBeacon는 브라우저 종료 시에도 서버에 안전하게 요청 보낼 수 있음
-        const url = `/queue/leave?eventId=${encodeURIComponent(eventId)}`;
-        const data = new Blob([], { type: "application/json" });
-        navigator.sendBeacon(url, data);
+  try {
+    // navigator.sendBeacon는 브라우저 종료 시에도 서버에 안전하게 요청 보낼 수 있음
+    const url = `/queue/leave?eventId=${encodeURIComponent(eventId)}`;
+    const data = new Blob([], { type: "application/json" });
+    navigator.sendBeacon(url, data);
 
-        // fetch로도 시도 가능하지만 탭 종료 시 요청이 끊길 수 있음
-        // await fetch(url, { method: "POST" });
-    } catch (err) {
-        console.error("탭 종료 시 대기열 제거 실패:", err);
-    }
+    // fetch로도 시도 가능하지만 탭 종료 시 요청이 끊길 수 있음
+    // await fetch(url, { method: "POST" });
+  } catch (err) {
+    console.error("탭 종료 시 대기열 제거 실패:", err);
+  }
 });
-

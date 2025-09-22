@@ -77,11 +77,11 @@ public class UserLoginController {
 			String loginTime = String.valueOf(System.currentTimeMillis());
 			
 			// redis 에 refresh token 과 loginTime 저장
-			refreshTokenService.storeRefreshToken(userId, refreshToken, loginTime, CookieUtil.SEVEN_DAYS);
+			refreshTokenService.storeRefreshToken(userId, refreshToken, loginTime);
 			
 			// 쿠키 에 refresh token 과 loginTime 저장
-			cookieUtil.createCookie(response, "refreshToken", refreshToken, CookieUtil.SEVEN_DAYS);
-			cookieUtil.createCookie(response, "loginTime", loginTime, CookieUtil.SEVEN_DAYS);
+			cookieUtil.createCookie(response, "refreshToken", refreshToken);
+			cookieUtil.createCookie(response, "loginTime", loginTime);
 			
 			return ResponseEntity.ok(Map.of("accessToken", tokens.getAccessToken()));
 		} catch (LoginException le) {

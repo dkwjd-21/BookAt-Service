@@ -23,7 +23,7 @@ import com.bookat.service.impl.EventServiceImpl;
 import com.bookat.service.impl.ReviewServiceImpl;
 
 @Controller
-@RequestMapping("/event")
+@RequestMapping("/events")
 public class EventController {
 	
 	@Autowired

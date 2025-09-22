@@ -4,6 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" th:href="@{/css/UserSignup.css}" />
+	<link rel="stylesheet" th:href="@{/css/header.css}" />
+	  <link rel="stylesheet" th:href="@{/css/footer.css}" />
+	  	<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+		<script th:src="@{/js/utils/axiosIntercepter.js}"></script>
+		<script th:src="@{/js/utils/logout.js}"></script>
+		<script th:src="@{/js/utils/userAuth.js}"></script>
+		<script th:src="@{/js/utils/header.js}"></script>
     <script th:src="@{/js/UserSignup.js}"></script>
     <script src="https://cdn.portone.io/v2/browser-sdk.js"></script>
     <title>BookAt 회원가입</title>
@@ -23,38 +30,7 @@
     </script>
   </head>
   <body>
-    <header class="main-header">
-      <div class="header-top">
-        <a th:href="@{/mainpage}">
-          <img th:src="@{/images/BookAt-Logo.png}" class="main-logo-img" />
-        </a>
-        <div class="auth-links">
-          <th:block th:if="${!isLoggedIn}">
-            <a th:href="@{/user/signup}">회원가입</a>
-            <a th:href="@{/user/login}">로그인</a>
-          </th:block>
-        </div>
-      </div>
-      <div class="header-bottom">
-        <nav class="nav-links">
-          <a th:href="@{/books}" class="nav-item active">도서</a>
-          <a th:href="@{/events}" class="nav-item">이벤트</a>
-        </nav>
-        <div class="search-bar">
-          <form id="searchForm" th:action="@{/search}" method="get">
-            <input
-              type="text"
-              name="search-query"
-              placeholder="검색어를 입력하세요"
-            />
-            <span
-              class="search-icon"
-              onclick="document.getElementById('searchForm').submit();"
-            ></span>
-          </form>
-        </div>
-      </div>
-    </header>
+    <div th:replace="~{fragments/header :: main-header}"></div>
 
     <main>
       <div class="signup-container">
@@ -171,22 +147,6 @@
       </div>
     </main>
 
-    <footer class="footer">
-      <div class="ft_content">
-        <div class="ft__left">
-          <div class="ft_logo">
-            <img th:src="@{/images/BookAt-LogoTypo.png}" alt="BookAt" />
-          </div>
-          <div>
-            (주) 북캣 | 현대이지웰 Java 풀스택 개발자 5회차<br />
-            책읽는고양이 송아정 김명주 박태욱 서지나
-          </div>
-        </div>
-        <div class="ft__right">
-          <div>Copyright ⓒ BookAt. ALL RIGHTS RESERVED</div>
-          <div><a href="">관리자로그인</a></div>
-        </div>
-      </div>
-    </footer>
+    <div th:replace="~{fragments/footer :: main-footer}"></div>
   </body>
 </html>

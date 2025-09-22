@@ -133,6 +133,13 @@
 		    <groupId>org.springframework.boot</groupId>
 		    <artifactId>spring-boot-starter-data-redis</artifactId>
 		</dependency>
+		
+		<!-- 캡챠 관련 의존성 추가 -->
+		<dependency>
+    		<groupId>nl.captcha</groupId>
+		    <artifactId>simplecaptcha</artifactId>
+		    <version>1.2.1</version>
+		</dependency>
 	</dependencies>
 
 	<build>
