@@ -76,6 +76,16 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
+    // 배송지 정보 유효성 검사
+    const recipientName = document.getElementById("display-name").textContent;
+    const recipientPhone = document.getElementById("display-phone").textContent;
+    const address = document.getElementById("display-address").textContent;
+
+    if (recipientName === "배송지를 입력해주세요" || recipientPhone === "배송지를 입력해주세요" || address === "배송지를 입력해주세요") {
+      showDeliveryInfoModal();
+      return;
+    }
+
     // 주문 생성 요청
     const cartIds = orderItems.map((item) => item.cartId || item.bookId); // cartId가 없으면 bookId 사용
 
@@ -179,14 +189,165 @@ function updateOrderSummary() {
   document.getElementById("points").textContent = points.toLocaleString() + "P";
 }
 
+// 배송지 정보 입력 안내 모달 표시
+function showDeliveryInfoModal() {
+  const modal = document.createElement("div");
+  modal.className = "delivery-info-modal";
+  modal.style.cssText = `
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    box-sizing: border-box;
+  `;
+
+  modal.innerHTML = `
+    <div style="
+      background-color: #fff;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 400px;
+      padding: 2rem;
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      transform: translateY(30px);
+    ">
+      <div style="
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 1rem;
+      ">배송지 정보를 입력해주세요</div>
+      <div style="
+        color: #666;
+        margin-bottom: 2rem;
+        line-height: 1.5;
+      ">주문을 완료하기 위해서는<br>배송지 정보가 필요합니다.</div>
+      <div style="display: flex; gap: 0.5rem; justify-content: center;">
+        <button onclick="closeDeliveryInfoModal()" style="
+          background-color: #6c757d;
+          color: white;
+          border: none;
+          padding: 0.75rem 1.5rem;
+          border-radius: 4px;
+          cursor: pointer;
+          font-size: 1rem;
+        ">취소</button>
+        <button onclick="closeDeliveryInfoModal(); openAddressModal();" style="
+          background-color: #b5d173;
+          color: white;
+          border: none;
+          padding: 0.75rem 1.5rem;
+          border-radius: 4px;
+          cursor: pointer;
+          font-size: 1rem;
+          font-weight: bold;
+        ">배송지 입력하기</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+}
+
+// 배송지 정보 안내 모달 닫기
+function closeDeliveryInfoModal() {
+  const modal = document.querySelector(".delivery-info-modal");
+  if (modal) {
+    modal.remove();
+  }
+}
+
+// 배송지 저장 성공 모달 표시
+function showSaveSuccessModal() {
+  const modal = document.createElement("div");
+  modal.className = "save-success-modal";
+  modal.style.cssText = `
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    box-sizing: border-box;
+  `;
+
+  modal.innerHTML = `
+    <div style="
+      background-color: #fff;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 350px;
+      padding: 2rem;
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      transform: translateY(30px);
+    ">
+      <div style="
+        font-size: 1.3rem;
+        font-weight: bold;
+        color: #b5d173;
+        margin-bottom: 1rem;
+      ">✓</div>
+      <div style="
+        font-size: 1.1rem;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 0.5rem;
+      ">저장 완료</div>
+      <div style="
+        color: #666;
+        margin-bottom: 2rem;
+        line-height: 1.5;
+      ">배송지 정보가 성공적으로<br>저장되었습니다.</div>
+      <button onclick="closeSaveSuccessModal()" style="
+        background-color: #b5d173;
+        color: white;
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: bold;
+        width: 100%;
+      ">확인</button>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+}
+
+// 배송지 저장 성공 모달 닫기
+function closeSaveSuccessModal() {
+  const modal = document.querySelector(".save-success-modal");
+  if (modal) {
+    modal.remove();
+  }
+}
+
 // 주소 모달 관련 함수들
 
 // 주소 모달 열기
 function openAddressModal() {
   document.getElementById("addressModal").style.display = "block";
-  // 현재 값으로 모달 필드 초기화
-  document.getElementById("modal-name").value = document.getElementById("display-name").textContent;
-  document.getElementById("modal-phone").value = document.getElementById("display-phone").textContent;
+  // 현재 값으로 모달 필드 초기화 (배송지 정보가 없는 경우 빈 값으로 설정)
+  const currentName = document.getElementById("display-name").textContent;
+  const currentPhone = document.getElementById("display-phone").textContent;
+
+  document.getElementById("modal-name").value = currentName === "배송지를 입력해주세요" ? "" : currentName;
+  document.getElementById("modal-phone").value = currentPhone === "배송지를 입력해주세요" ? "" : currentPhone;
 }
 
 // 주소 모달 닫기
@@ -235,11 +396,37 @@ function saveAddress() {
   // 주소 조합
   const fullAddress = roadAddress + (detailAddress ? " " + detailAddress : "") + (extraAddress ? " " + extraAddress : "");
 
-  // 화면에 표시
-  document.getElementById("display-name").textContent = name;
-  document.getElementById("display-phone").textContent = formatPhoneNumber(phone);
-  document.getElementById("display-address").textContent = fullAddress;
+  // 서버에 주소 정보 전송
+  const addressData = {
+    recipientName: name,
+    recipientPhone: phone.replace(/-/g, ""), // 하이픈 제거
+    address: fullAddress,
+  };
 
-  // 모달 닫기
-  closeAddressModal();
+  axiosInstance
+    .post("/order/address", addressData)
+    .then((response) => {
+      console.log("주소 저장 성공:", response.data);
+
+      // 화면에 표시
+      document.getElementById("display-name").textContent = name;
+      document.getElementById("display-phone").textContent = formatPhoneNumber(phone);
+      document.getElementById("display-address").textContent = fullAddress;
+
+      // 모달 닫기
+      closeAddressModal();
+
+      showSaveSuccessModal();
+    })
+    .catch((error) => {
+      console.error("주소 저장 실패:", error);
+      if (error.response && error.response.status === 401) {
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
+        alert("세션이 만료되었습니다. 다시 로그인해주세요.");
+        window.location.href = "/user/login";
+      } else {
+        alert("배송지 저장 중 오류가 발생했습니다.");
+      }
+    });
 }

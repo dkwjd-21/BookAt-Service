@@ -34,19 +34,22 @@
                 <div class="delivery-item">
                   <span class="delivery-label">이름</span>
                   <div class="delivery-content">
-                    <span id="display-name" th:text="${address != null ? address.recipientName : user.userName}">수령인</span>
+                    <span id="display-name" th:text="${address != null ? address.recipientName : user.userName}" th:if="${address != null or user.userName != null}">수령인</span>
+                    <span id="display-name" th:if="${address == null and user.userName == null}" style="color: #999">배송지를 입력해주세요</span>
                   </div>
                 </div>
                 <div class="delivery-item">
                   <span class="delivery-label">전화번호</span>
                   <div class="delivery-content">
-                    <span class="phone-number" id="display-phone" th:text="${address != null ? address.recipientPhone : user.phone}">연락처</span>
+                    <span class="phone-number" id="display-phone" th:text="${address != null ? address.recipientPhone : user.phone}" th:if="${address != null or user.phone != null}">연락처</span>
+                    <span id="display-phone" th:if="${address == null and user.phone == null}" style="color: #999">배송지를 입력해주세요</span>
                   </div>
                 </div>
                 <div class="delivery-item">
                   <span class="delivery-label">주소</span>
                   <div class="delivery-content">
-                    <span id="display-address" th:text="${address != null ? address.addr : '배송지 정보가 없습니다.'}">주소</span>
+                    <span id="display-address" th:text="${address != null ? address.addr : '배송지를 입력해주세요'}" th:if="${address != null}">주소</span>
+                    <span id="display-address" th:if="${address == null}" style="color: #999">배송지를 입력해주세요</span>
                   </div>
                 </div>
                 <div class="delivery-item">
@@ -58,7 +61,7 @@
                 <div class="delivery-item">
                   <span class="delivery-label">공동현관문 출입방법</span>
                   <div class="delivery-content">
-                    <input type="text" placeholder="공동현관 출입방법을 입력해주세요" />
+                    <input type="text" placeholder="공동현관문 출입방법을 입력해주세요" />
                   </div>
                 </div>
               </div>

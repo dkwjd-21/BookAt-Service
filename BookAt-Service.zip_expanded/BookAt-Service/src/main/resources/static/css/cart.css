@@ -259,6 +259,8 @@ body {
   gap: 16px;
   overflow-x: auto; /* 아이템이 많을 경우 가로 스크롤 */
   padding-bottom: 10px; /* 스크롤바와 아이템 간 여백 */
+  padding-right: 0; /* 오른쪽 여백 제거 */
+  justify-content: space-between; /* 아이템들을 균등하게 분산 */
 }
 
 .rec-card,

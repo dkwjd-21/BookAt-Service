@@ -39,8 +39,14 @@ public class OrderController {
         }
 
         try {
-            // 사용자의 기본 배송지 정보 가져오기
-            Address defaultAddress = addressService.getDefaultAddressByUserId(user.getUserId());
+            // 사용자의 기본 배송지 정보 가져오기 (없어도 페이지 접근 허용)
+            Address defaultAddress = null;
+            try {
+                defaultAddress = addressService.getDefaultAddressByUserId(user.getUserId());
+            } catch (Exception addressException) {
+                // 배송지 정보가 없어도 페이지 접근 허용
+                System.out.println("배송지 정보가 없습니다: " + addressException.getMessage());
+            }
             
             model.addAttribute("user", user);
             model.addAttribute("address", defaultAddress);
@@ -74,6 +80,50 @@ public class OrderController {
             return ResponseEntity.ok().body("주문이 완료되었습니다.");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("주문 처리 중 오류가 발생했습니다: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/address")
+    public ResponseEntity<?> saveAddress(@RequestBody Map<String, Object> request, @AuthenticationPrincipal User user) {
+        if (user == null) {
+            return ResponseEntity.badRequest().body("로그인이 필요합니다.");
+        }
+
+        try {
+            String recipientName = (String) request.get("recipientName");
+            String recipientPhone = (String) request.get("recipientPhone");
+            String address = (String) request.get("address");
+
+            if (recipientName == null || recipientPhone == null || address == null || 
+                recipientName.trim().isEmpty() || recipientPhone.trim().isEmpty() || address.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("필수 정보를 모두 입력해주세요.");
+            }
+
+            // 새 주소 객체 생성
+            Address newAddress = new Address();
+            newAddress.setUserId(user.getUserId());
+            newAddress.setAddrName("기본 배송지");
+            newAddress.setRecipientName(recipientName);
+            newAddress.setRecipientPhone(recipientPhone);
+            newAddress.setAddr(address);
+
+            // 기존 기본 주소가 있는지 확인
+            Address existingAddress = addressService.getDefaultAddressByUserId(user.getUserId());
+            
+            if (existingAddress != null) {
+                // 기존 주소가 있으면 업데이트
+                existingAddress.setRecipientName(recipientName);
+                existingAddress.setRecipientPhone(recipientPhone);
+                existingAddress.setAddr(address);
+                addressService.updateAddress(existingAddress);
+            } else {
+                // 기존 주소가 없으면 새로 저장
+                addressService.saveAddress(newAddress);
+            }
+
+            return ResponseEntity.ok().body("배송지 정보가 저장되었습니다.");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("배송지 저장 중 오류가 발생했습니다: " + e.getMessage());
         }
     }
 }

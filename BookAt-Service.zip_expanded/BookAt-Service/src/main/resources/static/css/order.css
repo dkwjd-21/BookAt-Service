@@ -57,6 +57,7 @@
   color: #333;
   border-bottom: 2px solid #646464;
   padding-bottom: 0.5rem;
+  font-size: 1.1rem;
 }
 
 .section-header {
@@ -254,7 +255,7 @@
 .summary-box h3 {
   margin: 0 0 1rem 0;
   color: #333;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   text-align: center;
 }
 
@@ -270,7 +271,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 0.5rem 0;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
 }
 
 .summary-item.total {
@@ -509,7 +510,7 @@
 }
 
 .btn-postcode {
-  background-color: #003274;
+  background-color: #b5d173;
   color: white;
   border: none;
   padding: 0.75rem 1rem;
@@ -520,7 +521,7 @@
 }
 
 .btn-postcode:hover {
-  background-color: #002244;
+  background-color: #daf39f;
 }
 
 .modal-footer {
@@ -541,19 +542,19 @@
 }
 
 .modal-footer .btn-primary {
-  background-color: #003274;
+  background-color: #b5d173;
   color: white;
 }
 
 .modal-footer .btn-primary:hover {
-  background-color: #002244;
+  background-color: #daf39f;
 }
 
 .modal-footer .btn-secondary {
-  background-color: #6c757d;
+  background-color: #acb6be;
   color: white;
 }
 
 .modal-footer .btn-secondary:hover {
-  background-color: #5a6268;
+  background-color: #c7c8c9;
 }
