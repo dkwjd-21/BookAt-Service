@@ -45,7 +45,7 @@
     <delete id="deleteCartItems">
         DELETE FROM CART
         WHERE CART_ID IN
-        <foreach item="cartId" collection="list" open="(" separator="," close=")">
+        <foreach item="cartId" collection="cartIds" open="(" separator="," close=")">
             #{cartId}
         </foreach>
     </delete>
@@ -65,7 +65,7 @@
             BOOK B ON C.BOOK_ID = B.BOOK_ID
         WHERE
             C.CART_ID IN
-        <foreach item="cartId" collection="list" open="(" separator="," close=")">
+        <foreach item="cartId" collection="cartIds" open="(" separator="," close=")">
             #{cartId}
         </foreach>
         ORDER BY
