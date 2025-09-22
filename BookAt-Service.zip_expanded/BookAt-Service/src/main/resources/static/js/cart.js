@@ -197,6 +197,24 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   };
 
+  /**
+   * 장바구니가 비었는지 확인하고 빈 장바구니 메시지를 표시합니다.
+   */
+  const checkAndShowEmptyCart = () => {
+    const remainingItems = document.querySelectorAll(".cart-item");
+
+    if (remainingItems.length === 0) {
+      // 장바구니가 비었을 때 빈 장바구니 메시지 표시
+      cartItemsContainer.innerHTML = `
+        <section class="cart-section">
+          <h2>장바구니</h2>
+          <div class="empty-cart-message">
+            <p>장바구니가 비어 있습니다.</p>
+          </div>
+        </section>`;
+    }
+  };
+
   // --- 이벤트 리스너 설정 (일부 수정) ---
 
   // '전체선택'은 동적으로 생성되므로, 이벤트 위임 방식으로 변경
@@ -259,6 +277,9 @@ document.addEventListener("DOMContentLoaded", async () => {
               cartItem.remove();
               updateSelectAllCheckboxState();
               updateSummary();
+
+              // 삭제 후 장바구니가 비었는지 확인
+              checkAndShowEmptyCart();
             } else {
               alert("삭제에 실패했습니다. 다시 시도해주세요.");
             }
