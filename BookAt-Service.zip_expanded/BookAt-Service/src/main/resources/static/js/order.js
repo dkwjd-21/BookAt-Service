@@ -58,12 +58,12 @@ document.addEventListener("DOMContentLoaded", function () {
       sessionStorage.removeItem("orderItems");
     } catch (e) {
       console.error("주문 상품 정보를 파싱하는 중 오류가 발생했습니다:", e);
-      alert("주문 상품 정보를 불러올 수 없습니다.");
-      window.location.href = "/cart";
+      showOrderResultModal("주문 상품 정보를 불러올 수 없습니다.", false);
+      return;
     }
   } else {
-    alert("주문할 상품이 없습니다.");
-    window.location.href = "/cart";
+    showOrderResultModal("주문할 상품이 없습니다.", false);
+    return;
   }
 
   // 결제하기 버튼 클릭 이벤트
@@ -71,8 +71,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const accessToken = localStorage.getItem("accessToken");
 
     if (!accessToken) {
-      alert("로그인이 필요합니다.");
-      window.location.href = "/user/login";
+      showOrderResultModal("로그인이 필요합니다.", false);
       return;
     }
 
@@ -113,11 +112,7 @@ document.addEventListener("DOMContentLoaded", function () {
         console.log("response.data:", response.data);
 
         if (response.data) {
-          alert(response.data);
-          if (response.data === "주문이 완료되었습니다.") {
-            // 주문 완료 후 장바구니나 메인페이지로 이동
-            window.location.href = "/cart";
-          }
+          showOrderResultModal(response.data, true);
         }
       })
       .catch((error) => {
@@ -128,10 +123,10 @@ document.addEventListener("DOMContentLoaded", function () {
         if (error.response && error.response.status === 401) {
           localStorage.removeItem("accessToken");
           localStorage.removeItem("refreshToken");
-          alert("세션이 만료되었습니다. 다시 로그인해주세요.");
-          window.location.href = "/user/login";
+          showOrderResultModal("세션이 만료되었습니다. 다시 로그인해주세요.", false);
         } else {
-          alert("주문 처리 중 오류가 발생했습니다.");
+          const errorMessage = error.response?.data || "주문 처리 중 오류가 발생했습니다.";
+          showOrderResultModal(errorMessage, false);
         }
       });
   });
@@ -142,8 +137,7 @@ function checkLoginStatus() {
   const accessToken = localStorage.getItem("accessToken");
 
   if (!accessToken) {
-    alert("로그인이 필요합니다.");
-    window.location.href = "/user/login";
+    showOrderResultModal("로그인이 필요합니다.", false);
     return;
   }
 }
@@ -337,6 +331,140 @@ function closeSaveSuccessModal() {
   }
 }
 
+// 주문 결과 모달 표시 (성공/실패)
+function showOrderResultModal(message, isSuccess) {
+  const modal = document.createElement("div");
+  modal.className = "order-result-modal";
+  modal.style.cssText = `
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    box-sizing: border-box;
+  `;
+
+  const iconColor = isSuccess ? "#b5d173" : "#dc3545";
+  const icon = isSuccess ? "✓" : "✕";
+  const buttonColor = isSuccess ? "#b5d173" : "#dc3545";
+
+  modal.innerHTML = `
+    <div style="
+      background-color: #fff;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 400px;
+      padding: 2rem;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      transform: translateY(0);
+      animation: modalSlideIn 0.3s ease-out;
+    ">
+      <div style="
+        font-size: 3rem;
+        color: ${iconColor};
+        margin-bottom: 1rem;
+      ">${icon}</div>
+      <div style="
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 1rem;
+        line-height: 1.4;
+      ">${message}</div>
+      <div style="display: flex; gap: 0.75rem; justify-content: center; margin-top: 2rem;">
+        ${
+          isSuccess
+            ? `
+          <button onclick="closeOrderResultModal(); window.location.href='/cart';" style="
+            background-color: ${buttonColor};
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            flex: 1;
+            transition: background-color 0.2s;
+          " onmouseover="this.style.backgroundColor='${isSuccess ? "#9bb85a" : "#c82333"}'" onmouseout="this.style.backgroundColor='${buttonColor}'">확인</button>
+        `
+            : `
+          <button onclick="closeOrderResultModal()" style="
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-right: 0.5rem;
+            transition: background-color 0.2s;
+          " onmouseover="this.style.backgroundColor='#5a6268'" onmouseout="this.style.backgroundColor='#6c757d'">취소</button>
+          ${
+            message.includes("로그인")
+              ? `
+            <button onclick="closeOrderResultModal(); window.location.href='/user/login';" style="
+              background-color: ${buttonColor};
+              color: white;
+              border: none;
+              padding: 0.75rem 1.5rem;
+              border-radius: 6px;
+              cursor: pointer;
+              font-size: 1rem;
+              font-weight: bold;
+              transition: background-color 0.2s;
+            " onmouseover="this.style.backgroundColor='${isSuccess ? "#9bb85a" : "#c82333"}'" onmouseout="this.style.backgroundColor='${buttonColor}'">로그인</button>
+          `
+              : `
+            <button onclick="closeOrderResultModal()" style="
+              background-color: ${buttonColor};
+              color: white;
+              border: none;
+              padding: 0.75rem 1.5rem;
+              border-radius: 6px;
+              cursor: pointer;
+              font-size: 1rem;
+              font-weight: bold;
+              transition: background-color 0.2s;
+            " onmouseover="this.style.backgroundColor='${isSuccess ? "#9bb85a" : "#c82333"}'" onmouseout="this.style.backgroundColor='${buttonColor}'">확인</button>
+          `
+          }
+        `
+        }
+      </div>
+    </div>
+    <style>
+      @keyframes modalSlideIn {
+        from {
+          opacity: 0;
+          transform: translateY(-30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    </style>
+  `;
+
+  document.body.appendChild(modal);
+}
+
+// 주문 결과 모달 닫기
+function closeOrderResultModal() {
+  const modal = document.querySelector(".order-result-modal");
+  if (modal) {
+    modal.remove();
+  }
+}
+
 // 주소 모달 관련 함수들
 
 // 주소 모달 열기
@@ -389,7 +517,7 @@ function saveAddress() {
   const extraAddress = document.getElementById("modal-extraAddress").value;
 
   if (!name || !phone || !postcode || !roadAddress) {
-    alert("필수 정보를 모두 입력해주세요.");
+    showOrderResultModal("필수 정보를 모두 입력해주세요.", false);
     return;
   }
 
@@ -423,10 +551,9 @@ function saveAddress() {
       if (error.response && error.response.status === 401) {
         localStorage.removeItem("accessToken");
         localStorage.removeItem("refreshToken");
-        alert("세션이 만료되었습니다. 다시 로그인해주세요.");
-        window.location.href = "/user/login";
+        showOrderResultModal("세션이 만료되었습니다. 다시 로그인해주세요.", false);
       } else {
-        alert("배송지 저장 중 오류가 발생했습니다.");
+        showOrderResultModal("배송지 저장 중 오류가 발생했습니다.", false);
       }
     });
 }

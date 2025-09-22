@@ -42,7 +42,7 @@
         WHERE CART_ID = #{cartId}
     </update>
 
-    <delete id="deleteCartItems" parameterType="java.util.List">
+    <delete id="deleteCartItems">
         DELETE FROM CART
         WHERE CART_ID IN
         <foreach item="cartId" collection="list" open="(" separator="," close=")">
@@ -50,7 +50,7 @@
         </foreach>
     </delete>
 
-    <select id="getCartItemsByIds" resultMap="cartResponseMap" parameterType="java.util.List">
+    <select id="getCartItemsByIds" resultMap="cartResponseMap">
         SELECT
             C.CART_ID,
             C.CART_QUANTITY,

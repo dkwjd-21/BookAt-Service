@@ -24,7 +24,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public void createOrder(String userId, List<String> cartIds) {
+    public void createOrder(String userId, List<String> cartIds, Long addrId) {
         // 1. 선택된 장바구니 아이템들을 조회
         List<CartResponse> cartItems = cartMapper.getCartItemsByIds(cartIds);
 
@@ -37,6 +37,7 @@ public class OrderServiceImpl implements OrderService {
         BookOrderRequestDto orderRequest = BookOrderRequestDto.builder()
                 .totalPrice(totalPrice)
                 .userId(userId)
+                .addrId(addrId)
                 .build();
 
         orderMapper.insertOrder(orderRequest);

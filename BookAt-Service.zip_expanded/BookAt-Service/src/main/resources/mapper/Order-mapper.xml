@@ -4,17 +4,17 @@
 <mapper namespace="com.bookat.mapper.OrderMapper">
     <insert id="insertOrder" parameterType="com.bookat.dto.BookOrderRequestDto">
         <selectKey keyProperty="orderId" resultType="long" order="BEFORE">
-            SELECT ORDERS_SEQ.NEXTVAL FROM DUAL
+            SELECT SEQ_BOOK_ORDER.NEXTVAL FROM DUAL
         </selectKey>
-        INSERT INTO ORDERS (ORDER_ID, ORDER_DATE, ORDER_STATUS, TOTAL_PRICE, USER_ID)
-        VALUES (#{orderId}, SYSDATE, 0, #{totalPrice}, #{userId})
+        INSERT INTO BOOK_ORDER (ORDER_ID, ORDER_DATE, ORDER_STATUS, TOTAL_PRICE, USER_ID, ADDR_ID)
+        VALUES (#{orderId}, SYSDATE, 0, #{totalPrice}, #{userId}, #{addrId})
     </insert>
 
     <insert id="insertOrderItem" parameterType="com.bookat.dto.BookOrderItemRequestDto">
         <selectKey keyProperty="orderItemId" resultType="long" order="BEFORE">
-            SELECT ORDER_ITEMS_SEQ.NEXTVAL FROM DUAL
+            SELECT SEQ_ORDER_ITEM.NEXTVAL FROM DUAL
         </selectKey>
-        INSERT INTO ORDER_ITEMS (ORDER_ITEM_ID, BOOK_ID, ORDER_ID, QUANTITY, PRICE)
+        INSERT INTO ORDER_ITEM (ORDER_ITEM_ID, BOOK_ID, ORDER_ID, ORDER_QUANTITY, ITEM_PRICE)
         VALUES (#{orderItemId}, #{bookId}, #{orderId}, #{quantity}, #{price})
     </insert>
 </mapper>

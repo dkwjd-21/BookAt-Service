@@ -66,19 +66,20 @@ public class OrderController {
             @SuppressWarnings("unchecked")
             List<String> cartIds = (List<String>) request.get("cartIds");
             
-            // 배송비 정보 추출
-            Integer subtotal = (Integer) request.get("subtotal");
-            Integer shippingFee = (Integer) request.get("shippingFee");
-            Integer totalAmount = (Integer) request.get("totalAmount");
-
             if (cartIds == null || cartIds.isEmpty()) {
                 return ResponseEntity.badRequest().body("주문할 상품을 선택해주세요.");
             }
 
+            // 사용자의 기본 배송지 ID 가져오기
+            Address defaultAddress = addressService.getDefaultAddressByUserId(user.getUserId());
+            if (defaultAddress == null) {
+                return ResponseEntity.badRequest().body("배송지 정보가 없습니다. 배송지를 먼저 등록해주세요.");
+            }
 
-            orderService.createOrder(user.getUserId(), cartIds);
-            return ResponseEntity.ok().body("주문이 완료되었습니다.");
+            orderService.createOrder(user.getUserId(), cartIds, (long) defaultAddress.getAddrId());
+            return ResponseEntity.ok().body("주문 생성 완료되었습니다.");
         } catch (Exception e) {
+            e.printStackTrace(); // 디버깅을 위한 로그 추가
             return ResponseEntity.badRequest().body("주문 처리 중 오류가 발생했습니다: " + e.getMessage());
         }
     }
