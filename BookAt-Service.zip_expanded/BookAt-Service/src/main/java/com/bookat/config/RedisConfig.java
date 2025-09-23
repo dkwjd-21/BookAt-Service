@@ -7,6 +7,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 import lombok.extern.slf4j.Slf4j;
@@ -53,5 +54,12 @@ public class RedisConfig {
 		  redisTemplate.afterPropertiesSet();
 		  
 		  return redisTemplate;
+	  }
+	  
+	  @Bean
+	  public RedisMessageListenerContainer redisMessageListenerContainer(RedisConnectionFactory redisConnectionFactory) {
+		  RedisMessageListenerContainer container = new RedisMessageListenerContainer();
+		  container.setConnectionFactory(redisConnectionFactory);
+		  return container;
 	  }
 }
