@@ -1,7 +1,5 @@
 package com.bookat.util;
 
-import java.util.concurrent.TimeUnit;
-
 import org.springframework.stereotype.Component;
 
 import jakarta.servlet.http.Cookie;
@@ -10,20 +8,14 @@ import jakarta.servlet.http.HttpServletResponse;
 
 @Component
 public class CookieUtil {
-	
-    public static final int ONE_MINUTE = (int) TimeUnit.MINUTES.toSeconds(1);
-    public static final int THIRTY_MINUTES = (int) TimeUnit.MINUTES.toSeconds(30);
-//    public static final int ONE_HOUR = (int) TimeUnit.HOURS.toSeconds(1);
-//    public static final int ONE_DAY = (int) TimeUnit.DAYS.toSeconds(1);
-    public static final int SEVEN_DAYS = (int) TimeUnit.DAYS.toSeconds(7);
 
 	// 쿠키 생성
-    public void createCookie(HttpServletResponse response, String key, String value, int maxAgeSeconds) {
+    public void createCookie(HttpServletResponse response, String key, String value) {
     	Cookie cookie  = new Cookie(key, value);
 		cookie .setHttpOnly(true);
 //		cookie .setSecure(true);
 		cookie .setPath("/");
-		cookie.setMaxAge(maxAgeSeconds);
+		cookie.setMaxAge(JwtTokenProvider.EXPIRATION_1D);
 		response.addCookie(cookie);
     }
     
