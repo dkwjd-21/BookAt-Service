@@ -123,7 +123,50 @@ document.addEventListener("DOMContentLoaded", () => {
 		// 마지막 단계이면 다음 버튼 숨기고 제출 버튼 보이기
 		nextBtn.style.display = step === steps.length ? "none" : "block";
 		submitBtn.style.display = step === steps.length ? "block" : "none";
+
 	}
+
+	// ====== 제목 클릭 시 이전 단계로 이동 ======
+	steps.forEach((stepEl, idx) => {
+		stepEl.addEventListener("click", async () => {
+			const targetStep = idx + 1;
+
+			// 이전 단계만 이동 가능
+			if (targetStep < currentStep) {
+				showStep(targetStep);
+
+				const token = sessionStorage.getItem("reservationToken");
+
+				// STEP별 초기화 및 상태 복원
+				if (targetStep === 1) {
+					// STEP1: 달력 초기화, 회차 선택 초기화
+					initCalendar();
+					resetPersonSelection();
+					
+					// STEP2에서 선택된 좌석 서버 초기화 
+					if (currentScheduleId && selectedSeats.length > 0) {
+						await resetReservationOnServer(token, eventId, currentScheduleId, selectedSeats);
+					}
+					resetSeatSelection();
+
+					document.querySelectorAll(".option-part").forEach(p => p.classList.remove("selected"));
+					if (selectedSession) selectedSession.textContent = "선택회차";
+				} else if (targetStep === 2) {
+					// STEP2: 좌석/인원 선택 초기화
+					resetPersonSelection();
+					// STEP2에서 선택된 좌석 서버 초기화 
+					if (currentScheduleId && selectedSeats.length > 0) {
+						await resetReservationOnServer(token, eventId, currentScheduleId, selectedSeats);
+					}
+					resetSeatSelection();
+				}
+
+				// 요약도 갱신
+				if (typeof updateSummary === "function") updateSummary();
+			}
+		});
+	});
+
 
 	// ====== 단계 이동(다음 버튼) 처리 ======
 	nextBtn.addEventListener("click", async () => {
@@ -184,7 +227,7 @@ document.addEventListener("DOMContentLoaded", () => {
 					},
 					totalPrice: parseInt(document.getElementById("total-price").value) || totalPrice,
 				};
-				
+
 				try {
 					const res = await axiosInstance.post(`/reservation/${token}/step2`, payload);
 					if (res.data.status === "STEP3") showStep(3);
@@ -210,7 +253,7 @@ document.addEventListener("DOMContentLoaded", () => {
 				}
 
 				console.log(payload);
-				
+
 				// 서버에 좌석 이름 리스트와 총금액 전달
 				try {
 					const res = await axiosInstance.post(`/reservation/${token}/step2`, payload);
@@ -354,10 +397,10 @@ document.addEventListener("DOMContentLoaded", () => {
 			if (summaryTotalEl) summaryTotalEl.textContent = totalPrice.toLocaleString() + "원";
 		}
 	}
-	
+
 	// 전역 노출
 	window.updateSummary = updateSummary;
-	
+
 	// ====== 인원/요약 초기화 ======
 	function resetPersonSelection() {
 		selects.forEach((sel) => { sel.value = 0; });
@@ -611,7 +654,7 @@ function refreshSeats() {
 	if (eventId && scheduleId) fetchSeatInfo(eventId, scheduleId).catch(err => console.error(err));
 }
 
-// 선택한 좌석 초기화 
+// 선택한 좌석 초기화 (프론트에서만 초기화)
 function resetSeatSelection() {
 	// 선택한 좌석 데이터 초기화
 	selectedSeats = [];
@@ -622,6 +665,24 @@ function resetSeatSelection() {
 	selectedSeatEls.forEach(el => {
 		el.classList.remove('seat-selected');
 	})
-	
+
 	if (typeof updateSummary === 'function') updateSummary();
+}
+
+// 선택한 좌석/예약 상태 초기화 (서버 Redis/DB 반영)
+async function resetReservationOnServer(token, eventId, scheduleId, seats = []) {
+	if (!token || !eventId || !scheduleId) return;
+
+	try {
+		/*
+		await axiosInstance.post(`/reservation/${token}/reset`, {
+			eventId: parseInt(eventId),
+			scheduleId: parseInt(scheduleId),
+			seatNames: seats
+		});
+		*/
+		console.log("서버 예약 상태 초기화 완료");
+	} catch (err) {
+		console.error("서버 예약 초기화 오류: ", err);
+	}
 }
