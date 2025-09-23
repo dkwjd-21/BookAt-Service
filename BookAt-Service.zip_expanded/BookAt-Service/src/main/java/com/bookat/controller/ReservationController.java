@@ -1,5 +1,6 @@
 package com.bookat.controller;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -16,7 +17,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.bookat.dto.PaymentDto;
-import com.bookat.dto.PaymentSession;
 import com.bookat.dto.reservation.PaymentInfoResDto;
 import com.bookat.dto.reservation.PaymentReservationSession;
 import com.bookat.dto.reservation.PersonTypeReqDto;
@@ -26,7 +26,6 @@ import com.bookat.entity.User;
 import com.bookat.service.PaymentService;
 import com.bookat.service.ReservationService;
 import com.bookat.util.PaymentSessionStore;
-import com.bookat.util.PortOneClient;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -120,26 +119,23 @@ public class ReservationController {
 			
 			// 결제 프레그먼트 연결
 			PaymentInfoResDto getPaymentInfo = reservationService.getPaymentInfo(reservationToken);
-			int totalPrice = getPaymentInfo.getTotalPrice();
-			int eventId = getPaymentInfo.getEventId();
-			int scheduleId = getPaymentInfo.getScheduleId();
-			
+
 			String enforcedMethod = "CARD";
 			PaymentDto pay = paymentService.createReadyPayment(getPaymentInfo.getTotalPrice(), enforcedMethod, "pay for event ticket", user.getUserId());
 			
 			PaymentReservationSession session = PaymentSessionStore.of(
 					reservationToken, 
-					eventId,
-					scheduleId, 
+					getPaymentInfo.getEventId(),
+					getPaymentInfo.getScheduleId(),
+					getPaymentInfo.getReservedCount(),
 					enforcedMethod,
-					java.math.BigDecimal.valueOf(totalPrice),
+					BigDecimal.valueOf(getPaymentInfo.getTotalPrice()),
 					pay.getMerchantUid(),
 					user.getUserId());
 			
 			String paymentToken =  paymentSessionStore.createEventPay(session);
 		      
 			String paymentStepUrl = "/payment/" + paymentToken + "/paymentUI";
-			log.info("paymentStepUrl : {}", paymentStepUrl);
 			
 			return ResponseEntity.ok(Map.of("message", "사용자 정보 저장 완료", "status", "STEP4", "paymentStepUrl", paymentStepUrl));
 			

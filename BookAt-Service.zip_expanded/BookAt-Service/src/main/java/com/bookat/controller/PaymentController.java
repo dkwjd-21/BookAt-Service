@@ -10,6 +10,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 import com.bookat.dto.PaymentCompleteRequest;
 import com.bookat.dto.PaymentSession;
+import com.bookat.dto.reservation.PaymentReservationSession;
 import com.bookat.entity.User;
 import com.bookat.service.BookService;
 import com.bookat.service.EventService;
@@ -264,29 +265,36 @@ public String devNew(@RequestParam Integer amount,
 		
 		String token = paymentToken.startsWith("payment:") ? paymentToken.substring("payment:".length()) : paymentToken;
 		
-		Map<String, String> paymentData = sessionStore.getEventPay(token);
+		PaymentReservationSession session = sessionStore.getEventPay(token);
 		
-		if (paymentData == null || paymentData.isEmpty()) {
+		if (session == null) {
 			// 세션없음 : 만료/오류 페이지 -> 현재 페이지가 없어서 여기 진입하면 템플릿에러남
 			return "error/404";
 		}
 		
 		String userId = (user == null) ? null : user.getUserId();
-		String principalId = paymentData.get("userId");
-		if (userId == null || principalId == null || !userId.equals(principalId)) {
+		if (userId == null || !userId.equals(session.userId())) {
 			// 세션없음 : 권한 없음 -> 현재 페이지가 없어서 여기 진입하면 템플릿에러남
 			return "error/403";
 		}
 	    
 		// 2) 프래그먼트에 필요한 값 모델로 주입 (서버 신뢰값만)
-		String merchantUid = paymentData.get("merchantUid");
-		int totalPrice = new BigDecimal(paymentData.getOrDefault("amount","0")).intValue();
-		String method = (requestMethod != null && !requestMethod.isBlank()) ? requestMethod : paymentData.getOrDefault("method","CARD");
+		String merchantUid = session.merchantUid();
+		int totalPrice = session.amount().intValue();
+		String method = (requestMethod != null && !requestMethod.isBlank()) ? requestMethod : (session.method() == null ? "CARD" : session.method());
 
+		int reservedCount = session.reservedCount();
+		int eventId = session.eventId();
+		int scheduleId = session.scheduleId();
+		
 	    model.addAttribute("merchantUid", merchantUid);
 	    model.addAttribute("amount", totalPrice);
 	    model.addAttribute("title", "pay for event ticket");
 	    model.addAttribute("method", method);
+	    
+	    model.addAttribute("reservedCount", reservedCount);
+	    model.addAttribute("eventId", eventId);
+	    model.addAttribute("scheduleId", scheduleId);
 		
 	    return "fragments/payFragment :: payFragment";
 	}

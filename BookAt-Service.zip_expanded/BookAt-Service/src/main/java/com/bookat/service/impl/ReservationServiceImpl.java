@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -25,6 +26,9 @@ import com.bookat.enums.PersonType;
 import com.bookat.mapper.EventPartMapper;
 import com.bookat.mapper.ReservationMapper;
 import com.bookat.service.ReservationService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -36,8 +40,8 @@ public class ReservationServiceImpl implements ReservationService {
 	private final ReservationMapper reservationMapper;
 	private final EventPartMapper eventPartMapper;
 	private final StringRedisTemplate redisTemplate;
-	private static final long TTL_SECONDS = 900;	// 15분
-//	private static final long TTL_SECONDS = 100;	// 테스트 용
+//	private static final long TTL_SECONDS = 900;	// 15분
+	private static final long TTL_SECONDS = 100;	// 테스트 용
 
 	// 예매 시작 (초기 진입)
 	@Override
@@ -99,11 +103,10 @@ public class ReservationServiceImpl implements ReservationService {
 		
 		// 회차를 변경할 경우 기존 좌석의 복구처리
 		if(prevEventId != null && prevScheduleId != null) {
-			int prevReserved = 0;
-			for(PersonType type : PersonType.values()) {
-				Object val = existingData.get(type.name() + "_COUNT");
-				if(val != null) prevReserved += Integer.parseInt(val.toString());
-			}
+			int prevReserved = Optional.ofNullable(existingData.get("reservedCount"))
+					.map(Object::toString)
+					.map(Integer::parseInt)
+					.orElse(0);
 			
 			if(prevReserved > 0) {
 				String availableSeatsKey = String.format("EVENT:%s:SCHEDULE:%s:AVAILABLE_SEAT", prevEventId, prevScheduleId);
@@ -111,13 +114,10 @@ public class ReservationServiceImpl implements ReservationService {
 				log.info("회차 변경으로 좌석 복구: eventId={}, scheduleId={}, 복구좌석={}", prevEventId, prevScheduleId, prevReserved);
 			}
 			
-			for(PersonType type : PersonType.values()) {
-				redisTemplate.opsForHash().delete(reservationKey, type.name() + "_COUNT");
-			}
-			redisTemplate.opsForHash().delete(reservationKey, "totalPrice");
+			redisTemplate.opsForHash().delete(reservationKey, "reservedCount", "groupCounts", "totalPrice");
 			
 			// 기존 메타 삭제
-		    redisTemplate.delete("RESERVATION_META:" + reservationToken); 
+		    redisTemplate.delete("RESERVATION_META:" + reservationToken);
 		}
 		
 		// redis 에 정보 반영 (변경할경우는 덮어쓰기)
@@ -140,18 +140,15 @@ public class ReservationServiceImpl implements ReservationService {
 		String availableSeatsKey = String.format("EVENT:%s:SCHEDULE:%s:AVAILABLE_SEAT", eventId, scheduleId);
 		
 		// 현재 잔여 좌석 확인
-		String availableSeatsStr = redisTemplate.opsForValue().get(availableSeatsKey);
-		int availableSeats = availableSeatsStr == null ? 0 : Integer.parseInt(availableSeatsStr);
+		int availableSeats = Optional.ofNullable(redisTemplate.opsForValue().get(availableSeatsKey))
+				.map(Integer::parseInt)
+				.orElse(0);
 		
 		// 기존에 요청받았던 인원
-		int prevTotal = 0;
-		Map<Object, Object> existingData = redisTemplate.opsForHash().entries(reservationKey);
-		for(PersonType type : PersonType.values()) {
-			Object val = existingData.get(type.name() + "_COUNT");
-			if(val != null) {
-				prevTotal += Integer.parseInt(val.toString());
-			}
-		}
+		int prevTotal = Optional.ofNullable(redisTemplate.opsForHash().get(reservationKey, "reservedCount"))
+				.map(Object::toString)
+				.map(Integer::parseInt)
+				.orElse(0);
 		
 		// 새로 요청받은 인원 합계
 		int totalPersonCount = personTypeReqDto.getPersonCounts()
@@ -176,13 +173,17 @@ public class ReservationServiceImpl implements ReservationService {
 		
 		// 인원등급별 인원수와 총 금액 저장
 		Map<String, String> redisData = new HashMap<>();
-		personTypeReqDto.getPersonCounts().forEach((type, count) -> {
-			String personTypeKey = String.format("%s_COUNT",  type);
-			redisData.put(personTypeKey, String.valueOf(count));
-		});
 		
+		redisData.put("reservedCount", String.valueOf(totalPersonCount));
 		redisData.put("totalPrice", String.valueOf(personTypeReqDto.getTotalPrice()));
 		redisData.put("status", "STEP3");
+		
+		try {
+			String groupCountsJson = new ObjectMapper().writeValueAsString(personTypeReqDto.getPersonCounts());
+			redisData.put("groupCounts", groupCountsJson);
+		} catch (JsonProcessingException e) {
+			throw new RuntimeException("groupCounts 직렬화 실패", e);
+		}
 		
 		redisTemplate.opsForHash().putAll(reservationKey, redisData);
 		
@@ -195,7 +196,7 @@ public class ReservationServiceImpl implements ReservationService {
 		metaData.put("scheduleId", scheduleId);
 		metaData.put("reservedCount", String.valueOf(totalPersonCount));
 		
-		 redisTemplate.opsForHash().putAll(metaKey, metaData);
+		redisTemplate.opsForHash().putAll(metaKey, metaData);
 		
 	}
 	
@@ -241,9 +242,10 @@ public class ReservationServiceImpl implements ReservationService {
 			
 			// 예약된 전체 인원의 수 구하기
 			int totalReserved = 0;
-			for(PersonType type : PersonType.values()) {
-				Object val = data.get(type.name() + "_COUNT");
-				if(val != null) totalReserved += Integer.parseInt(val.toString());
+			Object reservedCount = data.get("reservedCount");
+			
+			if(reservedCount != null) {
+				totalReserved = Integer.parseInt(reservedCount.toString());
 			}
 			
 			// 취소시에는 예약된 인원 수만큼 잔여 좌석 복구
@@ -253,6 +255,9 @@ public class ReservationServiceImpl implements ReservationService {
 			}
 			
 		}
+		
+		// 나중에 결제 세션도 함께 삭제 구현하기
+//		String paymentKey = "payment:" + "";
 		
 		redisTemplate.delete(reservationKey);
 		
@@ -279,11 +284,13 @@ public class ReservationServiceImpl implements ReservationService {
 		int eventId = Integer.parseInt(redisData.get("eventId").toString());
 		int scheduleId = Integer.parseInt(redisData.get("scheduleId").toString());
 		int totalPrice = Integer.parseInt(redisData.get("totalPrice").toString());
+		int reservedCount = Integer.parseInt(redisData.get("reservedCount").toString());
 		
 		PaymentInfoResDto paymentInfoResDto = new PaymentInfoResDto();
 		paymentInfoResDto.setEventId(eventId);
 		paymentInfoResDto.setScheduleId(scheduleId);
 		paymentInfoResDto.setTotalPrice(totalPrice);
+		paymentInfoResDto.setReservedCount(reservedCount);
 		
 		return paymentInfoResDto;
 	}
