@@ -5,6 +5,14 @@
 	<meta charset="UTF-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<title>Document</title>
+	
+	<!-- 지나 추가 -->
+	<script src="https://cdn.iamport.kr/v1/iamport.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script th:src="@{/js/utils/axiosIntercepter.js}"></script>
+    <script th:src="@{/js/utils/userAuth.js}"></script>
+    <script th:src="@{/js/payment.js}"></script>
+    
 	<link rel="stylesheet" th:href="@{/css/ReservationPopup_Seat.css}" />
 	<link rel="stylesheet" th:href="@{/css/captcha.css}" />
 	<script th:src="@{/js/utils/captcha.js}"></script>
@@ -88,6 +96,16 @@
 					<p>선택회차</p>
 				</div>
 				<button class="next-button">다음 단계</button>
+				
+				<!-- 지나 추가 -->
+				<!-- 추후 amount는 화면에서 계산된 최종 합계로 가져와야함 -->
+		        <button id="eventPayBtn"
+		                th:attr="data-event-id=${event.eventId},
+                        data-title=${event.eventName},
+                        data-amount=${event.eventPrice}"  
+                        class="next-button">결제하기
+                </button>
+                
 			</aside>
 
 		</div>
@@ -95,7 +113,7 @@
 	</div>
 
 	<!-- 캡챠 인증 모달 -->
-	<div id="captchaModal" class="modal-overlay" style="display: none;">
+   <div id="captchaModal" class="modal-overlay" style="display: none;">
 		<div class="captcha-form">
 			<label class="captcha-label">매크로 방지</label>
 			<div class="captcha-body">
@@ -112,5 +130,22 @@
 		</div>
 	</div>
 </body>
+
+<!-- 지나 추가 -->
+<script>
+  document.getElementById('eventPayBtn')?.addEventListener('click', async (e) => {
+    const btn = e.currentTarget;
+    try {
+      await window.PaymentStart.event({
+        eventId: Number(btn.dataset.eventId),
+        amount: Number(btn.dataset.amount),
+        title:  btn.dataset.title,
+        method: "CARD"
+      });
+    } catch (err) {
+      console.error(err); alert(err.message || "결제 준비 실패");
+    }
+  });
+</script>
 
 </html>

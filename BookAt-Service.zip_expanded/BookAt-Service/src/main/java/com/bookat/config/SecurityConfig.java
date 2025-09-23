@@ -36,6 +36,7 @@ public class SecurityConfig {
         		.requestMatchers("/", "/user/**", "/auth/**", "/books/**", "/events/**", "/infoPage/**","/cart/**").permitAll()
 				.requestMatchers("/error/**","/payment/frag-test", "/payment/success", "/reservation/*/cancel").permitAll()
         		.requestMatchers("/api/**", "/queue/**", "/reservation/**", "/myPage/**","/order/**",
+        				"/payment/session/start-event",
         				"/payment/session/start",
                         "/payment/session/context",
                         "/payment/api/complete","/reservation/**").authenticated()

@@ -1,4 +1,4 @@
-/*package com.bookat.controller;
+package com.bookat.controller;
 
 import java.io.IOException;
 import java.util.Base64;
@@ -78,4 +78,4 @@ public class CaptchaController {
 		Map<String, Boolean> response = Collections.singletonMap("success", success);
 		return ResponseEntity.ok(response);
 	}
-}*/
+}
