@@ -1,6 +1,7 @@
 package com.bookat.service.impl;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.HashMap;
@@ -10,12 +11,16 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.bookat.dto.reservation.CreateReservationReqDto;
 import com.bookat.dto.reservation.PersonTypeReqDto;
 import com.bookat.dto.reservation.ReservationStartDto;
 import com.bookat.dto.reservation.UserInfoReqDto;
 import com.bookat.entity.Event;
 import com.bookat.entity.reservation.EventPart;
+import com.bookat.entity.reservation.Reservation;
+import com.bookat.entity.reservation.Ticket;
 import com.bookat.enums.PersonType;
 import com.bookat.mapper.EventPartMapper;
 import com.bookat.mapper.ReservationMapper;
@@ -272,6 +277,52 @@ public class ReservationServiceImpl implements ReservationService {
 		}
 		
 		return reservationKey;
+	}
+	
+	// =========================================================================================================
+	
+	// 결제 완료 후 reservation 1건 + ticket N건을 생성
+	@Transactional
+	public int createReservationAndTicket(CreateReservationReqDto createReservationReqDto) {
+		
+		// 예약 생성
+		Reservation reservation = new Reservation();
+		reservation.setPaymentId(createReservationReqDto.getPaymentId());
+		reservation.setReservationDate(new Date());
+		reservation.setReservationStatus(1);
+		reservation.setScheduleId(createReservationReqDto.getScheduleId());
+		reservation.setUserId(createReservationReqDto.getUserId());
+		
+		reservationMapper.insertReservation(reservation);
+		int reservationId = reservation.getReservationId();
+		
+		// 인원별 티켓 생성
+		int adult = createReservationReqDto.getAdultCount();
+		int youth = createReservationReqDto.getYouthCount();
+		int child = createReservationReqDto.getChildCount();
+		
+		// count 0 이면 생성 안하는 조건 필요
+		insertPersonTicket(reservationId, createReservationReqDto.getPaymentId(), PersonType.ADULT, adult);
+		insertPersonTicket(reservationId, createReservationReqDto.getPaymentId(), PersonType.YOUTH, youth);
+		insertPersonTicket(reservationId, createReservationReqDto.getPaymentId(), PersonType.CHILD, child);
+		
+		return 0;
+	}
+	
+	private void insertPersonTicket(int reservationId, int paymentId, PersonType personType, int personCount) {
+		for(int i = 0; i < personCount; i++) {
+			Ticket ticket = new Ticket();
+			
+			ticket.setTicketCreatedDate(new Date());
+			ticket.setTicketStatus(1);
+			ticket.setTicketType("PERSON_TYPE");
+			ticket.setPersonType(personType);
+			ticket.setReservationId(reservationId);
+			ticket.setSeatId(null);
+			ticket.setPaymentId(paymentId);
+			
+			reservationMapper.insertTicket(ticket);
+		}
 	}
 
 }
