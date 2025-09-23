@@ -23,7 +23,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const selectedSession = document.getElementById("selected-session");
 
   // 좌석 선택 단계
-
+  const seatContainer = document.querySelector(".stage-seat");
+  const eventIdEl = document.getElementById("eventId");
+  const eventId = eventIdEl ? eventIdEl.value : null;
+  
   // 인원 선택 단계
   const selects = document.querySelectorAll(".input-count");
   const sumPriceEl = document.getElementById("sumPrice");
@@ -48,14 +51,27 @@ document.addEventListener("DOMContentLoaded", () => {
   // 초기 달력 세팅
   initCalendar();
 
+  // 회차 선택 이벤트
   optionParts.forEach((part) => {
-    part.addEventListener("click", () => {
+    part.addEventListener("click", async () => {
       optionParts.forEach((p) => p.classList.remove("selected"));
       part.classList.add("selected");
       if (selectedSession) {
         selectedSession.textContent = part.textContent;
       }
 
+	  // 회차가 선택되면 좌석 정보를 가져온다. 
+	  const scheduleId = part.getAttribute("data-session-id");
+	  if(ticketType === "SEAT_TYPE"){
+		const token = sessionStorage.getItem("reservationToken");
+		try{
+			await fetchSeatInfo(token, eventId, scheduleId);
+		} catch (err) {
+			console.error("좌석 정보 로딩 오류 : ", err);
+			alert("좌석 정보 로딩 중 오류가 발생했습니다.");
+		}		
+	  }
+	  
       updateSummary();
     });
   });
@@ -555,3 +571,85 @@ async function cancelReservation() {
 
 window.addEventListener("beforeunload", cancelReservationSync);
 window.addEventListener("pagehide", cancelReservationSync);
+
+/* ----------------------------------------------------------------------- */
+
+// 이벤트 ID와 회차 ID로 Redis에서 좌석 정보 조회를 요청하는 함수
+async function fetchSeatInfo(eventId, scheduleId) {
+	try {
+		const seatResponse = await fetch(`/reservation/seat/getSeats?eventId=${eventId}&scheduleId=${scheduleId}`);
+		if (!seatResponse.ok) throw new Error("좌석 정보를 가져오는데 실패했습니다.");
+
+		const seatData = await seatResponse.json();
+
+		console.log(seatData);
+
+		// step2 영역에 좌석 정보 렌더링 
+		renderSeats(seatData);
+
+	} catch (error) {
+		alert(error.message);
+		return;
+	}
+}
+
+// 좌석 렌더링 함수
+function renderSeats(seatData) {
+	const seatContainer = document.querySelector(".stage-seat");
+	// 기존 좌석 초기화
+	seatContainer.innerHTML = '';
+
+	// 현재 처리 중인 행을 저장할 변수 
+	let currentRow = '';
+	// 현재 행을 담을 div 
+	let rowDiv = null;
+
+	seatData.forEach(seat => {
+		// 'A', 'B', 'C' 등 행 이름 추출
+		const rowName = seat.seatName.charAt(0);
+
+		// 새로운 행이 시작되면 행 라벨 추가 
+		if (rowName !== currentRow) {
+			// 이전 행이 있으면 컨테이너에 추가 
+			if (rowDiv) {
+				seatContainer.appendChild(rowDiv);
+			}
+
+			// 새로운 행 div 생성 
+			rowDiv = document.createElement('div');
+			rowDiv.className = 'seat-row';
+
+			// 행 라벨 생성 & 추가 
+			const rowLabel = document.createElement('div');
+			rowLabel.textContent = rowName;
+			rowLabel.className = 'row-label';
+			rowDiv.appendChild(rowLabel);
+
+			currentRow = rowName;
+		}
+
+		// 좌석 div 생성 
+		const seatElement = document.createElement('div');
+		seatElement.className = 'seat';
+		seatElement.dataset.seatName = seat.seatName;
+
+		if (seat.status === 'AVAILABLE') {
+			seatElement.classList.add('seat-available');
+		} else {
+			seatElement.classList.add('seat-unavailable');
+		}
+
+		if (seat.status === 'AVAILABLE') {
+			seatElement.addEventListener('click', () => {
+				toggleSeatSelection(seatElement);
+			});
+		}
+
+		rowDiv.appendChild(seatElement);
+	});
+
+	// 마지막 행 컨테이너에 추가
+	if (rowDiv) {
+		seatContainer.appendChild(rowDiv);
+	}
+}

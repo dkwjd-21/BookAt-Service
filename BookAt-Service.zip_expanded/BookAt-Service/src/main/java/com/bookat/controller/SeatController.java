@@ -20,7 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Controller
-@RequestMapping("/reservation/seat")
+@RequestMapping("/reservation/seat2")
 public class SeatController {
 	
 	@Autowired

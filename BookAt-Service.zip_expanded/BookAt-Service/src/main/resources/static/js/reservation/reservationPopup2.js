@@ -27,7 +27,9 @@ document.addEventListener("DOMContentLoaded", () => {
 	const selectedSession = document.getElementById("selected-session");
 
 	// 좌석 선택 단계
-
+	const seatContainer = document.querySelector(".stage-seat");
+	const eventIdEl = document.getElementById("eventId");
+	const eventId = eventIdEl ? eventIdEl.value : null;
 
 	// 인원 선택 단계
 	const selects = document.querySelectorAll(".input-count");
@@ -48,6 +50,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	// 초기 달력 세팅
 	initCalendar();
 
+	// 회차 선택 이벤트 
 	optionParts.forEach((part) => {
 		part.addEventListener("click", () => {
 			optionParts.forEach((p) => p.classList.remove("selected"));
@@ -55,6 +58,14 @@ document.addEventListener("DOMContentLoaded", () => {
 			if (selectedSession) {
 				selectedSession.textContent = part.textContent;
 			}
+			
+			// 회차가 선택되면 좌석 정보를 가져온다. 
+			const scheduleId = part.getAttribute("data-session-id");
+			if(ticketType === "SEAT_TYPE"){
+				const accessToken = localStorage.getItem('accessToken');
+				fetchSeatInfo(eventId, scheduleId, accessToken);
+			}
+			
 			updateSummary();
 		});
 	});
@@ -141,17 +152,6 @@ document.addEventListener("DOMContentLoaded", () => {
 				return;
 			}
 		}
-
-		// 선택된 회차의 ID 
-		const chosen = document.querySelector(".option-part.selected");
-		const scheduleId = chosen.getAttribute("data-session-id");
-		const eventIdEl = document.getElementById("eventId");
-		const eventId = eventIdEl ? eventIdEl.value : null;
-
-		// console.log("이벤트ID: "+eventId+" 회차ID: "+scheduleId);
-
-		// 좌석 정보 조회 & 렌더링 
-		fetchSeatInfo(eventId, scheduleId);
 
 		// step2, 좌석 선택 버전
 		if (currentStep === 2 && ticketType === "SEAT_TYPE") {
@@ -363,7 +363,7 @@ function defaultCalendar() {
 
 
 // 이벤트 ID와 회차 ID로 Redis에서 좌석 정보 조회를 요청하는 함수
-async function fetchSeatInfo(eventId, scheduleId) {
+async function fetchSeatInfo(eventId, scheduleId, accessToken) {
 	try {
 		const seatResponse = await fetch(`/reservation/seat/getSeats?eventId=${eventId}&scheduleId=${scheduleId}`);
 		if (!seatResponse.ok) throw new Error("좌석 정보를 가져오는데 실패했습니다.");

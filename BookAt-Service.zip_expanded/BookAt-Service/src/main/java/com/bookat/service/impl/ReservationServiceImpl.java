@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -51,19 +52,24 @@ public class ReservationServiceImpl implements ReservationService {
 		Event event = reservationMapper.findEventByEventId(eventId);
 		// 이벤트 회차 조회
 		List<EventPart> eventParts = eventPartMapper.findEventPartsByEventId(eventId);
+		// 이벤트 회차 조회 
+		eventParts.sort(Comparator.comparing(EventPart::getScheduleTime));
 		
 		// 이벤트의 날짜
 		Date scheduleTime = eventParts.get(0).getScheduleTime();
 		LocalDate eventDate = scheduleTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 		
-		for(EventPart eventPart : eventParts) {
-			String redisKey = String.format("EVENT:%d:SCHEDULE:%d:AVAILABLE_SEAT", eventId, eventPart.getScheduleId());
-			String availableSeat = redisTemplate.opsForValue().get(redisKey);
-			
-			if(availableSeat != null) {
-				eventPart.setRemainingSeat(Integer.parseInt(availableSeat));
-			} else {
-				eventPart.setRemainingSeat(0);
+		// person type - 잔여좌석 불러오기 
+		if("PERSON_TYPE".equals(event.getTicketType())) {
+			for(EventPart eventPart : eventParts) {
+				String redisKey = String.format("EVENT:%d:SCHEDULE:%d:AVAILABLE_SEAT", eventId, eventPart.getScheduleId());
+				String availableSeat = redisTemplate.opsForValue().get(redisKey);
+				
+				if(availableSeat != null) {
+					eventPart.setRemainingSeat(Integer.parseInt(availableSeat));
+				} else {
+					eventPart.setRemainingSeat(0);
+				}
 			}
 		}
 		
