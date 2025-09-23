@@ -15,11 +15,14 @@ import com.bookat.dto.PaymentSession;
 import com.bookat.service.BookService;
 import com.bookat.service.EventService;
 import com.bookat.service.PaymentService;
+import com.bookat.service.impl.PaymentServiceImpl;
 import com.bookat.util.PaymentSessionStore;
 import com.bookat.util.PortOneClient;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Controller
 @RequestMapping("/payment")
 @RequiredArgsConstructor
@@ -151,7 +154,7 @@ public String devNew(@RequestParam Integer amount,
               return Map.of("status","error","message","session_invalid");
           }
 
-          // 2) 포트원 조회/금액/상태 검증 (기존 로직 재사용)
+          // 2) 포트원 조회/금액/상태 검증
           String accessToken = portOneClient.getAccessToken().block();
           var impPayment = portOneClient.getPaymentByImpUid(accessToken, req.getImpUid()).block();
           @SuppressWarnings("unchecked")
@@ -200,6 +203,16 @@ public String devNew(@RequestParam Integer amount,
 
     return "payment/success"; 
   }
+  
+  @PostMapping("/fail")
+  @ResponseBody
+  public String Fail(@RequestBody Map<String, String> body) {
+      String merchantUid = body.get("merchantUid");
+      String reason = body.getOrDefault("reason", "결제실패/사용자취소");
+      if (merchantUid == null) return "IGNORED";
+      paymentService.markFailed(merchantUid, reason);
+      return "OK";
+  }
 
   /* 포트원 웹훅 */
   @PostMapping("/webhook")
@@ -243,6 +256,7 @@ public String devNew(@RequestParam Integer amount,
         }
 
         case "failed":
+          log.info("[WEBHOOK] failed: merchantUid={}, reason={}", merchantUid, failReason);
           paymentService.markFailed(merchantUid, failReason != null ? failReason : "결제실패");
           break;
 

@@ -38,7 +38,7 @@ public class PaymentSessionStore {
   public PaymentSession get(String token, boolean take) {
     try {
       String key = KEY_PREFIX + token;
-      Object v = redis.opsForValue().get(key);   // StringSerializer → String
+      Object v = redis.opsForValue().get(key); 
       if (v == null) return null;
       if (take) redis.delete(key);
       return om.readValue(v.toString(), PaymentSession.class);
@@ -52,8 +52,7 @@ public class PaymentSessionStore {
 
   public static PaymentSession of(String bookId, int qty, String method,
           java.math.BigDecimal amount, String merchantUid, String userId,
-          String title) {   // ← title 추가
-          
+          String title) {  
 	     return new PaymentSession(bookId, qty, method, amount, merchantUid, userId, "READY", OffsetDateTime.now().toString(),title
          );
   }

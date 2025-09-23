@@ -34,7 +34,7 @@ public class SecurityConfig {
         .authorizeHttpRequests(auth -> auth
         .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()			// 정적 리소스 접근 가능
         .requestMatchers("/", "/user/**", "/auth/**", "/books/**", "/events/**", "/infoPage/**","/cart/**",
-		         "/error/**","/payment/frag-test", "/payment/success").permitAll()	// 비로그인도 접근 가능
+		         "/error/**","/payment/frag-test", "/payment/success", "/payment/fail", "/payment/webhook").permitAll()	// 비로그인도 접근 가능
 
         		.requestMatchers("/api/**", "/queue/**", "/myPage/**",
         				"/payment/session/start-event",
