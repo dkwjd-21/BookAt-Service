@@ -75,4 +75,9 @@
 			   #{seatGradeType}, #{eventId}, #{scheduleId})
 	</insert>
 	
+	<select id="selectPartByScheduleId" parameterType="int" resultType="com.bookat.dto.EventPartDto">
+		SELECT * FROM EVENT_PART
+		WHERE SCHEDULE_ID = #{scheduleId}
+	</select>
+	
 </mapper>

@@ -9,7 +9,9 @@ import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import com.bookat.dto.EventSeatDto;
 import com.bookat.dto.EventSeatInfoDto;
+import com.bookat.mapper.SeatMapper;
 import com.bookat.service.SeatService;
 
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +22,9 @@ public class SeatServiceImpl implements SeatService {
 
 	@Autowired
 	private StringRedisTemplate redisTemplate;
+	
+	@Autowired
+	private SeatMapper mapper;
 
 	@Override
 	public List<EventSeatInfoDto> getSeatList(int eventId, int scheduleId) {
@@ -100,6 +105,21 @@ public class SeatServiceImpl implements SeatService {
 		
 		// 모든 좌석 선점 명령이 성공적으로 실행되었으면 true 반환 
 		return true;
+	}
+
+	@Override
+	public int insertSeat(EventSeatDto dto) {
+		return mapper.insertSeat(dto);
+	}
+
+	@Override
+	public EventSeatDto selectOneBySeatName(String seatName, int eventId, int scheduleId) {
+		return mapper.selectOneBySeatName(seatName, eventId, scheduleId);
+	}
+
+	@Override
+	public int updateSeatStatus(EventSeatDto dto) {
+		return 0;
 	}
 
 }
