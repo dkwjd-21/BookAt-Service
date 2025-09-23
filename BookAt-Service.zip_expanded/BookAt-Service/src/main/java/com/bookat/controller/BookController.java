@@ -16,9 +16,15 @@ import org.springframework.web.bind.annotation.PostMapping;
 import com.bookat.service.BookService;
 import com.bookat.service.ReviewService;
 import com.bookat.service.EventService;
+import com.bookat.service.CartService;
 import com.bookat.dto.EventResDto;
 import com.bookat.dto.*;
+import com.bookat.entity.User;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.http.ResponseEntity;
+import java.util.HashMap;
+import java.util.Map;
 
 
 
@@ -30,6 +36,7 @@ public class BookController{
 	private final BookService bookService;
 	private final ReviewService reviewService;
     private final EventService eventService;
+    private final CartService cartService;
 	
 	// 메인 : /books
 	@GetMapping
@@ -100,10 +107,81 @@ public class BookController{
 		return  "redirect:/books/" + bookId;
 	}
 	
+	// 장바구니 추가 API
+	@PostMapping("/{bookId}/cart/api")
+	public ResponseEntity<Map<String, Object>> addToCart(@PathVariable String bookId, 
+	                                                   @RequestParam int qty, 
+	                                                   Authentication authentication) {
+		Map<String, Object> response = new HashMap<>();
+		
+		// 로그인 상태 확인
+		if (authentication == null) {
+			response.put("success", false);
+			response.put("message", "로그인이 필요합니다.");
+			response.put("needLogin", true);
+			return ResponseEntity.ok(response);
+		}
+		
+		try {
+			User user = (User) authentication.getPrincipal();
+			boolean success = cartService.addToCart(user.getUserId(), bookId, qty);
+			
+			if (success) {
+				response.put("success", true);
+				response.put("message", "장바구니에 상품이 추가되었습니다.");
+			} else {
+				response.put("success", false);
+				response.put("message", "장바구니 추가에 실패했습니다.");
+			}
+		} catch (Exception e) {
+			response.put("success", false);
+			response.put("message", "오류가 발생했습니다: " + e.getMessage());
+		}
+		
+		return ResponseEntity.ok(response);
+	}
+	
 	//구매하기
 	@PostMapping("/{bookId}/order")
 	public String order(@PathVariable String bookId) {
 		return  "redirect:/books/" + bookId;
+	}
+	
+	// 바로구매 API
+	@PostMapping("/{bookId}/order/api")
+	public ResponseEntity<Map<String, Object>> directOrder(@PathVariable String bookId, 
+	                                                     @RequestParam int qty, 
+	                                                     Authentication authentication) {
+		Map<String, Object> response = new HashMap<>();
+		
+		// 로그인 상태 확인
+		if (authentication == null) {
+			response.put("success", false);
+			response.put("message", "로그인이 필요합니다.");
+			response.put("needLogin", true);
+			return ResponseEntity.ok(response);
+		}
+		
+		try {
+			// 도서 정보 확인
+			BookDto book = bookService.selectOne(bookId);
+			if (book == null) {
+				response.put("success", false);
+				response.put("message", "도서를 찾을 수 없습니다.");
+				return ResponseEntity.ok(response);
+			}
+			
+			// 성공 응답 - 주문 페이지로 리다이렉트할 URL 반환
+			response.put("success", true);
+			response.put("message", "주문 페이지로 이동합니다.");
+			response.put("redirectUrl", "/order/direct?bookId=" + bookId + "&qty=" + qty);
+			
+		} catch (Exception e) {
+			response.put("success", false);
+			response.put("message", "오류가 발생했습니다: " + e.getMessage());
+		}
+		
+		return ResponseEntity.ok(response);
 	}
 	
 	

@@ -39,4 +39,25 @@ public class CartServiceImpl implements CartService {
 	public void deleteCartItems(List<String> cartIds) {
 		cartMapper.deleteCartItems(cartIds);
 	}
+
+	@Override
+	public boolean addToCart(String userId, String bookId, int quantity) {
+		try {
+			// 이미 장바구니에 같은 도서가 있는지 확인
+			int existingCount = cartMapper.checkCartItem(userId, bookId);
+			
+			if (existingCount > 0) {
+				// 이미 있는 경우 수량만 증가
+				cartMapper.updateExistingCartItem(userId, bookId, quantity);
+			} else {
+				// 새로운 아이템 추가
+				String cartId = "CART" + System.currentTimeMillis(); // 간단한 ID 생성
+				cartMapper.addToCart(cartId, userId, bookId, quantity);
+			}
+			return true;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
 }
