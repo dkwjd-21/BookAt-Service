@@ -27,16 +27,15 @@ public class SecurityConfig {
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     	
     	log.info("-- securityFilterChain --");
-    	
-        http
+    	 http
         .csrf(csrf -> csrf.disable())
         .formLogin(AbstractHttpConfigurer::disable)
 //        .httpBasic(Customizer.withDefaults())
         .authorizeHttpRequests(auth -> auth
         		.requestMatchers("/css/**", "/js/**", "/images/**").permitAll()			// 정적 리소스 접근 가능
-        		.requestMatchers("/", "/user/**", "/auth/**", "/books/**", "/events/**", "/infoPage/**").permitAll()
+        		.requestMatchers("/", "/user/**", "/auth/**", "/books/**", "/events/**", "/infoPage/**","/cart/**").permitAll()
 				.requestMatchers("/error/**","/payment/frag-test", "/payment/success", "/reservation/*/cancel").permitAll()
-        		.requestMatchers("/api/**", "/queue/**", "/myPage/**",
+        		.requestMatchers("/api/**", "/queue/**", "/reservation/**", "/myPage/**","/order/**",
         				"/payment/session/start",
                         "/payment/session/context",
                         "/payment/api/complete","/reservation/**").authenticated()
