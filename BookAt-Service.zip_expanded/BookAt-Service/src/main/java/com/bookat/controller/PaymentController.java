@@ -8,10 +8,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
-import com.bookat.dto.EventResDto;
 import com.bookat.dto.PaymentCompleteRequest;
-import com.bookat.dto.PaymentDto;
 import com.bookat.dto.PaymentSession;
+import com.bookat.entity.User;
 import com.bookat.service.BookService;
 import com.bookat.service.EventService;
 import com.bookat.service.PaymentService;
@@ -19,7 +18,9 @@ import com.bookat.util.PaymentSessionStore;
 import com.bookat.util.PortOneClient;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Controller
 @RequestMapping("/payment")
 @RequiredArgsConstructor
@@ -256,4 +257,38 @@ public String devNew(@RequestParam Integer amount,
       return "웹훅에서 에러 발생";
     }
   }
+  
+  	// 이벤트 예약 결제 과정
+	@GetMapping("/{paymentToken}/paymentUI")
+	public String renderPaymentFrag(@PathVariable String paymentToken, @RequestParam(name = "method", required = false) String requestMethod, @AuthenticationPrincipal User user, Model model) {
+		
+		String token = paymentToken.startsWith("payment:") ? paymentToken.substring("payment:".length()) : paymentToken;
+		
+		Map<String, String> paymentData = sessionStore.getEventPay(token);
+		
+		if (paymentData == null || paymentData.isEmpty()) {
+			// 세션없음 : 만료/오류 페이지 -> 현재 페이지가 없어서 여기 진입하면 템플릿에러남
+			return "error/404";
+		}
+		
+		String userId = (user == null) ? null : user.getUserId();
+		String principalId = paymentData.get("userId");
+		if (userId == null || principalId == null || !userId.equals(principalId)) {
+			// 세션없음 : 권한 없음 -> 현재 페이지가 없어서 여기 진입하면 템플릿에러남
+			return "error/403";
+		}
+	    
+		// 2) 프래그먼트에 필요한 값 모델로 주입 (서버 신뢰값만)
+		String merchantUid = paymentData.get("merchantUid");
+		int totalPrice = new BigDecimal(paymentData.getOrDefault("amount","0")).intValue();
+		String method = (requestMethod != null && !requestMethod.isBlank()) ? requestMethod : paymentData.getOrDefault("method","CARD");
+
+	    model.addAttribute("merchantUid", merchantUid);
+	    model.addAttribute("amount", totalPrice);
+	    model.addAttribute("title", "pay for event ticket");
+	    model.addAttribute("method", method);
+		
+	    return "fragments/payFragment :: payFragment";
+	}
+  
 }  

@@ -1,7 +1,6 @@
 package com.bookat.service.impl;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.HashMap;
@@ -14,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.bookat.dto.reservation.CreateReservationReqDto;
+import com.bookat.dto.reservation.PaymentInfoResDto;
 import com.bookat.dto.reservation.PersonTypeReqDto;
 import com.bookat.dto.reservation.ReservationStartDto;
 import com.bookat.dto.reservation.UserInfoReqDto;
@@ -73,6 +73,7 @@ public class ReservationServiceImpl implements ReservationService {
 		reservationData.put("status", "STEP1");
 		reservationData.put("userId", userId);
 		reservationData.put("eventDate", String.valueOf(eventDate));
+		reservationData.put("eventName", event.getEventName());
 		
 		redisTemplate.opsForHash().putAll(reservationKey, reservationData);
 		redisTemplate.expire(reservationKey, TTL_SECONDS, TimeUnit.SECONDS);	// 15분 저장 (변경 가능)
@@ -269,20 +270,29 @@ public class ReservationServiceImpl implements ReservationService {
 		}
 	}
 	
-	private String getReservationTokenKey(String reservationToken) {
-		String reservationKey = "RESERVATION:" + reservationToken;
+	@Override
+	public PaymentInfoResDto getPaymentInfo(String reservationToken) {
+		String reservationKey = getReservationTokenKey(reservationToken);
 		
-		if(!Boolean.TRUE.equals(redisTemplate.hasKey(reservationKey))) {
-			throw new IllegalStateException("예약 세션이 만료되었습니다. 다시 예약해주세요.");
-		}
+		Map<Object, Object> redisData = redisTemplate.opsForHash().entries(reservationKey);
 		
-		return reservationKey;
+		int eventId = Integer.parseInt(redisData.get("eventId").toString());
+		int scheduleId = Integer.parseInt(redisData.get("scheduleId").toString());
+		int totalPrice = Integer.parseInt(redisData.get("totalPrice").toString());
+		
+		PaymentInfoResDto paymentInfoResDto = new PaymentInfoResDto();
+		paymentInfoResDto.setEventId(eventId);
+		paymentInfoResDto.setScheduleId(scheduleId);
+		paymentInfoResDto.setTotalPrice(totalPrice);
+		
+		return paymentInfoResDto;
 	}
 	
 	// =========================================================================================================
 	
 	// 결제 완료 후 reservation 1건 + ticket N건을 생성
 	@Transactional
+	@Override
 	public int createReservationAndTicket(CreateReservationReqDto createReservationReqDto) {
 		
 		// 예약 생성
@@ -323,6 +333,16 @@ public class ReservationServiceImpl implements ReservationService {
 			
 			reservationMapper.insertTicket(ticket);
 		}
+	}
+	
+	private String getReservationTokenKey(String reservationToken) {
+		String reservationKey = "RESERVATION:" + reservationToken;
+		
+		if(!Boolean.TRUE.equals(redisTemplate.hasKey(reservationKey))) {
+			throw new IllegalStateException("예약 세션이 만료되었습니다. 다시 예약해주세요.");
+		}
+		
+		return reservationKey;
 	}
 
 }

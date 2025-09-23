@@ -15,11 +15,18 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.bookat.dto.PaymentDto;
+import com.bookat.dto.PaymentSession;
+import com.bookat.dto.reservation.PaymentInfoResDto;
+import com.bookat.dto.reservation.PaymentReservationSession;
 import com.bookat.dto.reservation.PersonTypeReqDto;
 import com.bookat.dto.reservation.ReservationStartDto;
 import com.bookat.dto.reservation.UserInfoReqDto;
 import com.bookat.entity.User;
+import com.bookat.service.PaymentService;
 import com.bookat.service.ReservationService;
+import com.bookat.util.PaymentSessionStore;
+import com.bookat.util.PortOneClient;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +38,8 @@ import lombok.extern.slf4j.Slf4j;
 public class ReservationController {
 
 	private final ReservationService reservationService;
+	private final PaymentService paymentService;
+	private final PaymentSessionStore paymentSessionStore;
 	
 	// 티켓팅 팝업 오픈
 	@GetMapping("/start")
@@ -47,6 +56,7 @@ public class ReservationController {
 		model.addAttribute("reservationToken", reservationStartDto.getReservationToken());
 
 		return "reservation/ReservationPopup";
+//		return "reservation/ReservationPopup_Seat";
 	}
 	
 	// step1: 날짜/회차 선택
@@ -101,13 +111,44 @@ public class ReservationController {
 			return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", "로그인이 필요합니다."));
 		}
 		
-		boolean success = reservationService.inputUserInfo(reservationToken, user.getUserId(), userInfoReqDto);
-		
-		if(!success) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "예약 정보 저장 실패"));
+		try {
+			boolean success = reservationService.inputUserInfo(reservationToken, user.getUserId(), userInfoReqDto);
+			
+			if(!success) {
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "예약 정보 저장 실패"));
+			}
+			
+			// 결제 프레그먼트 연결
+			PaymentInfoResDto getPaymentInfo = reservationService.getPaymentInfo(reservationToken);
+			int totalPrice = getPaymentInfo.getTotalPrice();
+			int eventId = getPaymentInfo.getEventId();
+			int scheduleId = getPaymentInfo.getScheduleId();
+			
+			String enforcedMethod = "CARD";
+			PaymentDto pay = paymentService.createReadyPayment(getPaymentInfo.getTotalPrice(), enforcedMethod, "pay for event ticket", user.getUserId());
+			
+			PaymentReservationSession session = PaymentSessionStore.of(
+					reservationToken, 
+					eventId,
+					scheduleId, 
+					enforcedMethod,
+					java.math.BigDecimal.valueOf(totalPrice),
+					pay.getMerchantUid(),
+					user.getUserId());
+			
+			String paymentToken =  paymentSessionStore.createEventPay(session);
+		      
+			String paymentStepUrl = "/payment/" + paymentToken + "/paymentUI";
+			log.info("paymentStepUrl : {}", paymentStepUrl);
+			
+			return ResponseEntity.ok(Map.of("message", "사용자 정보 저장 완료", "status", "STEP4", "paymentStepUrl", paymentStepUrl));
+			
+		} catch (IllegalStateException ise) {
+			return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("status", "STEP3", "error", ise.getMessage()));
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("status", "STEP3", "error", "서버 오류가 발생했습니다."));
 		}
-		
-		return ResponseEntity.ok(Map.of("message", "사용자 정보 저장 완료", "status", "STEP4"));
+
 	}
 	
 	@GetMapping("/{reservationToken}/check")

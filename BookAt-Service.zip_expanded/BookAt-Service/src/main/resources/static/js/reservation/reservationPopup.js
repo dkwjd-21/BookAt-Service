@@ -274,6 +274,10 @@ document.addEventListener("DOMContentLoaded", () => {
 				const res = await axiosInstance.post(`/reservation/${token}/step3`, payload);
 				
 				if(res.data.status === "STEP4") {
+					const url = res.data.paymentStepUrl;
+					console.log(res.data.paymentStepUrl);
+					const html = await axiosInstance.get(url);
+					document.querySelector('#event-payment-frag').innerHTML = html.data;
 					showStep(currentStep + 1);
 				} else {
 					console.log("사용자 정보 저장 실패");

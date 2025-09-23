@@ -8,6 +8,7 @@
 	<link rel="stylesheet" th:href="@{/css/captcha.css}" />
 	<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 	<script th:src="@{/js/utils/axiosIntercepter.js}"></script>
+	<script src="https://cdn.iamport.kr/v1/iamport.js"></script>
 	<script th:src="@{/js/utils/logout.js}"></script>
 	<script th:src="@{/js/utils/userAuth.js}"></script>
 	<script th:src="@{/js/payment.js}"></script>
@@ -176,7 +177,7 @@
 							</div>
 						</section>
 						<section class="selection-area step" data-step="4">
-							<div class="calendar-container">결제<br>컨텐츠 추가 영역</div>
+							<div id="event-payment-frag"></div>
 						</section>
 					</form>
 				</main>
@@ -189,17 +190,7 @@
 					<p id="selected-date" th:text="${#dates.format(event.eventDate, 'yyyy년 M월 d일')}">이벤트날짜</p>
 					<p id="selected-session">선택회차</p>
 				</div>
-<!--
-<<<<<<< HEAD
-				<button class="next-button">다음 단계</button>
-<button id="eventPayBtn"
-        th:attr="data-event-id=${event.eventId},
-                 data-title=${event.eventName},
-                 data-amount=${event.eventPrice}"
-        class="next-button">결제하기</button>
-				
-=======
--->
+
 				<div class="person-info">
 					
 				</div>
@@ -207,7 +198,7 @@
 					<p><strong>총 결제금액:</strong> <span id="summaryTotal"></span></p>
 				</div>
 				<button id="next-btn" class="next-button">다음 단계</button>
-				<button id="submit-btn" type="submit" class="next-button" form="reservation-form" style="display: none;">결제</button>
+				<button id="submit-btn" type="submit" class="next-button" form="reservation-form" style="display: none;">완료</button>
 			</aside>
 
 		</div>
@@ -231,21 +222,5 @@
 		</div>
 	</div>
 </body>
-
-<script>
-  document.getElementById('eventPayBtn')?.addEventListener('click', async (e) => {
-    const btn = e.currentTarget;
-    try {
-      await window.PaymentStart.event({
-        eventId: Number(btn.dataset.eventId),
-        amount: Number(btn.dataset.amount),
-        title:  btn.dataset.title,
-        method: "CARD"
-      });
-    } catch (err) {
-      console.error(err); alert(err.message || "결제 준비 실패");
-    }
-  });
-</script>
 
 </html>
