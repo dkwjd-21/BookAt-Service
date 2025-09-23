@@ -1,33 +1,23 @@
-<footer
-th:fragment="main-footer" class="footer"
-style="border: 1px solid #BFBFBF;
-margin:0 auto;
-color:#BFBFBF;
-background:#EAEAEA">
+<footer th:fragment="main-footer" class="footer" style="border: 1px solid #bfbfbf; margin: 0 auto; color: #bfbfbf; background: #eaeaea">
+  <div class="ft_content">
+    <div class="ft_logo">
+      <a th:href="@{/}">
+        <img th:src="@{/images/BookAt-LogoTypo.png}" alt="BookAt" />
+      </a>
+    </div>
 
-<div class="ft_content">
+    <div class="ft__left">
+      <div>
+        (주) 북캣 | 현대이지웰 Java 풀스택 개발자 5회차
+        <br />
+        책읽는고양이 송아정 김명주 박태욱 서지나
+      </div>
+    </div>
 
-  <div class="ft_logo">
-  <a th:href="@{/}">
-  <img th:src="@{/images/BookAt-LogoTypo.png}" alt="BookAt">
-  </a>
-  </div>
+    <div class="ft__right">
+      <div>Copyright ⓒ BookAt. ALL RIGHTS RESERVED</div>
 
-  <div class="ft__left">
-    <div>
-    (주) 북캣 | 현대이지웰 Java 풀스택 개발자 5회차
-    <br>
-    책읽는고양이 송아정 김명주 박태욱 서지나
+      <div><a href="">관리자로그인</a></div>
     </div>
   </div>
-
-  <div class="ft__right">
-
-    <div>Copyright ⓒ BookAt. ALL RIGHTS RESERVED</div>
-
-    <div><a href="">관리자로그인</a></div>
-  </div>
-
-</div>
-
 </footer>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" th:href="@{/css/cart.css}" />
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script th:src="@{/js/utils/axiosIntercepter.js}"></script>
+    <script th:src="@{/js/utils/logout.js}"></script>
+    <script th:src="@{/js/utils/userAuth.js}"></script>
+    <script th:src="@{/js/utils/header.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/header.css}" />
+    <link rel="stylesheet" th:href="@{/css/footer.css}" />
+  </head>
+  <body>
+    <div th:replace="~{fragments/header :: main-header}"></div>
+
+    <form th:action="@{/order}" method="post">
+      <div class="container">
+        <div class="cart-layout">
+          <div class="cart-items-container">
+            <section class="cart-section">
+              <h2>장바구니</h2>
+
+              <div th:if="${not #lists.isEmpty(cartItems)}">
+                <div class="select-all-container">
+                  <input type="checkbox" id="select-all" checked />
+                  <label for="select-all">전체선택</label>
+                </div>
+
+                <div class="cart-items">
+                  <div class="cart-item" th:each="item : ${cartItems}" th:attr="data-price=${item.price}, data-cart-id=${item.cartId}, data-book-id=${item.bookId}">
+                    <div class="item-selector">
+                      <input type="checkbox" class="item-checkbox" name="selectedCartIds" th:value="${item.cartId}" checked />
+                    </div>
+                    <div class="cart-item-image">
+                      <img th:src="${item.coverImage}" alt="Product Image" />
+                    </div>
+                    <div class="cart-item-details">
+                      <div class="item-info">
+                        <h3 th:text="${item.title}">Product Name</h3>
+                        <p th:text="${item.author}">Author</p>
+                      </div>
+                      <div class="item-actions">
+                        <div class="quantity-control">
+                          <button type="button" class="quantity-minus">-</button>
+                          <input type="number" class="quantity-input" name="quantity" th:value="${item.cartQuantity}" min="1" />
+                          <button type="button" class="quantity-plus">+</button>
+                        </div>
+                        <div class="item-price-delete">
+                          <span class="item-price" th:text="|${#numbers.formatInteger(item.price * item.cartQuantity, 0, 'COMMA')} 원|">Price</span>
+                          <button type="button" class="delete-btn" th:data-cart-id="${item.cartId}">🗑️</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="empty-cart-message" th:if="${#lists.isEmpty(cartItems)}">
+                <p>장바구니가 비어 있습니다.</p>
+              </div>
+            </section>
+          </div>
+          <div class="order-summary-container">
+            <section class="order-summary">
+              <h2>주문 내역</h2>
+              <div class="summary-row">
+                <span>상품 금액</span>
+                <span id="subtotal">0 원</span>
+              </div>
+              <div class="summary-row">
+                <span>배송비</span>
+                <span id="shipping-fee">0 원</span>
+              </div>
+              <div class="summary-row total">
+                <span>총 결제 금액</span>
+                <span id="total-amount">0 원</span>
+              </div>
+              <button type="button" class="checkout-btn" id="orderBtn">주문하기</button>
+            </section>
+          </div>
+        </div>
+
+        <!-- 추천 도서 섹션 -->
+        <div class="recommend-container">
+          <section class="recommend-section book-carousel-section">
+            <h2>추천 도서</h2>
+            <div class="recommend-list">
+              <article class="rec-card" th:each="b : ${recommendations}">
+                <a class="card-link" th:href="@{'/books/' + ${b.bookId}}" style="text-decoration: none; color: inherit">
+                  <img th:src="${b.imageUrl}" th:alt="${b.title}" class="rec-card__img" />
+                  <div class="body">
+                    <div class="rec-card__author" th:text="${b.author}">작가</div>
+                    <div class="rec-card__title" th:text="${b.title}">제목</div>
+                  </div>
+                </a>
+              </article>
+            </div>
+          </section>
+        </div>
+      </div>
+    </form>
+
+    <script th:src="@{/js/cart.js}"></script>
+
+    <div th:replace="~{fragments/footer :: main-footer}"></div>
+  </body>
+</html>

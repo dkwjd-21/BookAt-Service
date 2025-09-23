@@ -126,7 +126,7 @@
   <div th:if="${events != null and !#lists.isEmpty(events)}" class="event-list">
     <!-- 상세페이지 merge 후 수정 -->
     <a th:each="event : ${events}"
-       th:href="@{/event/detail(event_id=${event.eventId})}"
+       th:href="@{/events/detail(event_id=${event.eventId})}"
        class="event-card">
                 <img th:src="${event.eventImage}" alt="event Cover" class="event-cover" />
                 <p class="meta" th:text="${#strings.substring(event.address, 0, 2)}"></p>
