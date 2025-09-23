@@ -26,29 +26,36 @@ async function onModal() {
     // 모달 보여주기
     modal.style.display = "flex";
 
-    // eventId를 랜덤으로 생성
-    const eventId = "21";
-
-    try {
-      const res = await axiosInstance.post("/queue/enter", null, {
-        params: { eventId },
-      });
-
-      const data = res.data;
-
-      if (data.status === "success") {
-        // 초기 대기 번호 표시
-        const numberElement = document.querySelector(".modal-waitingNum");
-        numberElement.textContent = data.rank ?? "-";
-        startQueuePolling(true);
-      } else {
-        alert("대기열 진입 실패");
-        modal.style.display = "none";
-      }
-    } catch (err) {
-      console.error("대기열 진입 에러:", err);
-      modal.style.display = "none";
+    // eventId를 DB의 이벤트ID 1개
+	//const eventId = "98";
+    const eventId = "100";
+	//const eventId = "700";
+	//const eventId = "21";
+	
+	sessionStorage.setItem("eventId", eventId);
+	
+	try {
+		const res = await axiosInstance.post("/queue/enter", null, {
+			params: {eventId}
+		});
+		
+		const data = res.data;
+		
+		if (data.status === "success") {
+			// 초기 대기 번호 표시
+			const numberElement = document.querySelector(".modal-waitingNum");
+			numberElement.textContent = data.rank ?? "-";
+			startQueuePolling(true);
+		} else {
+			alert("대기열 진입 실패");
+			modal.style.display = "none";
+		}
+	}catch (err) {
+     console.error("대기열 진입 에러:", err);
+     modal.style.display = "none";
     }
+	
+	console.log("이벤트 아이디 : ", eventId);
   }
 }
 
@@ -218,19 +225,21 @@ document.addEventListener("DOMContentLoaded", () => {
         closeModal();
         stopQueuePolling();
 
-        // 팝업창 띄우기
-        try {
-          const popupRes = await axiosInstance.get("/queue/reservation", {
-            responseType: "text",
-          });
+		// 팝업창 띄우기
+		try {
+			const popupRes = await axiosInstance.get("/reservation/start", {
+				params: {eventId},
+				responseType: "text",
+			});
+			
+			const popup = window.open("", "_blank", "width=1000,height=700");
+			popup.document.write(popupRes.data);
+			popup.document.close();
+		} catch(err) {
+			console.log("예약 팝업 열기 실패 : ", err);
+			alert("로그인이 필요합니다.");
+		}
 
-          const popup = window.open("", "_blank", "width=1000,height=700");
-          popup.document.write(popupRes.data);
-          popup.document.close();
-        } catch (err) {
-          console.log("예약 팝업 열기 실패 : ", err);
-          alert("로그인이 필요합니다.");
-        }
       } else {
         alert("대기열 제거 실패: " + data.message);
       }

@@ -37,6 +37,7 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 15px 5%;
+}
 
 .search-bar {
   padding-right: 0px;
@@ -50,24 +51,6 @@ body {
   display: flex;
   gap: 10px;
   cursor: pointer;
-}
-
-a {
-  text-decoration: none;
-}
-a:link {
-  color: #6b7280;
-}
-
-a:visited {
-  color: #6b7280;
-}
-
-a:hover {
-  color: #6b7280;
-}
-a:active {
-  color: #6b7280;
 }
 
 .auth-links a {
@@ -178,7 +161,9 @@ a:active {
   color: #222;
   padding-right: 10px;
 }
-
+.crumb-link {
+  text-decoration: none !important;
+}
 .event-header {
   display: flex;
   gap: 30px;
@@ -381,12 +366,6 @@ a:active {
   border-radius: 10px;
   width: 150px;
   text-align: center;
-}
-
-
-.cancellation-info {
-  /* margin-top: 30px; */
-  /* padding-left: 20px; */
 }
 
 .info_text {

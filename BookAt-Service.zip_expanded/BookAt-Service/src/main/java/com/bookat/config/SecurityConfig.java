@@ -27,25 +27,23 @@ public class SecurityConfig {
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     	
     	log.info("-- securityFilterChain --");
-    	
-        http
+    	 http
         .csrf(csrf -> csrf.disable())
         .formLogin(AbstractHttpConfigurer::disable)
 //        .httpBasic(Customizer.withDefaults())
         .authorizeHttpRequests(auth -> auth
-        		.requestMatchers("/css/**", "/js/**", "/images/**").permitAll()			// 정적 리소스 접근 가능
-        		.requestMatchers("/", "/user/**", "/auth/**", "/mainPage/**", "/infoPage/**").permitAll()
-        		 .requestMatchers("/books/**").permitAll()
-        							// 홈, 로그인, 메인페이지, 상세페이지 토큰없이 접근 허용
-				.requestMatchers("/", "/events/**", "/books/**","/error/**","/payment/frag-test", "/payment/success").permitAll()
+        .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()			// 정적 리소스 접근 가능
+        .requestMatchers("/", "/user/**", "/auth/**", "/books/**", "/events/**", "/infoPage/**","/cart/**",
+		         "/error/**","/payment/frag-test", "/payment/success").permitAll()	// 비로그인도 접근 가능
+
         		.requestMatchers("/api/**", "/queue/**", "/myPage/**",
         				"/payment/session/start-event",
         				"/reservation/**",
         				"/payment/session/start",
                         "/payment/session/context",
-                        "/payment/api/complete").authenticated()
+                        "/payment/api/complete",
+                        "/order/**").authenticated()  // 로그인 한 사용자만 접근 가능
 
-        							// 예약 기능 토큰 필요
                 .anyRequest().denyAll()
        ).addFilterBefore(accessTokenFilter, UsernamePasswordAuthenticationFilter.class)
         .addFilterAfter(refreshTokenFilter, AccessTokenFilter.class);
