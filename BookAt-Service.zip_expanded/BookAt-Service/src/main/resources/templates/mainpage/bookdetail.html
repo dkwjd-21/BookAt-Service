@@ -108,12 +108,13 @@
 
   <!-- 바로구매 -->
   
-<button id="payBtn"
+<button id="buyNowBtn"
+        class="btn"
         type="button"
-        data-merchant=""
-        data-amount=""
-        data-title="">
-  결제하기
+        th:attr="data-book-id=${book.bookId}"
+        data-qty="1"
+        data-method="CARD">
+  바로구매
 </button>
 </div>
     </div>
