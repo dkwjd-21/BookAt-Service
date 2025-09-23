@@ -148,7 +148,7 @@
 	          pay_method: "card",
 	          name: title,
 	          merchant_uid: merchantUid,
-	          amount: amount,
+	          amount: amount,    
 	        },
 	        function (r) {
 	          console.log("[PAY] request_pay 응답", r);
@@ -171,6 +171,7 @@
 	});
 }
   // ====== (공통) 페이지에서 쉽게 부르는 시작 함수 2가지 ======
+  // 추후 화면에서 계산된 합계로 가져와야함
   async function startBookPayment({ bookId, qty = 1, method = "CARD" }) {
     await ensureAuth();
     const res = await axiosInstance.post("/payment/session/start", null, { params: { bookId, qty, method } });
@@ -202,7 +203,7 @@
   // ====== DOM 로딩 후 프래그먼트 바인딩 ======
   document.addEventListener("DOMContentLoaded", () => {
     bindPayFragment().catch(err => {
-      // 프래그먼트가 없거나 토큰이 없으면 조용히 경고만
+      // 프래그먼트가 없거나 토큰이 없는 경우
       if (err && /프래그먼트|토큰/.test(String(err.message || ""))) {
         console.warn(err);
       }
