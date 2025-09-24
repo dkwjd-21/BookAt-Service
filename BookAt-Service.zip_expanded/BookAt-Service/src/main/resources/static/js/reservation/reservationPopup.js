@@ -279,6 +279,7 @@ document.addEventListener("DOMContentLoaded", () => {
 					const html = await axiosInstance.get(url);
 					document.querySelector('#event-payment-frag').innerHTML = html.data;
 					
+					// 프래그먼트 안의 결제 버튼 클릭시 실행되는 결제 진행 함수 
 					requestAnimationFrame(() => {
 						bindPayFragment()
 						.then(() => {

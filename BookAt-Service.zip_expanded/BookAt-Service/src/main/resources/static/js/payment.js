@@ -43,6 +43,14 @@
 
   // ====== 결제 완료 검증 → 성공 리다이렉트 ======
   async function completeAndRedirect({ merchantUid, impUid, token }) {
+	
+	// 이벤트예약 팝업: 결제 성공 전 버튼 비활성화
+	const submitBtn = document.getElementById("submit-btn");
+	if(submitBtn) {
+		submitBtn.disabled = true;
+		submitBtn.classList.add("btn-disabled");
+	}
+	
     const res = await axiosInstance.post("/payment/api/complete", { merchantUid, impUid, token });
     const data = res.data;
     if (data?.status === "success" && data?.successRedirect) {
