@@ -162,7 +162,8 @@
     <!-- 다음 주소 API -->
     <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 
-    <script>
+    <!-- Thymeleaf 데이터를 JavaScript로 전달 -->
+    <script th:inline="javascript">
       // 서버에서 전달받은 도서 정보를 JavaScript에서 사용할 수 있도록 설정
       window.bookData = {
         bookId: /*[[${book?.bookId}]]*/ null,

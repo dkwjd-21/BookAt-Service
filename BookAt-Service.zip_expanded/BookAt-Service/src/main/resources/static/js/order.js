@@ -1,6 +1,29 @@
 // 주문 상품 정보를 저장할 변수
 let orderItems = [];
 
+// 서버에서 전달받은 도서 정보를 초기화하는 함수
+function initializeOrderData() {
+  // Thymeleaf에서 전달받은 데이터가 이미 window 객체에 설정되어 있는지 확인
+  if (typeof window.bookData === "undefined") {
+    window.bookData = {
+      bookId: null,
+      title: null,
+      author: null,
+      price: 0,
+      imageUrl: null,
+      coverImage: null,
+    };
+  }
+
+  if (typeof window.quantity === "undefined") {
+    window.quantity = 1;
+  }
+
+  if (typeof window.isDirectOrder === "undefined") {
+    window.isDirectOrder = false;
+  }
+}
+
 // 전화번호 포맷팅 함수
 function formatPhoneNumber(phone) {
   if (!phone) return "";
@@ -40,6 +63,9 @@ function formatPhoneNumbers() {
 
 // 페이지 로드 시 로그인 검증 및 주문 상품 정보를 가져와서 표시
 document.addEventListener("DOMContentLoaded", function () {
+  // 데이터 초기화
+  initializeOrderData();
+
   // 로그인 검증
   checkLoginStatus();
 
