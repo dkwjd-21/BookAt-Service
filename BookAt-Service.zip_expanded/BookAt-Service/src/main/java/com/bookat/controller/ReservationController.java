@@ -183,6 +183,38 @@ public class ReservationController {
 	
 	// =========================================================================================================
 	
-	// 결제 완료 후 reservation 1건 + ticket N건을 생성
+	// 결제 완료 후 reservation 1건 + ticket N건을 생성하고나서 레디스 저장 세션들 삭제
+	// 결제 실패나 사용자가 중간에 닫은 경우엔 만료시간 TTL로 자연 삭제
+	@PostMapping("/complete")
+	public ResponseEntity<Map<String, Object>> completeReservation(@RequestBody Map<String, String> request, @AuthenticationPrincipal(expression = "userId") String userId) {
+	
+		String paymentToken = request.get("token");
+		String reservationToken = request.get("reservationToken");
+		log.info("payment token : {}", paymentToken);
+		log.info("reservation token : {}", reservationToken);
+		
+		if(paymentToken == null || reservationToken == null || userId == null) {
+			return ResponseEntity.badRequest().body(Map.of("error", "잘못된 요청입니다.", "status", "INVALID_REQUEST"));
+		}
+		
+		PaymentReservationSession session = paymentSessionStore.getEventPay(paymentToken);
+		if(session == null || !userId.equals(session.userId())) {
+			return ResponseEntity.badRequest().body(Map.of("error", "결제 세션이 만료되었거나 권한이 없습니다.", "status", "EXPIRED"));
+		}
+		
+		try {
+			// DB 예매 및 티켓 생성
+			int reservationId = reservationService.createReservationAndTicket(paymentToken, reservationToken);
+			
+			// 결제 세션 삭제
+			paymentSessionStore.consumeEventPay(paymentToken);
+			
+			return ResponseEntity.ok(Map.of("message", "예매가 성공적으로 완료되었습니다.", "status", "SUCCESS", "reservationId", reservationId));
+			
+		} catch(Exception e) {
+			log.error("예매 완료 실패 : {}", e.getMessage(), e);
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "예매 완료 처리 중 오류 발생", "status", "ERROR"));
+		}
+	}
 	
 }

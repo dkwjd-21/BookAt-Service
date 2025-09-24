@@ -1,6 +1,5 @@
 package com.bookat.service;
 
-import com.bookat.dto.reservation.CreateReservationReqDto;
 import com.bookat.dto.reservation.PaymentInfoResDto;
 import com.bookat.dto.reservation.PersonTypeReqDto;
 import com.bookat.dto.reservation.ReservationStartDto;
@@ -15,6 +14,6 @@ public interface ReservationService {
 	void cancelReservation(String reservationToken);
 	void validateReservation(String reservationToken);
 	PaymentInfoResDto getPaymentInfo(String reservationToken);
-	int createReservationAndTicket(CreateReservationReqDto createReservationReqDto);
+	int createReservationAndTicket(String paymentToken, String reservationToken);
 	
 }

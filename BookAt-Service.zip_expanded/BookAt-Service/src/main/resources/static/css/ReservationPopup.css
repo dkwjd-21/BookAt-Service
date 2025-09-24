@@ -328,8 +328,11 @@ header {
 /* 결제버튼 비활성화 */
 #submit-btn:disabled,
 #submit-btn.btn-disabled {
-  background-color: #ccc;
-  color: #666;
+	background-color: #e0e0e0;
+	color: #888;
+	cursor: not-allowed;
+	pointer-events: none;
+	opacity: 0.6;
 }
 
 /* 4. 오른쪽 열 (aside) */

@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 import com.bookat.dto.PaymentCompleteRequest;
+import com.bookat.dto.PaymentDto;
 import com.bookat.dto.PaymentSession;
 import com.bookat.dto.reservation.PaymentReservationSession;
 import com.bookat.entity.User;
@@ -299,5 +300,49 @@ public String devNew(@RequestParam Integer amount,
 		
 	    return "fragments/payFragment :: payFragment";
 	}
+	
+	  @PostMapping("/api/complete_event")
+	  @ResponseBody
+	  public Map<String, Object> apiCompleteEventPay(@RequestBody PaymentCompleteRequest req, @AuthenticationPrincipal(expression = "userId") String userId) {
+		  
+		  if(userId == null || userId.isBlank()) {
+			  return Map.of("status", "error", "message", "unauthorized");
+		  }
+		  
+		  try {
+			  PaymentReservationSession session = sessionStore.getEventPay(req.getToken());
+			  if(session == null || !userId.equals(session.userId())) {
+				  return Map.of("status", "error", "message", "session_invalid");
+			  }
+			  
+			  String accessToken = portOneClient.getAccessToken().block();
+			  var impPayment = portOneClient.getPaymentByImpUid(accessToken, req.getImpUid()).block();
+			  
+			  @SuppressWarnings("unchecked")
+			  var resp = (Map<String, Object>) impPayment.get("response");
+			  
+	          int paidAmount = ((Number) resp.get("amount")).intValue();
+	          String status   = (String) resp.get("status");
+	          String pgTid    = (String) resp.get("pg_tid");
+	          String receipt  = (String) resp.get("receipt_url");
+	          
+	          PaymentDto local = paymentService.findByMerchantUid(req.getMerchantUid());
+	          if(!status.equals("paid") || local.getPaymentPrice() != paidAmount) {
+	        	  paymentService.markFailed(req.getMerchantUid(), "검증 불일치 또는 미결제");
+	        	  return Map.of("status", "error", "message", "verify_failed");
+	          }
+	          
+	          paymentService.markPaid(req.getMerchantUid(), req.getImpUid(), pgTid, receipt);
+	          
+	          sessionStore.updateImpUid(req.getToken(), req.getImpUid());
+	          
+	          return Map.of("status", "success", "successRedirect", "/payment/success?m=" + req.getMerchantUid() + "&i=" + req.getImpUid());
+		  } catch (Exception e) {
+			  paymentService.markFailed(req.getMerchantUid(), "서버오류: " + e.getMessage());
+			  return Map.of("status", "error", "message", "server_error");
+		  }
+		  
+	  }
+	  
   
 }  

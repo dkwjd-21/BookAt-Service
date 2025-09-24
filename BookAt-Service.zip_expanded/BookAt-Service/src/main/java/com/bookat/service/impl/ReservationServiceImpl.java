@@ -13,7 +13,6 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.bookat.dto.reservation.CreateReservationReqDto;
 import com.bookat.dto.reservation.PaymentInfoResDto;
 import com.bookat.dto.reservation.PersonTypeReqDto;
 import com.bookat.dto.reservation.ReservationStartDto;
@@ -302,28 +301,19 @@ public class ReservationServiceImpl implements ReservationService {
 	// 결제 완료 후 reservation 1건 + ticket N건을 생성
 	@Transactional
 	@Override
-	public int createReservationAndTicket(CreateReservationReqDto createReservationReqDto) {
+	public int createReservationAndTicket(String paymentToken, String reservationToken) {
+		
+		String reservationKey = getReservationTokenKey(reservationToken);
+		Map<Object, Object> reservationData = redisTemplate.opsForHash().entries(reservationKey);
+		if(reservationData == null || reservationData.isEmpty()) {
+			throw new IllegalStateException("예약 세션이 만료되었거나 존재하지 않습니다.");
+		}
 		
 		// 예약 생성
 		Reservation reservation = new Reservation();
-		reservation.setPaymentId(createReservationReqDto.getPaymentId());
-		reservation.setReservationDate(new Date());
-		reservation.setReservationStatus(1);
-		reservation.setScheduleId(createReservationReqDto.getScheduleId());
-		reservation.setUserId(createReservationReqDto.getUserId());
-		
-		reservationMapper.insertReservation(reservation);
-		int reservationId = reservation.getReservationId();
-		
-		// 인원별 티켓 생성
-		int adult = createReservationReqDto.getAdultCount();
-		int youth = createReservationReqDto.getYouthCount();
-		int child = createReservationReqDto.getChildCount();
-		
-		// count 0 이면 생성 안하는 조건 필요
-		insertPersonTicket(reservationId, createReservationReqDto.getPaymentId(), PersonType.ADULT, adult);
-		insertPersonTicket(reservationId, createReservationReqDto.getPaymentId(), PersonType.YOUTH, youth);
-		insertPersonTicket(reservationId, createReservationReqDto.getPaymentId(), PersonType.CHILD, child);
+		// 결제 시 생성된 결제테이블의 결제아이디
+		// 결제테이블에 payment info 에 이벤트 이름이 들어가야함!
+		reservation.setPaymentId(1);
 		
 		return 0;
 	}

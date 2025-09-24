@@ -318,19 +318,28 @@ document.addEventListener("DOMContentLoaded", () => {
 		
 		try {
 			await axiosInstance.get(`/reservation/${token}/check`);
+			
+			const res = await axiosInstance.get('/reservation/complete', { token });
+			if(res.data?.status === 'SUCCESS') {
+				alert("예매 완료되었습니다.");
+				sessionStorage.removeItem("reservationToken");
+				sessionStorage.removeItem("eventId");
+				
+				try {
+					window.close();
+				} catch(err) {
+					console.error("팝업창 닫기 실패");
+				}
+			} else {
+				console.error("예매 완료 처리 오류:", err);
+				await handleReservationError(err, token);
+			}
+			
 		} catch(err) {
 			await handleReservationError(err, token);
 			return;
 		}
-		
-		alert("예매 완료되었습니다.");
-		sessionStorage.removeItem("reservationToken");
-		sessionStorage.removeItem("eventId");
-		try {
-			window.close();
-		} catch(err) {
-			console.error("팝업창 닫기 실패");
-		}
+
 		
 	});
 	

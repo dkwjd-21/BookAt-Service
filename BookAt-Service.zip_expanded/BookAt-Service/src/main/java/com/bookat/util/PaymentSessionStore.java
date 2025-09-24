@@ -6,12 +6,8 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 
 import org.springframework.data.redis.core.RedisTemplate;
@@ -72,7 +68,7 @@ public class PaymentSessionStore {
          );
   }
   
-	// 이벤트 결제 세션 토큰 관련
+	// === 이벤트 결제 세션 토큰 관련 ===
 	public String createEventPay(PaymentReservationSession session) {
 		try {
 			String token = UUID.randomUUID().toString();
@@ -122,6 +118,12 @@ public class PaymentSessionStore {
 				PaymentStatus.valueOf((String) paymentData.get("status")),
 				LocalDateTime.parse((String) paymentData.get("createdAt"))
 				);
+	}
+	
+	public void updateImpUid(String token, String impUid) {
+		String key = KEY_PREFIX + token;
+		redis.opsForHash().put(key, "impUid", impUid);
+		redis.opsForHash().put(key, "status", PaymentStatus.PAID);
 	}
 	
 	// 세션 소비 (삭제)

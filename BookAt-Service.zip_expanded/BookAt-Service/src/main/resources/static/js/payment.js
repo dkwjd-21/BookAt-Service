@@ -42,15 +42,7 @@
   }
 
   // ====== 결제 완료 검증 → 성공 리다이렉트 ======
-  async function completeAndRedirect({ merchantUid, impUid, token }) {
-	
-	// 이벤트예약 팝업: 결제 성공 전 버튼 비활성화
-	const submitBtn = document.getElementById("submit-btn");
-	if(submitBtn) {
-		submitBtn.disabled = true;
-		submitBtn.classList.add("btn-disabled");
-	}
-	
+  async function completeAndRedirect({ merchantUid, impUid, token }) {	
     const res = await axiosInstance.post("/payment/api/complete", { merchantUid, impUid, token });
     const data = res.data;
     if (data?.status === "success" && data?.successRedirect) {
@@ -94,6 +86,13 @@
     const btn = document.getElementById("payBtn");
     if (!btn) return; // 프래그먼트가 없는 페이지
 
+	// 이벤트예약 팝업: 결제 성공 전 버튼 비활성화
+	const submitBtn = document.getElementById("submit-btn");
+	if(submitBtn) {
+		submitBtn.disabled = true;
+		submitBtn.classList.add("btn-disabled");
+	}
+	
     // 탭 UI 세팅
     setupTabs();
 
@@ -166,9 +165,17 @@
 	    });
 
 	    console.log("[PAY] complete 호출", { imp_uid: rsp.imp_uid });
-	    const done = await axiosInstance.post("/payment/api/complete", { merchantUid, impUid: rsp.imp_uid, token });
+	    //const done = await axiosInstance.post("/payment/api/complete", { merchantUid, impUid: rsp.imp_uid, token });
+		const done = await axiosInstance.post("/payment/api/complete_event", { merchantUid, impUid: rsp.imp_uid, token });
 	    if (done.data?.status === "success" && done.data?.successRedirect) {
-	      window.location.href = done.data.successRedirect;
+	      //window.location.href = done.data.successRedirect;
+		  
+		  // 이벤트 결제 후 리다이렉트 말고 결제창만 꺼지고 완려버튼 활성화
+		  if(submitBtn) {
+		  	submitBtn.disabled = false;
+		  	submitBtn.classList.remove("btn-disabled");
+		  }
+		  
 	    } else {
 	      throw new Error(done.data?.message || "결제 검증 실패");
 	    }
