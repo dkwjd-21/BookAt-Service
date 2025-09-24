@@ -64,7 +64,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	updateSummary();
 
 	// 캡챠가 필요하면 호출 (사용하지 않으면 주석 처리)
-	// showCaptchaModal();
+	showCaptchaModal();
 
 	// ====== 회차 클릭 이벤트 처리 ======
 	// 회차를 선택하면 회차 UI highlight, selectedSession 갱신, (좌석 타입이면) 좌석 데이터 로드
@@ -517,6 +517,7 @@ async function cancelReservationSync() {
 		fetch(url, { method: 'POST', body: data, headers: { 'Content-Type': 'application/json' }, keepalive: true })
 			.catch(err => console.warn('cancelReservationSync fallback error:', err));
 	}
+	
 	sessionStorage.removeItem('reservationToken');
 	sessionStorage.removeItem('eventId');
 }
@@ -698,4 +699,11 @@ async function resetReservationOnServer(token, eventId, scheduleId, seats = []) 
 	} catch (err) {
 		console.error("서버 예약 초기화 오류: ", err);
 	}
+}
+
+// 캡챠 모달 열기 함수 (콜백 받아서 저장)
+function showCaptchaModal() {
+	const modal = document.getElementById("captchaModal");
+	modal.style.display = "flex";
+	refreshImage();
 }
