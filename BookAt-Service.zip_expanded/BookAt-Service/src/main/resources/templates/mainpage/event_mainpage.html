@@ -41,14 +41,8 @@
         <div>
           <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1200&auto=format&fit=crop" alt="Promotion Banner" style="background-color: #cccccc" />
 
-          <div class="banner-text">
-            <a href="#" class="btn-bookat">BookAt ></a>
-          </div>
           <div>
             <img src="https://placehold.co/1440x200?text=EventPromotionBanner2" alt="Promotion Banner" style="background-color: #cccccc" />
-          </div>
-          <div class="banner-text">
-            <a href="#" class="btn-bookat">BookAt ></a>
           </div>
         </div>
       </section>
@@ -65,45 +59,61 @@
       </div>
 
       <div>
-        <section class="event-section">
+        <section class="event-carousel-section">
           <h2 class="section-title">인기 이벤트</h2>
-          <div class="event-list">
-            <div th:each="event, eventStat : ${event}" th:if="${eventStat.index < 6}" class="event-card">
-              <a th:href="@{/events/detail(event_id=${event.eventId})}">
-                <img th:src="${event.eventImage}" alt="event Cover" class="event-cover" />
-                <p class="meta" th:text="${#strings.substring(event.address, 0, 2)}"></p>
-                <p th:text="${event.eventName}" class="event-title">이벤트 이름</p>
-              </a>
-            </div>
-          </div>
-        </section>
-
-        <section class="event-section">
-          <h2 class="section-title">오픈 예정 이벤트</h2>
-          <div class="event-list">
-            <div th:each="openTime, openTimeStat : ${openTime}" th:if="${openTimeStat.index < 6}" class="event-card">
-              <a th:href="@{/events/detail(event_id=${openTime.eventId})}">
-                <img th:src="${openTime.eventImage}" alt="event Cover" class="event-cover" />
-                <p class="meta" th:text="${#strings.substring(openTime.address, 0, 2)}"></p>
-                <p th:text="${openTime.eventName}" class="event-title">이벤트 이름</p>
-              </a>
-            </div>
-          </div>
-        </section>
-
-        <section class="event-section">
-          <section class="event-section">
-            <h2 class="section-title">마감 임박 이벤트</h2>
-            <div class="event-list">
-              <div th:each="closeTime, closeTimeStat : ${closeTime}" th:if="${closeTimeStat.index < 6}" class="event-card">
-                <a th:href="@{/events/detail(event_id=${closeTime.eventId})}">
-                  <img th:src="${closeTime.eventImage}" alt="event Cover" class="event-cover" />
-                  <p class="meta" th:text="${#strings.substring(#strings.substringAfter(closeTime.address, ' '), 0, 2)}"></p>
-                  <p th:text="${closeTime.eventName}" class="event-title">이벤트 이름</p>
-                </a>
+          <div class="carousel">
+            <button class="carousel-nav carousel-nav--prev" type="button" aria-label="이전">&lt;</button>
+            <div class="carousel-viewport">
+              <div class="carousel-track">
+                <article class="event-card" th:each="event : ${event}">
+                  <a th:href="@{/events/detail(event_id=${event.eventId})}">
+                    <img th:src="${event.eventImage}" alt="event Cover" class="event-cover" />
+                    <p class="meta" th:text="${#strings.substring(event.address, 0, 2)}"></p>
+                    <p th:text="${event.eventName}" class="event-title">이벤트 이름</p>
+                  </a>
+                </article>
               </div>
             </div>
-          </section>
+            <button class="carousel-nav carousel-nav--next" type="button" aria-label="다음">&gt;</button>
+          </div>
+        </section>
+
+        <section class="event-carousel-section">
+          <h2 class="section-title">오픈 예정 이벤트</h2>
+          <div class="carousel">
+            <button class="carousel-nav carousel-nav--prev" type="button" aria-label="이전">&lt;</button>
+            <div class="carousel-viewport">
+              <div class="carousel-track">
+                <article class="event-card" th:each="openTime : ${openTime}">
+                  <a th:href="@{/events/detail(event_id=${openTime.eventId})}">
+                    <img th:src="${openTime.eventImage}" alt="event Cover" class="event-cover" />
+                    <p class="meta" th:text="${#strings.substring(openTime.address, 0, 2)}"></p>
+                    <p th:text="${openTime.eventName}" class="event-title">이벤트 이름</p>
+                  </a>
+                </article>
+              </div>
+            </div>
+            <button class="carousel-nav carousel-nav--next" type="button" aria-label="다음">&gt;</button>
+          </div>
+        </section>
+
+        <section class="event-carousel-section">
+          <h2 class="section-title">마감 임박 이벤트</h2>
+          <div class="carousel">
+            <button class="carousel-nav carousel-nav--prev" type="button" aria-label="이전">&lt;</button>
+            <div class="carousel-viewport">
+              <div class="carousel-track">
+                <article class="event-card" th:each="closeTime : ${closeTime}">
+                  <a th:href="@{/events/detail(event_id=${closeTime.eventId})}">
+                    <img th:src="${closeTime.eventImage}" alt="event Cover" class="event-cover" />
+                    <p class="meta" th:text="${#strings.substring(#strings.substringAfter(closeTime.address, ' '), 0, 2)}"></p>
+                    <p th:text="${closeTime.eventName}" class="event-title">이벤트 이름</p>
+                  </a>
+                </article>
+              </div>
+            </div>
+            <button class="carousel-nav carousel-nav--next" type="button" aria-label="다음">&gt;</button>
+          </div>
         </section>
       </div>
     </main>
