@@ -259,7 +259,7 @@ public class ReservationController {
 	
 	// 결제 완료 후 reservation 1건 + ticket N건을 생성하고나서 레디스 저장 세션들 삭제
 	// 결제 실패나 사용자가 중간에 닫은 경우엔 만료시간 TTL로 자연 삭제
-	@PostMapping("/complete")
+	@GetMapping("/complete")
 	public ResponseEntity<Map<String, Object>> completeReservation(@RequestBody Map<String, String> request, @AuthenticationPrincipal(expression = "userId") String userId) {
 	
 		String paymentToken = request.get("token");

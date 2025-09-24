@@ -255,6 +255,7 @@ document.addEventListener("DOMContentLoaded", () => {
           YOUTH: parseInt(document.getElementById("youthCount").value),
           CHILD: parseInt(document.getElementById("childCount").value),
         },
+		ticketType: document.getElementById("ticket-type").value,
         totalPrice: parseInt(document.getElementById("total-price").value),
       };
 

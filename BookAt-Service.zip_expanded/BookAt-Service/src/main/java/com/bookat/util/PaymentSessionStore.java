@@ -123,7 +123,7 @@ public class PaymentSessionStore {
 	public void updateImpUid(String token, String impUid) {
 		String key = KEY_PREFIX + token;
 		redis.opsForHash().put(key, "impUid", impUid);
-		redis.opsForHash().put(key, "status", PaymentStatus.PAID);
+		redis.opsForHash().put(key, "status", PaymentStatus.PAID.name());
 	}
 	
 	// 세션 소비 (삭제)
