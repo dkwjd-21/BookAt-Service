@@ -41,11 +41,11 @@ public class EventScheduler {
 	}
 
 	// 바로 실행용 스케쥴링 (* 프로그램 시작과 동시에 실행되기 때문에 주의)
-	// @PostConstruct
+//	@PostConstruct
 	public void preloadEventSeatsByEventId() {
 		System.out.println("애플리케이션이 시작되었습니다. 이벤트 좌석을 미리 로드합니다...");
-//		preloadSeatsLogicByEventId(115);
-		preloadSeatsLogicByScheduleId(10);
+//		preloadSeatsLogicByEventId(75);
+//		preloadSeatsLogicByScheduleId(10);
 	}
 
 	// 공통 로직
@@ -200,6 +200,8 @@ public class EventScheduler {
 					// Redis 키 (Hash, Set)
 					String hashKey = "EVENT:" + eventId + ":SCHEDULE:" + scheduleId + ":SEATS";
 					String availableSetKey = "EVENT:" + eventId + ":SCHEDULE:" + scheduleId + ":AVAILABLE_SEATS";
+					String holdSetKey = "EVENT:" + eventId + ":SCHEDULE:" + scheduleId + ":HOLD_SEATS";
+					String bookedSetKey = "EVENT:" + eventId + ":SCHEDULE:" + scheduleId + ":BOOKED_SEATS";
 
 					for (int row = 0; row < rows; row++) {
 						// A, B, C열 ...
@@ -209,26 +211,43 @@ public class EventScheduler {
 							// A1, A2, A3 ...
 							String seatName = rowChar + String.valueOf(col);
 
-							// 좌석 테이블 Insert
-							EventSeatDto dto = new EventSeatDto();
-							dto.setSeatName(seatName);
-							dto.setSeatStatus(1);
-							dto.setSeatGradeType("STANDARD");
-							dto.setEventId(eventId);
-							dto.setScheduleId(scheduleId);
+							// 이미 존재하는 좌석인지 DB에서 확인 
+							EventSeatDto existingSeat = seatServiceImpl.selectOneBySeatName(seatName, eventId, scheduleId);
+							
+							if(existingSeat != null) {
+								// 이미 존재하는 좌석의 경우 상태만 업데이트 
+								if(existingSeat.getSeatStatus() != 1) {
+									existingSeat.setSeatStatus(1);
+						            seatServiceImpl.updateSeatStatus(existingSeat);
+								}
+							} else {
+								// 좌석 테이블 Insert
+								EventSeatDto dto = new EventSeatDto();
+								dto.setSeatName(seatName);
+								dto.setSeatStatus(1);
+								dto.setSeatGradeType("STANDARD");
+								dto.setEventId(eventId);
+								dto.setScheduleId(scheduleId);
 
-							seatServiceImpl.insertSeat(dto);
+								seatServiceImpl.insertSeat(dto);
+							}
+							
+							// Redis 상태 초기화
+					        redisTemplate.opsForSet().remove(availableSetKey, seatName);
+					        redisTemplate.opsForSet().remove(holdSetKey, seatName);
+					        redisTemplate.opsForSet().remove(bookedSetKey, seatName);
 
-							// Redis에 좌석 상태 저장 (HashSet)
-							redisTemplate.opsForHash().put(hashKey, seatName, "AVAILABLE");
-							// Redis에 좌석 상태 저장 (Set)
-							redisTemplate.opsForSet().add(availableSetKey, seatName);
+					        // Hash 상태를 "AVAILABLE"로 업데이트 & Set에 추가
+					        redisTemplate.opsForHash().put(hashKey, seatName, "AVAILABLE");
+					        redisTemplate.opsForSet().add(availableSetKey, seatName);
 						}
 					}
 
 					// 키 단위로 한 번만 TTL(만료일) 설정
 					redisTemplate.expireAt(hashKey, expireAt);
 					redisTemplate.expireAt(availableSetKey, expireAt);
+					redisTemplate.expireAt(holdSetKey, expireAt);
+					redisTemplate.expireAt(bookedSetKey, expireAt);
 				}
 
 			} else if ("PERSON_TYPE".equals(ticketType)) {

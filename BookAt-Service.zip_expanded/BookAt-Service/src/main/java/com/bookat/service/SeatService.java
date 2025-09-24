@@ -18,4 +18,10 @@ public interface SeatService {
 	EventSeatDto selectOneBySeatName(String seatName, int eventId, int scheduleId);
 	
 	int updateSeatStatus(EventSeatDto dto);
+	
+	// 좌석 상태 : 홀드/예매완료된 좌석 해제 
+	boolean releaseSeats(int eventId, int scheduleId, List<String> seatNames);
+	
+	// 좌석 상태 : 예매완료 처리 
+	
 }

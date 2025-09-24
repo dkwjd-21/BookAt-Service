@@ -22,7 +22,7 @@ public class SeatServiceImpl implements SeatService {
 
 	@Autowired
 	private StringRedisTemplate redisTemplate;
-	
+
 	@Autowired
 	private SeatMapper mapper;
 
@@ -85,25 +85,25 @@ public class SeatServiceImpl implements SeatService {
 		});
 
 		// 트랜잭션 결과 검증
-		for(int i=0; i<results.size(); i+= 2) {
-			// SMOVE 결과만 확인 
+		for (int i = 0; i < results.size(); i += 2) {
+			// SMOVE 결과만 확인
 			Object moveResultObject = results.get(i);
 			Long moveResult = null;
-			
+
 			// SMOVE 결과는 Redis 버전에 따라 Long 또는 Boolean으로 반환될 수 있음
-			if(moveResultObject instanceof Long) {
+			if (moveResultObject instanceof Long) {
 				moveResult = (Long) moveResultObject;
-			} else if(moveResultObject instanceof Boolean) {
-				moveResult = ((Boolean) moveResultObject)? 1L : 0L;
+			} else if (moveResultObject instanceof Boolean) {
+				moveResult = ((Boolean) moveResultObject) ? 1L : 0L;
 			}
-			
-			if(moveResult == null || moveResult == 0L) {
-				// 좌석 선점에 실패 
+
+			if (moveResult == null || moveResult == 0L) {
+				// 좌석 선점에 실패
 				return false;
 			}
 		}
-		
-		// 모든 좌석 선점 명령이 성공적으로 실행되었으면 true 반환 
+
+		// 모든 좌석 선점 명령이 성공적으로 실행되었으면 true 반환
 		return true;
 	}
 
@@ -119,7 +119,43 @@ public class SeatServiceImpl implements SeatService {
 
 	@Override
 	public int updateSeatStatus(EventSeatDto dto) {
-		return 0;
+		return mapper.updateSeatStatus(dto);
+	}
+
+	@Override
+	public boolean releaseSeats(int eventId, int scheduleId, List<String> seatNames) {
+		boolean allReleased = true;
+
+		String hashKey = "EVENT:" + eventId + ":SCHEDULE:" + scheduleId + ":SEATS";
+		String availableSetKey = "EVENT:" + eventId + ":SCHEDULE:" + scheduleId + ":AVAILABLE_SEATS";
+		String holdSetKey = "EVENT:" + eventId + ":SCHEDULE:" + scheduleId + ":HOLD_SEATS";
+		String bookedSetKey = "EVENT:" + eventId + ":SCHEDULE:" + scheduleId + ":BOOKED_SEATS";
+
+		for (String seatName : seatNames) {
+			try {
+				// Redis에서 HOLD/BOOKED 제거
+				redisTemplate.opsForSet().remove(holdSetKey, seatName);
+				redisTemplate.opsForSet().remove(bookedSetKey, seatName);
+
+				// AVAILABLE로 이동
+				redisTemplate.opsForSet().add(availableSetKey, seatName);
+
+				// Hash 상태 업데이트
+				redisTemplate.opsForHash().put(hashKey, seatName, "AVAILABLE");
+				
+				// 2. DB 상태 확인 -> 예약 가능 상태가 아니면 1로 되돌림
+	            EventSeatDto seat = selectOneBySeatName(seatName, eventId, scheduleId);
+	            if (seat != null && seat.getSeatStatus() != 1) {
+	                seat.setSeatStatus(1); // 예약 가능
+	                updateSeatStatus(seat);
+	            }
+				
+			} catch (Exception e) {
+				log.warn("좌석 릴리즈 실패 : {}", seatName, e);
+				allReleased = false;
+			}
+		}	
+		return allReleased;
 	}
 
 }

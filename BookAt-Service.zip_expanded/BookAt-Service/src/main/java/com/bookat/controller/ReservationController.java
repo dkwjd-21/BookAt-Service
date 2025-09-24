@@ -3,6 +3,7 @@ package com.bookat.controller;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,8 +21,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.bookat.dto.EventSeatInfoDto;
 import com.bookat.dto.reservation.PersonTypeReqDto;
 import com.bookat.dto.reservation.ReservationStartDto;
+import com.bookat.dto.reservation.SeatTypeReqDto;
 import com.bookat.dto.reservation.UserInfoReqDto;
 import com.bookat.entity.User;
+import com.bookat.enums.PersonType;
 import com.bookat.service.ReservationService;
 import com.bookat.service.SeatService;
 
@@ -80,56 +83,55 @@ public class ReservationController {
 
 		try {
 			String ticketType = (String) payload.get("ticketType");
+			log.info("STEP2 요청 ticketType = {}", ticketType);
 			Map<String, Object> response = new HashMap<>();
 			
 			if("PERSON_TYPE".equals(ticketType)) {
-				/*
-				PersonTypeReqDto personTypeReqDto = new PersonTypeReqDto();
-	            personTypeReqDto.setAdultCount((Integer) payload.getOrDefault("adultCount", 0));
-	            personTypeReqDto.setYouthCount((Integer) payload.getOrDefault("youthCount", 0));
-	            personTypeReqDto.setChildCount((Integer) payload.getOrDefault("childCount", 0));
-	            personTypeReqDto.setTotalPrice((Integer) payload.getOrDefault("totalPrice", 0));
-				*/
+				@SuppressWarnings("unchecked")
+				Map<String, Integer> countsMap = (Map<String, Integer>) payload.get("personCounts");
 				
+				if (countsMap == null || countsMap.isEmpty()) {
+			        return ResponseEntity.badRequest()
+			                .body(Map.of("status", "STEP2", "error", "선택된 인원이 없습니다."));
+			    }
+				
+				// 문자열 key -> PersonType enum 변환
+	            Map<PersonType, Integer> personCounts = countsMap.entrySet().stream()
+	                    .collect(Collectors.toMap(
+	                            e -> PersonType.valueOf(e.getKey()), // "ADULT" -> PersonType.ADULT
+	                            Map.Entry::getValue
+	                    ));
+				
+	            int totalPrice = (int) payload.getOrDefault("totalPrice", 0);
+	            
+	            PersonTypeReqDto dto = new PersonTypeReqDto(personCounts, totalPrice);
+	            
+	            
 				// 인원 선택 유형 처리 
-				// reservationService.selectPersonType(reservationToken, personTypeReqDto);
+				reservationService.selectPersonType(reservationToken, dto);
 				
-				// response.put("message", "인원 등급 선택 완료");
-				// response.put("totalPrice", personTypeReqDto.getTotalPrice());
+				response.put("message", "인원 선택 완료");
+	            response.put("totalPrice", totalPrice);
 				
 			} else if ("SEAT_TYPE".equals(ticketType)) {
 				// 좌석 선택 유형 처리 
 				int eventId = (Integer) payload.get("eventId");
-				int scheduleId = (Integer) payload.get("scheduleID");
+				int scheduleId = (Integer) payload.get("scheduleId");
+				@SuppressWarnings("unchecked")
 				List<String> seatNames = (List<String>) payload.get("seatNames");
+				int totalPrice = (Integer) payload.getOrDefault("totalPrice", seatNames.size() * 10000);
 				
-				if(seatNames == null || seatNames.isEmpty()) {
-					 return ResponseEntity.badRequest()
-		                        .body(Map.of("status", "STEP2", "error", "좌석이 선택되지 않았습니다."));
-				}
+				SeatTypeReqDto seatDto = new SeatTypeReqDto(eventId, scheduleId, seatNames, totalPrice);
 				
-				// 좌석 유효성 검증 
-				boolean allAvailable = seatService.checkAllSeatsAvailable(eventId, scheduleId, seatNames);
-				if(!allAvailable) {
-					return ResponseEntity.status(HttpStatus.CONFLICT)
-	                        .body(Map.of("status", "STEP2", "error", "다른 고객님께서 이미 선택한 좌석입니다."));
-				}
-				
-				// 좌석 홀드 처리 
-				seatService.holdSeats(eventId, scheduleId, seatNames);
-				
-				// 총 금액 계산 
-				int unitPrice = 10000;	// 기준가격
-				int totalPrice = seatNames.size() * unitPrice;
+				reservationService.selectSeatType(reservationToken, seatDto);
 				
 				response.put("message", "좌석 선택 완료");
-				response.put("totalPrice", totalPrice);
+	            response.put("totalPrice", totalPrice);
 				
 			} else {
 				return ResponseEntity.badRequest()
 	                    .body(Map.of("status", "STEP2", "error", "티켓 타입이 올바르지 않습니다."));
 			}
-			
 			
 			response.put("status", "STEP3");			
 			return ResponseEntity.ok(response);
@@ -170,7 +172,7 @@ public class ReservationController {
 		return ResponseEntity.ok(Map.of("message", "사용자 정보 저장 완료", "status", "STEP4"));
 	}
 
-	// 예약 확인
+	// 예약 확인 : 토큰 유효한지 확인 
 	@GetMapping("/{reservationToken}/check")
 	public ResponseEntity<Map<String, Object>> checkReservation(@PathVariable String reservationToken) {
 		try {
@@ -182,7 +184,7 @@ public class ReservationController {
 			return ResponseEntity.status(HttpStatus.GONE).body(Map.of("error", ie.getMessage()));
 		}
 	}
-
+	
 	// 좌석 취소 : 팝업닫기, 예약 세션 만료, 결제취소(결제 구현 후에 추가 예정) 등
 	@PostMapping("/{reservationToken}/cancel")
 	public ResponseEntity<Map<String, Object>> cancelReservation(@PathVariable String reservationToken,
@@ -206,8 +208,22 @@ public class ReservationController {
 
 	// =========================================================================================================
 
+	// [좌석유형] 결제 완료 후 예약 확정 (좌석 상태 변경)
+	@PostMapping("/{reservationToken}/confirmBooking")
+	public ResponseEntity<String> confirmBooking(@PathVariable String reservationToken, @RequestBody SeatTypeReqDto reqDto){
+		try {
+			reservationService.confirmBooking(reservationToken, reqDto);
+			return ResponseEntity.ok("좌석 예약이 확정되었습니다.");
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                     .body("예약 확정 중 오류 발생: " + e.getMessage());
+		}
+	}
+	
+	
 	// 결제 완료 후 reservation 1건 + ticket N건을 생성
-
+	
+	
 	
 	// 좌석 조회 API 
 	@GetMapping("/seat/getSeats")
@@ -217,6 +233,33 @@ public class ReservationController {
 
 	    List<EventSeatInfoDto> seats = seatService.getSeatList(eventId, scheduleId);
 	    return ResponseEntity.ok(seats);
+	}
+	
+	// 선택한 좌석/예약 상태 초기화 
+	@PostMapping("/{reservationToken}/reset")
+	public ResponseEntity<Map<String, Object>> resetReservation(
+				@PathVariable String reservationToken,
+				@RequestBody Map<String, Object> payload){
+		
+		try {
+			int eventId = (Integer) payload.get("eventId");
+			int scheduleId = (Integer) payload.get("scheduleId");
+			
+			@SuppressWarnings("unchecked")
+			List<String> seatNames = ((List<String>) payload.get("seatNames"))
+										.stream().map(Object::toString)
+										.collect(Collectors.toList());
+			
+			if(!seatNames.isEmpty()) {
+				seatService.releaseSeats(eventId, scheduleId, seatNames);
+			}
+			
+			return ResponseEntity.ok(Map.of("message", "예약 상태 초기화 완료"));
+			
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+								 .body(Map.of("error", "예약 초기화 중 오류 발생"));
+		}
 	}
 	
 }

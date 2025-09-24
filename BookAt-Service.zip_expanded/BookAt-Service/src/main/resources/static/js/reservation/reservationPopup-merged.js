@@ -142,7 +142,7 @@ document.addEventListener("DOMContentLoaded", () => {
 					// STEP1: 달력 초기화, 회차 선택 초기화
 					initCalendar();
 					resetPersonSelection();
-					
+
 					// STEP2에서 선택된 좌석 서버 초기화 
 					if (currentScheduleId && selectedSeats.length > 0) {
 						await resetReservationOnServer(token, eventId, currentScheduleId, selectedSeats);
@@ -250,26 +250,29 @@ document.addEventListener("DOMContentLoaded", () => {
 					scheduleId: parseInt(currentScheduleId),
 					seatNames: selectedSeats,
 					totalPrice: totalPrice
-				}
+				};
 
-				console.log(payload);
-
-				// 서버에 좌석 이름 리스트와 총금액 전달
 				try {
 					const res = await axiosInstance.post(`/reservation/${token}/step2`, payload);
+
 					if (res.data.status === "STEP3") {
 						showStep(3);
 					} else {
-						// 예: 일부 좌석이 선점되어 실패한 경우 서버가 409 등으로 내려줄 수 있음
-						console.warn("좌석 검증 실패 응답:", res.data);
+						// 서버에서 STEP3가 아니면, 검증 실패나 예외 상황
 						alert(res.data?.message || "좌석 검증에 실패했습니다.");
-						// 필요시 좌석 새로고침 로직 호출
-						if (currentScheduleId && eventId) await fetchSeatInfo(eventId, currentScheduleId);
+						if (currentScheduleId && eventId) {
+							await fetchSeatInfo(eventId, currentScheduleId); // 좌석 다시 그림
+						}
 					}
 				} catch (err) {
+					if (err.response && err.response.status === 409) {
+						// 좌석 충돌(이미 예약됨)
+						alert(err.response.data?.message || "이미 예약된 좌석이 포함되어 있습니다.");
+					} else {
+						alert("좌석 검증 중 오류가 발생했습니다.");
+					}
 					console.error("좌석 선택 오류:", err);
-					alert("좌석 검증 중 오류가 발생했습니다.");
-					// 실패 시 최신 좌석 상태를 다시 불러오는 것도 고려
+					// 최신 좌석 다시 불러오기
 					if (currentScheduleId && eventId) await fetchSeatInfo(eventId, currentScheduleId);
 				}
 			}
@@ -328,6 +331,19 @@ document.addEventListener("DOMContentLoaded", () => {
 		try {
 			// 결제 직전 서버 확인(토큰 유효성 등)
 			await axiosInstance.get(`/reservation/${token}/check`);
+
+			// 서버에 예매 확정 요청 (좌석 유형인 경우만)
+			if (ticketType === "SEAT_TYPE") {
+				const payload = {
+					eventId: parseInt(eventId),
+					scheduleId: parseInt(currentScheduleId),
+					seatNames: selectedSeats,
+					totalPrice: totalPrice
+				};
+				
+				await axiosInstance.post(`/reservation/${token}/confirmBooking`, payload);
+			}
+
 			alert("예매 완료되었습니다.");
 			sessionStorage.removeItem("reservationToken");
 			sessionStorage.removeItem("eventId");
@@ -526,22 +542,19 @@ window.addEventListener('pagehide', cancelReservationSync);
 // 좌석 관련: 서버에서 좌석 데이터 조회 및 렌더링
 // --------------------------------------------------
 async function fetchSeatInfo(eventId, scheduleId) {
-	if (!eventId || !scheduleId) throw new Error('eventId와 scheduleId가 필요합니다.');
+	if (!eventId || !scheduleId) throw new Error("eventId와 scheduleId가 필요합니다.");
 
 	try {
-		const res = await fetch(`/reservation/seat/getSeats?eventId=${eventId}&scheduleId=${scheduleId}`, {
-			method: 'GET',
-			credentials: 'include', // 로그인된 유저 세션 유지
-			headers: { 'X-Requested-With': 'XMLHttpRequest' }
+		const res = await axiosInstance.get("/reservation/seat/getSeats", {
+			params: { eventId, scheduleId },
+			withCredentials: true,
+			headers: { "X-Requested-With": "XMLHttpRequest" },
 		});
 
-		if (!res.ok) throw new Error('좌석 정보를 불러오지 못했습니다.');
-
 		resetSeatSelection();
-		const data = await res.json();
-		renderSeats(data);
+		renderSeats(res.data);
 	} catch (err) {
-		console.error('fetchSeatInfo error:', err);
+		console.error("fetchSeatInfo error:", err);
 		throw err;
 	}
 }
@@ -614,7 +627,9 @@ function toggleSeatSelection(el, seatObj = null) {
 	}
 
 	// 총 금액 계산: 좌석 객체에 price가 있으면 사용, 없으면 기본값(예: 10000원)
-	const unitPrice = (seatObj && seatObj.price) ? parseInt(seatObj.price, 10) : 10000;
+	const eventPriceEl = document.getElementById("eventPrice");
+	const unitPrice = eventPriceEl ? parseInt(eventPriceEl.value, 10) : 10000;
+	
 	totalPrice = selectedSeats.length * unitPrice;
 
 	// 좌석 선택/해제 후 요약 갱신
@@ -671,16 +686,14 @@ function resetSeatSelection() {
 
 // 선택한 좌석/예약 상태 초기화 (서버 Redis/DB 반영)
 async function resetReservationOnServer(token, eventId, scheduleId, seats = []) {
-	if (!token || !eventId || !scheduleId) return;
+	if (!token || !eventId || !scheduleId || seats.length === 0) return;
 
 	try {
-		/*
 		await axiosInstance.post(`/reservation/${token}/reset`, {
 			eventId: parseInt(eventId),
 			scheduleId: parseInt(scheduleId),
 			seatNames: seats
 		});
-		*/
 		console.log("서버 예약 상태 초기화 완료");
 	} catch (err) {
 		console.error("서버 예약 초기화 오류: ", err);
