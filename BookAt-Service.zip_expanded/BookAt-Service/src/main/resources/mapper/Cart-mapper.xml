@@ -72,4 +72,24 @@
             C.CART_REGDATE DESC
     </select>
 
+    <!-- 장바구니에 도서 추가 -->
+    <insert id="addToCart">
+        INSERT INTO CART (CART_ID, USER_ID, BOOK_ID, CART_QUANTITY, CART_REGDATE)
+        VALUES (#{cartId}, #{userId}, #{bookId}, #{quantity}, SYSDATE)
+    </insert>
+
+    <!-- 장바구니에 이미 같은 도서가 있는지 확인 -->
+    <select id="checkCartItem" resultType="int">
+        SELECT COUNT(*)
+        FROM CART
+        WHERE USER_ID = #{userId} AND BOOK_ID = #{bookId}
+    </select>
+
+    <!-- 기존 장바구니 아이템 수량 업데이트 -->
+    <update id="updateExistingCartItem">
+        UPDATE CART
+        SET CART_QUANTITY = CART_QUANTITY + #{quantity}
+        WHERE USER_ID = #{userId} AND BOOK_ID = #{bookId}
+    </update>
+
 </mapper>

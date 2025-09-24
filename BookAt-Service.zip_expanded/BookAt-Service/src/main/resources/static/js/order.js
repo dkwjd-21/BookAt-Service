@@ -1,6 +1,29 @@
 // 주문 상품 정보를 저장할 변수
 let orderItems = [];
 
+// 서버에서 전달받은 도서 정보를 초기화하는 함수
+function initializeOrderData() {
+  // Thymeleaf에서 전달받은 데이터가 이미 window 객체에 설정되어 있는지 확인
+  if (typeof window.bookData === "undefined") {
+    window.bookData = {
+      bookId: null,
+      title: null,
+      author: null,
+      price: 0,
+      imageUrl: null,
+      coverImage: null,
+    };
+  }
+
+  if (typeof window.quantity === "undefined") {
+    window.quantity = 1;
+  }
+
+  if (typeof window.isDirectOrder === "undefined") {
+    window.isDirectOrder = false;
+  }
+}
+
 // 전화번호 포맷팅 함수
 function formatPhoneNumber(phone) {
   if (!phone) return "";
@@ -40,16 +63,21 @@ function formatPhoneNumbers() {
 
 // 페이지 로드 시 로그인 검증 및 주문 상품 정보를 가져와서 표시
 document.addEventListener("DOMContentLoaded", function () {
+  // 데이터 초기화
+  initializeOrderData();
+
   // 로그인 검증
   checkLoginStatus();
 
   // 전화번호 포맷팅 적용
   formatPhoneNumbers();
 
-  // 세션스토리지에서 주문 상품 정보를 가져옴 (URL 파라미터 대신)
+  // 세션스토리지에서 주문 상품 정보를 가져옴 (장바구니 또는 바로구매)
   const itemsData = sessionStorage.getItem("orderItems");
+  const directOrderData = sessionStorage.getItem("directOrderItem");
 
   if (itemsData) {
+    // 장바구니에서 온 경우
     try {
       orderItems = JSON.parse(itemsData);
       renderOrderItems();
@@ -58,6 +86,51 @@ document.addEventListener("DOMContentLoaded", function () {
       sessionStorage.removeItem("orderItems");
     } catch (e) {
       console.error("주문 상품 정보를 파싱하는 중 오류가 발생했습니다:", e);
+      showOrderResultModal("주문 상품 정보를 불러올 수 없습니다.", false);
+      return;
+    }
+  } else if (directOrderData) {
+    // 바로구매에서 온 경우
+    try {
+      const directOrder = JSON.parse(directOrderData);
+
+      // 세션 스토리지에서 바로구매 데이터 확인
+      const directOrderDataFromStorage = sessionStorage.getItem("directOrderData");
+      if (directOrderDataFromStorage) {
+        const orderData = JSON.parse(directOrderDataFromStorage);
+
+        if (orderData.success && orderData.book) {
+          const book = orderData.book;
+          const quantity = orderData.quantity;
+
+          orderItems = [
+            {
+              bookId: book.bookId,
+              title: book.title,
+              author: book.author,
+              price: book.price,
+              quantity: quantity,
+              coverImage: book.imageUrl,
+              isDirectOrder: true,
+            },
+          ];
+
+          renderOrderItems();
+          updateOrderSummary();
+
+          // 사용 후 세션스토리지에서 제거
+          sessionStorage.removeItem("directOrderItem");
+          sessionStorage.removeItem("directOrderData");
+        } else {
+          showOrderResultModal("바로구매 데이터를 불러올 수 없습니다.", false);
+          return;
+        }
+      } else {
+        showOrderResultModal("바로구매 데이터를 불러올 수 없습니다.", false);
+        return;
+      }
+    } catch (e) {
+      console.error("바로구매 상품 정보를 파싱하는 중 오류가 발생했습니다:", e);
       showOrderResultModal("주문 상품 정보를 불러올 수 없습니다.", false);
       return;
     }
@@ -93,12 +166,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const shippingFee = subtotal > 0 && subtotal < 15000 ? 3000 : 0;
     const totalAmount = subtotal + shippingFee;
 
-    console.log("=== 주문 요청 시작 ===");
-    console.log("cartIds:", cartIds);
-    console.log("subtotal:", subtotal);
-    console.log("shippingFee:", shippingFee);
-    console.log("totalAmount:", totalAmount);
-
     axiosInstance
       .post("/order/create", {
         cartIds: cartIds,
@@ -107,10 +174,6 @@ document.addEventListener("DOMContentLoaded", function () {
         totalAmount: totalAmount,
       })
       .then((response) => {
-        console.log("=== 주문 응답 받음 ===");
-        console.log("response:", response);
-        console.log("response.data:", response.data);
-
         if (response.data) {
           showOrderResultModal(response.data, true);
         }
@@ -534,8 +597,6 @@ function saveAddress() {
   axiosInstance
     .post("/order/address", addressData)
     .then((response) => {
-      console.log("주소 저장 성공:", response.data);
-
       // 화면에 표시
       document.getElementById("display-name").textContent = name;
       document.getElementById("display-phone").textContent = formatPhoneNumber(phone);

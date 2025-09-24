@@ -2,79 +2,108 @@
 
 /* ========== 공통 패널(흰 배경, 라운드, 그림자) ========== */
 .panel {
-  background:#fff;
+  background: #fff;
   border-radius: 14px;
-  box-shadow: 0 2px 8px rgba(0,0,0,.06);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   padding: 20px;
-  margin:0 auto;max-width: 1200px;
+  margin: 0 auto;
+  max-width: 1200px;
 }
 
-.panel .section-title { font-size: 20px; font-weight: 700; }
+.panel .section-title {
+  font-size: 20px;
+  font-weight: 700;
+}
 
 /* 상단 카테고리 바 */
 .panel-crumb {
-  display:flex;
-  align-items:center;
+  display: flex;
+  align-items: center;
   gap: 10px;
-  margin-top:30px;
+  margin-top: 30px;
 }
 
 /* ========== 카테고리 라벨/링크 ========== */
 .crumb-label {
-  font-size: 18px;        
+  font-size: 18px;
   font-weight: 700;
-  color:#222;
+  color: #222;
 }
 
 .crumb-cat,
 .crumb-cat:link,
 .crumb-cat:visited {
-  font-size: 16px;        
+  font-size: 16px;
   font-weight: 600;
-  color:#6b7280;
-  text-decoration: none;   /* 밑줄 제거 */
+  color: #6b7280;
+  text-decoration: none; /* 밑줄 제거 */
 }
-.crumb-cat:hover { color:#222; text-decoration: none; }
+.crumb-cat:hover {
+  color: #222;
+  text-decoration: none;
+}
 
 /* ========== 상세 상단 레이아웃 ========== */
-a.btn, a.btn:link, a.btn:visited, a.btn:hover, a.btn:active {
+a.btn,
+a.btn:link,
+a.btn:visited,
+a.btn:hover,
+a.btn:active {
   text-decoration: none;
   color: #000;
   display: inline-block; /* 필요 시 버튼 박스 형태 */
 }
 
 .detail-grid {
-  display:grid;
+  display: grid;
   grid-template-columns: 340px 1fr;
   gap: 28px;
   align-items: start;
 }
 .detail-thumb {
-  width: 310px; height: 410px; object-fit: contain;
-  border-radius: 12px; background:#fff;
-  box-shadow: 0 2px 8px rgba(0,0,0,.06);
+  width: 310px;
+  height: 410px;
+  object-fit: contain;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 /* 타이틀/메타/가격 */
 .detail-title {
-  font-size: 30px;         
+  font-size: 30px;
   font-weight: 800;
   margin: 0 0 12px;
 }
-.detail-meta { color:#555; font-size: 20px; line-height: 1.8; }
+.detail-meta {
+  color: #555;
+  font-size: 20px;
+  line-height: 1.8;
+}
 
 /* 가격 줄 */
 .detail-price-row {
-  display:flex; align-items: baseline; gap: 10px; margin: 18px 0 18px;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 18px 0 18px;
 }
-.price-number { color:#A8C66C; font-weight: 800; font-size: 24px; letter-spacing:.2px; }
-.ship-note { font-size: 14px; color:#9CA3AF; }
+.price-number {
+  color: #a8c66c;
+  font-weight: 800;
+  font-size: 24px;
+  letter-spacing: 0.2px;
+}
+.ship-note {
+  font-size: 14px;
+  color: #9ca3af;
+}
 
 /* 리뷰와 가격 사이 구분선 */
 .soft-divider {
   height: 2px;
-  background: #d1d5db;  
-    margin: 18px 0;
+  background: #d1d5db;
+  margin: 18px 0;
 }
 
 /* 수량/버튼 줄 */
@@ -87,13 +116,12 @@ a.btn, a.btn:link, a.btn:visited, a.btn:hover, a.btn:active {
 }
 
 .detail-qty {
-  width: 60px;              /* 원하는 고정 크기 */
-  height: 28px;             /* 버튼/입력 높이 맞춤 */
-  text-align: center;       /* 숫자 가운데 정렬 */
-  padding: 0;               /* 불필요한 여백 제거 */
-  border: 1px solid #D1D5DB;
+  width: 60px; /* 원하는 고정 크기 */
+  height: 28px; /* 버튼/입력 높이 맞춤 */
+  text-align: center; /* 숫자 가운데 정렬 */
+  padding: 0; /* 불필요한 여백 제거 */
+  border: 1px solid #d1d5db;
   border-radius: 8px;
-
 }
 
 /* 버튼 줄 */
@@ -108,42 +136,59 @@ a.btn, a.btn:link, a.btn:visited, a.btn:hover, a.btn:active {
 /* 버튼 */
 .btn {
   padding: 10px 16px;
-  border: 1px solid #D1D5DB;
+  border: 1px solid #d1d5db;
   border-radius: 12px;
   background: #fff;
   cursor: pointer;
-  color:#000;                 /* 글씨색은 항상 검정 */
+  color: #000; /* 글씨색은 항상 검정 */
   font-size: 16px;
 }
-.btn--primary { border-color:#D1D5DB; }
+.btn--primary {
+  border-color: #d1d5db;
+}
 .btn:hover,
 .btn--primary:hover {
-  background:#B5D173;        /* 연두색 배경 */
-  border-color:#B5D173;
-  color:#000;                /* 글씨색 고정(검정) */
-  font-weight: 1000;          /* hover 시 조금 더 진하게 */
+  background: #b5d173; /* 연두색 배경 */
+  border-color: #b5d173;
+  color: #000; /* 글씨색 고정(검정) */
+  font-weight: 1000; /* hover 시 조금 더 진하게 */
 }
 
 /* 위시리스트 하트 */
 .btn-heart {
-  display:inline-flex; align-items:center; gap:6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   padding: 8px 12px;
-  border:1px solid #e5e7eb;
+  border: 1px solid #e5e7eb;
   border-radius: 999px;
-  background:#fff;
-  cursor:pointer; color:#222;
+  background: #fff;
+  cursor: pointer;
+  color: #222;
 }
-.btn-heart .icon { font-size:16px; }
-.btn-heart.is-liked {        /* 채워진 상태 */
-  background:#ffeef2;
-  border-color:#ffd6e0;
-  color:#e34a6f;
+.btn-heart .icon {
+  font-size: 16px;
 }
-.btn-heart:hover { background:#fff7fa; }
+.btn-heart.is-liked {
+  /* 채워진 상태 */
+  background: #ffeef2;
+  border-color: #ffd6e0;
+  color: #e34a6f;
+}
+.btn-heart:hover {
+  background: #fff7fa;
+}
 
-.review-item { padding:12px 0; border-top:1px solid #eee; }
-.stars span { color:#d1d5db; }
-.stars span.on { color:#B5D173;}
+.review-item {
+  padding: 12px 0;
+  border-top: 1px solid #eee;
+}
+.stars span {
+  color: #d1d5db;
+}
+.stars span.on {
+  color: #b5d173;
+}
 
 /* 상세 페이지 패널 안의 이벤트 카드 레이아웃 고정 */
 .panel .event-list {
@@ -173,7 +218,7 @@ a.event-card:active {
 /* 취소/환불 규정 리스트 스타일 */
 .policy-list {
   margin: 0;
-  padding-left: 20px;       /* 번호 여백 */
+  padding-left: 20px; /* 번호 여백 */
   list-style: decimal;
 }
 
@@ -182,9 +227,9 @@ a.event-card:active {
 }
 
 .policy-sub {
-  margin: 6px 0 0 16px;     /* 점 목록 들여쓰기 */
+  margin: 6px 0 0 16px; /* 점 목록 들여쓰기 */
   padding-left: 14px;
-  list-style: disc;         /* • 불릿 */
+  list-style: disc; /* • 불릿 */
 }
 
 .policy-sub > li {
@@ -192,26 +237,26 @@ a.event-card:active {
 }
 
 .review-write-btn {
-  float: right;                 /* 기존 우측 정렬 유지 */
-  display: inline-block;        /* 글자 길이에 맞춰 너비 */
+  float: right; /* 기존 우측 정렬 유지 */
+  display: inline-block; /* 글자 길이에 맞춰 너비 */
   padding: 8px 14px;
-  background: #fff;             /* 기본 흰 배경 */
+  background: #fff; /* 기본 흰 배경 */
   color: #333;
-  border: 1px solid #D1D5DB;    /* 현재 테두리 톤(필요시 기존 값으로 바꿔도 됨) */
+  border: 1px solid #d1d5db; /* 현재 테두리 톤(필요시 기존 값으로 바꿔도 됨) */
   border-radius: 10px;
   cursor: pointer;
-  white-space: nowrap;          /* "리뷰 작성" 줄바꿈 방지 */
+  white-space: nowrap; /* "리뷰 작성" 줄바꿈 방지 */
   text-align: center;
-  text-decoration: none;        /* a 태그일 때 밑줄 제거 */
+  text-decoration: none; /* a 태그일 때 밑줄 제거 */
   line-height: 1;
-  transition: background .15s ease, border-color .15s ease, box-shadow .15s ease;
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .review-write-btn:hover,
 .review-write-btn:focus-visible {
-  background: #B5D173;          /* hover 색상 */
-  border-color: #B5D173;        /* 테두리도 동일 톤으로 */
-  box-shadow: 0 2px 6px rgba(0,0,0,.08);
+  background: #b5d173; /* hover 색상 */
+  border-color: #b5d173; /* 테두리도 동일 톤으로 */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
 /* -------------------------------------- */
@@ -255,15 +300,33 @@ a.event-card:active {
 /* 닫기 버튼 */
 .modal-content .close-btn {
   position: absolute;
-  top: 10px;
-  right: 15px;
-  font-size: 28px;
+  top: 15px;
+  right: 20px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: #f8f9fa;
+  border-radius: 50%;
+  font-size: 18px;
   font-weight: bold;
-  color: #aaa;
+  color: #6c757d;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
+
 .modal-content .close-btn:hover {
-  color: #333;
+  background: #e9ecef;
+  color: #495057;
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.modal-content .close-btn:active {
+  transform: scale(0.95);
 }
 
 .modal-content h2 {
@@ -293,7 +356,7 @@ a.event-card:active {
 
 /* 마우스 올렸을 때 별 색상 변경 */
 .stars-input:hover .star {
-  color: #B5D173;
+  color: #b5d173;
 }
 .stars-input .star:hover ~ .star {
   color: #ddd;
@@ -301,7 +364,7 @@ a.event-card:active {
 
 /* 선택된 별 색상 고정 */
 .stars-input .star.selected {
-  color: #B5D173;
+  color: #b5d173;
 }
 .stars-input .star.selected ~ .star {
   color: #ddd;
@@ -332,5 +395,45 @@ a.event-card:active {
 }
 
 .modal-content .submit-btn:hover {
-  background-color: #B5D173;
+  background-color: #b5d173;
+}
+
+/* 모달 버튼 그룹 스타일 */
+.modal-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.modal-buttons .btn {
+  flex: 1;
+  max-width: 150px;
+  text-align: center;
+  padding: 12px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  color: #000;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.modal-buttons .btn:hover {
+  background: #b5d173;
+  border-color: #b5d173;
+  color: #000;
+}
+
+.modal-buttons .btn--primary {
+  background: #b5d173;
+  border-color: #b5d173;
+  color: #000;
+}
+
+.modal-buttons .btn--primary:hover {
+  background: #a8c66c;
+  border-color: #a8c66c;
 }

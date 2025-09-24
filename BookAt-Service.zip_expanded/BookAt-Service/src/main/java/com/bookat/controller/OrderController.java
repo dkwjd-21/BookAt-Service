@@ -1,5 +1,6 @@
 package com.bookat.controller;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -17,7 +18,10 @@ import com.bookat.entity.User;
 import com.bookat.entity.Address;
 import com.bookat.service.OrderService;
 import com.bookat.service.AddressService;
+import com.bookat.service.BookService;
 import com.bookat.mapper.UserLoginMapper;
+import com.bookat.dto.BookDto;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 @RequestMapping("/order")
@@ -31,6 +35,9 @@ public class OrderController {
     
     @Autowired
     private UserLoginMapper userLoginMapper;
+    
+    @Autowired
+    private BookService bookService;
 
     @GetMapping
     public String orderPage(Model model, @AuthenticationPrincipal User user) {
@@ -125,6 +132,91 @@ public class OrderController {
             return ResponseEntity.ok().body("배송지 정보가 저장되었습니다.");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("배송지 저장 중 오류가 발생했습니다: " + e.getMessage());
+        }
+    }
+    
+    // 바로구매 페이지
+    @GetMapping("/direct")
+    public String directOrderPage(@RequestParam String bookId, 
+                                 @RequestParam int qty, 
+                                 Model model, 
+                                 @AuthenticationPrincipal User user) {
+        if (user == null) {
+            return "redirect:/user/login";
+        }
+
+        try {
+            // 도서 정보 가져오기
+            System.out.println("바로구매 - 요청된 bookId: " + bookId);
+            BookDto book = bookService.selectOne(bookId);
+            System.out.println("바로구매 - 조회된 도서 정보: " + book);
+            if (book == null) {
+                System.out.println("바로구매 - 도서 정보가 null입니다. bookId: " + bookId);
+                return "redirect:/books";
+            }
+            
+            // 사용자의 기본 배송지 정보 가져오기
+            Address defaultAddress = null;
+            try {
+                defaultAddress = addressService.getDefaultAddressByUserId(user.getUserId());
+            } catch (Exception addressException) {
+                System.out.println("배송지 정보가 없습니다: " + addressException.getMessage());
+            }
+            
+            model.addAttribute("user", user);
+            model.addAttribute("address", defaultAddress);
+            model.addAttribute("book", book);
+            model.addAttribute("quantity", qty);
+            model.addAttribute("isDirectOrder", true); // 바로구매임을 표시
+            
+            return "mypage/order";
+        } catch (Exception e) {
+            return "redirect:/books";
+        }
+    }
+    
+    // 바로구매 데이터 API (JSON 응답)
+    @GetMapping("/direct/api")
+    public ResponseEntity<Map<String, Object>> getDirectOrderData(@RequestParam String bookId, 
+                                                                 @RequestParam int qty, 
+                                                                 @AuthenticationPrincipal User user) {
+        Map<String, Object> response = new HashMap<>();
+        
+        if (user == null) {
+            response.put("success", false);
+            response.put("message", "로그인이 필요합니다.");
+            return ResponseEntity.ok(response);
+        }
+
+        try {
+            // 도서 정보 가져오기
+            BookDto book = bookService.selectOne(bookId);
+            if (book == null) {
+                response.put("success", false);
+                response.put("message", "도서를 찾을 수 없습니다.");
+                return ResponseEntity.ok(response);
+            }
+            
+            // 사용자의 기본 배송지 정보 가져오기
+            Address defaultAddress = null;
+            try {
+                defaultAddress = addressService.getDefaultAddressByUserId(user.getUserId());
+            } catch (Exception addressException) {
+                System.out.println("배송지 정보가 없습니다: " + addressException.getMessage());
+            }
+            
+            response.put("success", true);
+            response.put("user", user);
+            response.put("address", defaultAddress);
+            response.put("book", book);
+            response.put("quantity", qty);
+            response.put("isDirectOrder", true);
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "오류가 발생했습니다: " + e.getMessage());
+            return ResponseEntity.ok(response);
         }
     }
 }
