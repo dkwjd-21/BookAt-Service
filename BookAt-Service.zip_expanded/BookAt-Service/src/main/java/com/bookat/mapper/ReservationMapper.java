@@ -1,8 +1,11 @@
 package com.bookat.mapper;
 
+import java.util.List;
+
 import org.apache.ibatis.annotations.Mapper;
 
 import com.bookat.entity.Event;
+import com.bookat.entity.reservation.EventPart;
 import com.bookat.entity.reservation.Reservation;
 import com.bookat.entity.reservation.Ticket;
 
@@ -13,4 +16,5 @@ public interface ReservationMapper {
 	int insertReservation(Reservation reservation);
 	int insertTicket(Ticket ticket);
 
+	List<EventPart> findPartsByEventId(int eventId);
 }

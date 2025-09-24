@@ -21,6 +21,11 @@
         SELECT * FROM USERS
         WHERE USER_ID = #{email}
     </select>
+    
+    <select id="selectUserByPhone" resultMap="userSignupResultMap">
+    	SELECT * FROM USERS
+    	WHERE PHONE = #{phone}
+    </select>
 
 	<insert id="insertUser" parameterType="com.bookat.dto.UserSignup">
 		INSERT INTO USERS

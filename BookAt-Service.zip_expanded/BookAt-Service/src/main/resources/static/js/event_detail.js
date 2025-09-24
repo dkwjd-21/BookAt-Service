@@ -166,39 +166,39 @@ function initializeReserveButton() {
 			reserveBtn.disabled = false;
 			// [수정] 활성화 시 버튼 색상 변경
 			reserveBtn.style.backgroundColor = "#f9d849";
-
+			
 			reserveBtn.onclick = async function() {
-				// window.location.href = `/reservation/?eventId=${eventId}`; 
+			    const popupWidth = 1000;
+			    const popupHeight = 700;
+			    const left = (window.innerWidth - popupWidth) / 2;
+			    const top = (window.innerHeight - popupHeight) / 2;
 
-				const popupWidth = 1000;
-				const popupHeight = 700;
-				const left = (window.innerWidth - popupWidth) / 2;
-				const top = (window.innerHeight - popupHeight) / 2;
+			    try {
+			        // axios.get을 사용해 서버에 요청
+			        // axiosInstance에 설정된 인터셉터가 자동으로 헤더에 토큰을 추가
+			        const response = await axiosInstance.get(`/reservation/start`, {
+			            params: {
+			                eventId: eventId
+			            }
+			        });
 
+			        // 요청이 성공하면 새로운 팝업창을 띄우고 응답으로 받은 HTML 내용을 렌더링
+			        const newWindow = window.open('', 'ReservationPopup', `width=${popupWidth},height=${popupHeight},left=${left},top=${top},resizable=yes,scrollbars=yes`);
+			        newWindow.document.write(response.data);
+			        newWindow.document.close();
 
-				window.open(
-					`/reservation/?eventId=${eventId}`,
-					"ReservationPopup",
-					`width=${popupWidth},height=${popupHeight},left=${left},top=${top},resizable=yes,scrollbars=yes`
-				);
-				/*
-				try {
-					// 1. 현재 로그인 상태 확인 
-					const res = await validateUser();	// userAuth.js 전역 함수 
-					if(res.data.valid){
-						// 2. 로그인 상태라면 대기열 진입 -> 팝업창 
-						window.location.href = `/reservation/?eventId=${eventId}`; 
-					} else {
-						alert("로그인한 회원만 예매가 가능합니다.");
-						window.location.href = "/user/login";
-					}
-				} catch (e) {
-					console.error("사용자 인증 에러 : ", e);
-					alert("로그인한 회원만 예매가 가능합니다.");
-					window.location.href = "/user/login";
-				}
-				*/
+			    } catch (error) {
+			        // 서버에서 401 Unauthorized 응답을 받으면 로그인 페이지로 리다이렉트
+			        if (error.response && error.response.status === 401) {
+			            alert("로그인한 회원만 예매가 가능합니다.");
+			            window.location.href = "/user/login";
+			        } else {
+			            console.error("예매 페이지 로드 중 오류 발생:", error);
+			            alert("예매 페이지를 불러오는 중 문제가 발생했습니다.");
+			        }
+			    }
 			};
+
 
 			if (countdownInterval) clearInterval(countdownInterval);
 			return;

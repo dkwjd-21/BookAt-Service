@@ -8,7 +8,6 @@ import org.apache.ibatis.annotations.Param;
 
 import com.bookat.dto.EventPartDto;
 import com.bookat.dto.EventResDto;
-import com.bookat.dto.EventSeatDto;
 import com.bookat.entity.Book;
 
 @Mapper
@@ -47,6 +46,8 @@ public interface EventMapper {
 	// 이벤트 아이디로 회차 조회
  	List<EventPartDto> selectPartByEventId(int eventId);
  	
- 	// 회차별 좌석 insert
- 	int insertSeat(EventSeatDto dto);
+ 	
+ 	
+ 	// 회차 아이디로 회차 조회 
+ 	EventPartDto selectPartByScheduleId(int scheduleId);
 }

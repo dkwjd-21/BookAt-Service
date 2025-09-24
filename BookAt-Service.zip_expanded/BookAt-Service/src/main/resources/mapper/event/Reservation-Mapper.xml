@@ -9,4 +9,10 @@
 		SELECT * FROM EVENT WHERE EVENT_ID = #{eventId}
 	</select>
 	
+	<select id="findPartsByEventId" resultType="EventPart">
+		SELECT * FROM EVENT_PART 
+		WHERE EVENT_ID = #{eventId}
+		ORDER BY SCHEDULE_ID
+	</select>
+	
 </mapper>

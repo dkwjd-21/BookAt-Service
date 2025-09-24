@@ -1,9 +1,13 @@
 package com.bookat.service;
 
+import java.util.List;
+
 import com.bookat.dto.reservation.PaymentInfoResDto;
 import com.bookat.dto.reservation.PersonTypeReqDto;
 import com.bookat.dto.reservation.ReservationStartDto;
+import com.bookat.dto.reservation.SeatTypeReqDto;
 import com.bookat.dto.reservation.UserInfoReqDto;
+import com.bookat.entity.reservation.EventPart;
 
 public interface ReservationService {
 
@@ -16,4 +20,9 @@ public interface ReservationService {
 	PaymentInfoResDto getPaymentInfo(String reservationToken);
 	int createReservationAndTicket(String paymentToken, String reservationToken);
 	
+	// eventId로 회차 리스트 조회 
+	List<EventPart> selectPartsByEventId(int eventId);	
+	
+	void selectSeatType(String reservationToken, SeatTypeReqDto reqDto);
+	void confirmBooking(String reservationToken, SeatTypeReqDto reqDto);
 }
