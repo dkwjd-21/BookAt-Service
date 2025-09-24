@@ -1,8 +1,7 @@
-<div th:fragment="payFragment (merchantUid, amount, title, method)">
+<div th:fragment="payFragment">
 <link rel="stylesheet" th:href="@{/css/payment.css}">
   <div class="pay-wrap">
-    <input type="hidden" id="method" th:value="${method != null ? method : 'card'}">
-    <input type="hidden" id="item_name" th:value="${title}">
+
 
     <div class="pay-tabs">
       <button type="button" class="pay-method-btn is-active" data-method="card">신용카드</button>
@@ -37,31 +36,8 @@
       </div>
     </div>
 
-    <button id="payBtn"
-            type="button"
-            class="btn pay-button"
-            th:attr="data-merchant=${merchantUid},data-amount=${amount},data-title=${title}">
-      결제하기
-    </button>
+    <button id="payBtn" type="button" class="btn pay-button">결제하기</button>
+    <input type="hidden" id="pay_token"/>
 
-    <form id="payCompleteForm" th:action="@{/payment/complete}" method="post" style="display:none;">
-      <input type="hidden" id="imp_uid" name="impUid">
-      <input type="hidden" id="merchantUid" name="merchantUid" th:value="${merchantUid}">
-      <input type="hidden" id="merchant_uid" name="merchant_uid" th:value="${merchantUid}">
-      <input type="hidden" name="amount" th:value="${amount}">
-      <input type="hidden" name="itemName" th:value="${title}">
-      <input type="hidden" name="payMethod" id="pay_method_hidden" th:value="${method != null ? method : 'card'}">
-      <input type="hidden" id="depositor_name_hidden" name="depositor">
-      <input type="hidden" id="cash_receipt_apply_hidden" name="cashReceiptApply">
-      <input type="hidden" id="cash_receipt_type_hidden" name="cashReceiptType">
-      <input type="hidden" id="cash_receipt_number_hidden" name="cashReceiptNumber">
-    </form>
   </div>
 </div>
-
-
-<!--
-    - 본 프래그먼트에서 내려보내는 값(title, amount, method 등)은
-      Controller: model.addAttribute("title", ctx.title()); 로 세팅됨.
-      JS는 #item_name(hidden)과 #payBtn(data-title)에서 동일 값 사용.
-  -->

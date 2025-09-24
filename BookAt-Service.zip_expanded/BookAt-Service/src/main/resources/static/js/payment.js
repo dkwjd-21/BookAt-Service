@@ -1,237 +1,253 @@
+/* =========================================================
+ * ORDER  : start-order  → session/context → IMP → /payment/api/complete
+ * EVENT  : start-event  → session/context → IMP → /payment/api/complete
+ * Button : #payBtn
+ * 총합계 id는 #totalAmount 기준
+ * ========================================================= */
+
 (function () {
-  // ====== PortOne 초기화 ======
-  if (window.IMP && typeof window.IMP.init === "function") {
-
-    IMP.init("imp55525217");
-  }
-  const PG = "html5_inicis";
-
-  // ====== 공통: 인증 ======
-  async function ensureAuth() {
-    const ok = await validateUser(); // userAuth.js
-    if (!ok) throw new Error("unauthorized");
-  }
-
-  // ====== 실패/취소 서버 보고 ======
-  async function reportFail(merchantUid, reason) {
-    try {
-      if (!merchantUid) return;
-      await axiosInstance.post("/payment/fail", {
-        merchantUid,
-        reason: reason || "결제실패/사용자취소",
-      });
-    } catch (e) {
-      console.warn("[PAY] /payment/fail 보고 실패", e);
-    }
-  }
-
-  // ====== 세션 컨텍스트 가져오기 ======
-  async function fetchSessionContext(token) {
-    const res = await axiosInstance.get("/payment/session/context", { params: { token } });
-    if (res.data?.status !== "success") {
-      throw new Error(res.data?.message || "세션 조회 실패");
-    }
-    return res.data; // {merchantUid, amount, title, method, token}
-  }
-
-  // ====== PortOne 결제 트리거 (카드 고정) ======
-  function requestPayCard({ merchantUid, amount, itemName }) {
+  /*** 초기화 타이밍 이슈 해결) ***/
+  async function waitFor(condFn, timeoutMs = 7000, intervalMs = 120) {
+    const start = Date.now();
     return new Promise((resolve, reject) => {
-      IMP.request_pay(
-        {
-          pg: PG,
-          pay_method: "card", 
-          name: itemName || "상품명",
-          merchant_uid: merchantUid,
-          amount: amount,
-        },
-        function (rsp) {
-          if (rsp?.success) return resolve(rsp);
-          return reject(new Error(rsp?.error_msg || "결제 실패"));
-        }
-      );
+      const t = setInterval(() => {
+        try {
+          if (condFn()) { clearInterval(t); return resolve(true); }
+          if (Date.now() - start > timeoutMs) { clearInterval(t); return reject(new Error("WAIT_TIMEOUT")); }
+        } catch (e) { clearInterval(t); reject(e); }
+      }, intervalMs);
     });
   }
 
-  // ====== 결제 완료 검증 → 성공 리다이렉트 ======
-  async function completeAndRedirect({ merchantUid, impUid, token }) {
-    const res = await axiosInstance.post("/payment/api/complete", { merchantUid, impUid, token });
-    const data = res.data;
-    if (data?.status === "success" && data?.successRedirect) {
-      window.location.href = data.successRedirect;
-      return;
-    }
-    throw new Error(data?.message || "결제 검증 실패");
+  let _impInited = false;
+  function ensureImpInit() {
+    const IMP = window.IMP;
+    if (!IMP || typeof IMP.init !== "function") return;
+    if (_impInited) return;
+    IMP.init("imp55525217");
+    _impInited = true;
   }
 
-  // ====== UI: 기본은 카드, vbank는 클릭 시에만 표시 ======
-  function setupTabs() {
-    const tabs = document.querySelectorAll(".pay-method-btn");
-    if (!tabs.length) return;
+  /*** 엔트리 ***/
+  document.addEventListener("DOMContentLoaded", async () => {
+    const isEvent = !!document.getElementById("reservationToken");
 
-    const btnCard = document.querySelector('.pay-method-btn[data-method="card"]');
-    const btnVbank = document.querySelector('.pay-method-btn[data-method="vbank"]');
-    const vbankSection = document.getElementById("vbankSection");
-
-    // 초기 상태: 카드 on, vbank off
-    tabs.forEach(b => b.classList.remove("is-active"));
-    if (btnCard) btnCard.classList.add("is-active");
-    if (vbankSection) vbankSection.classList.remove("open");
-
-    // 전환 로직
-    tabs.forEach(btn => {
-      btn.addEventListener("click", () => {
-        tabs.forEach(b => b.classList.remove("is-active"));
-        btn.classList.add("is-active");
-
-        const method = btn.dataset.method;
-        if (vbankSection) {
-          if (method === "vbank") vbankSection.classList.add("open");
-          else vbankSection.classList.remove("open");
-        }
+    try {
+      // 프래그먼트 삽입/합계 계산이 늦게 끝나는 경우를 대비해, 총합계가 0 초과가 될 때까지 기다렸다가 초기화
+      await waitFor(() => {
+        const btn = document.getElementById("payBtn");
+        const el = document.getElementById("totalAmount");
+        const amt = el ? parseInt(String(("value" in el ? el.value : el.textContent) || "0").replace(/[^\d]/g, ""), 10) : 0;
+        return !!btn && amt > 0;
       });
-    });
+
+      if (isEvent) await initEventPay();
+      else await initOrderPay();
+    } catch (e) {
+      console.warn("[PAY] init skipped: total=0 or #payBtn missing", e?.message);
+    }
+  });
+
+  /*** 주문 페이지 초기화 ***/
+  async function initOrderPay() {
+    const btn = document.getElementById("payBtn");
+    if (!btn) return;
+
+    const { amount, title, orderId } = extractOrderFromDom();
+    if (!amount || amount <= 0) return;
+
+    try {
+      const res = await axiosInstance.post("/payment/session/start-order", null, {
+        params: { orderId, amount, title }
+      });
+      if (res.data?.status !== "success") throw new Error(res.data?.message || "토큰 생성 실패");
+
+      const { token, merchantUid } = res.data;
+      hydrate(btn, token, merchantUid, amount, title);
+      await syncContext(token);
+      bindPayClick(btn);
+    } catch (e) {
+      console.error("[PAY:init order] ", e);
+      alert(e.message || "결제 초기화 실패");
+    }
   }
 
-  // ====== 프래그먼트 페이지용 ======
-  async function bindPayFragment() {
+  /*** 이벤트 페이지 초기화 ***/
+  async function initEventPay() {
     const btn = document.getElementById("payBtn");
-    if (!btn) return; // 프래그먼트가 없는 페이지
+    if (!btn) return;
 
-    // UI 세팅
-    setupTabs();
+    const { reservationToken, eventId, scheduleId, reservedCount, groupCounts, amount, title } = extractEventFromDom();
+    if (!amount || amount <= 0) return;
 
-    // token 위치: (1) data-token on #payBtn, (2) #token input
-    let token = btn.getAttribute("data-token")
-      || document.getElementById("token")?.value
-      || document.getElementById("pay_token")?.value;
+    try {
+      const res = await axiosInstance.post("/payment/session/start-event", null, {
+        params: { reservationToken, eventId, scheduleId, reservedCount, amount, title, groupCounts }
+      });
+      if (res.data?.status !== "success") throw new Error(res.data?.message || "토큰 생성 실패");
 
-    // 아직 버튼에 data-merchant 세팅이 없다면 → 서버에서 컨텍스트 조회해 채움
-    if (!btn.getAttribute("data-merchant")) {
-      if (!token) throw new Error("결제 토큰이 없습니다.");
-      const ctx = await fetchSessionContext(token);
-      btn.setAttribute("data-merchant", ctx.merchantUid);
-      btn.setAttribute("data-amount", String(ctx.amount));
-      btn.setAttribute("data-title", ctx.title);
-
-      const itemName = document.getElementById("item_name");
-      if (itemName) itemName.value = ctx.title;
-
-      const titleEls = document.querySelectorAll("[data-bind='title']");
-      titleEls.forEach(el => el.textContent = ctx.title);
-      const amountEls = document.querySelectorAll("[data-bind='amount']");
-      amountEls.forEach(el => el.textContent = new Intl.NumberFormat().format(ctx.amount));
+      const { token, merchantUid } = res.data;
+      hydrate(btn, token, merchantUid, amount, title);
+      await syncContext(token);
+      bindPayClick(btn);
+    } catch (e) {
+      console.error("[PAY:init event] ", e);
+      alert(e.message || "결제 초기화 실패");
     }
+  }
 
-    // 결제 버튼 클릭
-    btn.addEventListener("click", async (e) => {
-      let merchantUid, amount, title;
+  /*** 공통: 버튼 데이터/hidden ***/
+  function hydrate(btn, token, merchantUid, amount, title) {
+    btn.dataset.token = token;
+    btn.dataset.merchant = merchantUid;
+    btn.dataset.amount = String(amount);
+    btn.dataset.title = title || "BookAt 주문";
+
+    const tokenInput = document.getElementById("pay_token");
+    if (tokenInput) tokenInput.value = token;
+  }
+
+  /*** 공통: 세션 컨텍스트 ***/
+  async function syncContext(token) {
+    const ctx = await axiosInstance.get("/payment/session/context", { params: { token } }).then(r => r.data);
+    if (ctx.status !== "success") throw new Error(ctx.message || "세션 동기화 실패");
+  }
+
+  /*** 공통: 결제 버튼 ***/
+  function bindPayClick(btn) {
+    if (btn.dataset.bound === "1") return;
+    btn.dataset.bound = "1";
+
+    ensureImpInit();
+
+    btn.addEventListener("click", async () => {
+      const IMP = window.IMP;
+      if (!IMP || typeof IMP.request_pay !== "function") {
+        alert("결제 모듈이 준비되지 않았습니다.");
+        return;
+      }
+
+      const token = btn.dataset.token;
+      const merchantUid = btn.dataset.merchant;
+      const amount = Number(btn.dataset.amount || "0");
+      const name = btn.dataset.title || "BookAt 결제";
+
       try {
-        e.preventDefault();
-        e.stopPropagation();
 
-        console.log("[PAY] click");
-
-        await ensureAuth(); // /auth/validate OK
-
-        merchantUid = btn.getAttribute("data-merchant");
-        amount = parseInt(btn.getAttribute("data-amount") || "0", 10);
-        title = btn.getAttribute("data-title") || "상품명";
-        token = btn.getAttribute("data-token")
-          || document.getElementById("token")?.value
-          || document.getElementById("pay_token")?.value;
-
-        if (!merchantUid || !amount) {
-          console.error("[PAY] 결제정보 부족", { merchantUid, amount });
-          alert("결제 정보가 준비되지 않았습니다. 새로고침 후 다시 시도해주세요.");
-          return;
-        }
-
-        if (!window.IMP || typeof window.IMP.request_pay !== "function") {
-          console.error("[PAY] PortOne SDK 미로딩");
-          alert("결제 모듈이 로드되지 않았습니다. 잠시 후 다시 시도해주세요.");
-          return;
-        }
-
-        console.log("[PAY] request_pay 호출", { merchantUid, amount, title });
-        // PortOne 결제창
-        await new Promise((resolve, reject) => {
+        const rsp = await new Promise((resolve, reject) => {
           IMP.request_pay(
-            {
-              pg: "html5_inicis",
-              pay_method: "card",
-              name: title,
-              merchant_uid: merchantUid,
-              amount: amount,
-            },
-            async function (r) {
-              console.log("[PAY] request_pay 응답", r);
-              if (r?.success) {
-                return resolve(r);
-              }
-              // 실패/사용자 취소: 여기서 -1로 보고
-              await reportFail(merchantUid, r?.error_msg || "결제가 취소되었습니다. 다시 진행해 주세요.");
-			  err.code = r?.error_code || "USER_CANCELED";
-			  return reject(err);
+			// method 카드 고정
+            { pg: "html5_inicis", pay_method: "card", merchant_uid: merchantUid, name, amount },
+            (r) => {
+              if (r?.success) return resolve(r);
+              const err = new Error(r?.error_msg || "USER_CANCELED");
+              err.code = r?.error_code || "USER_CANCELED";
+              return reject(err);
             }
           );
-        }).then(async (rsp) => {
-          console.log("[PAY] complete 호출", { imp_uid: rsp.imp_uid });
-          const done = await axiosInstance.post("/payment/api/complete", { merchantUid, impUid: rsp.imp_uid, token });
-          if (done.data?.status === "success" && done.data?.successRedirect) {
-            window.location.href = done.data.successRedirect;
-          } else {
-            throw new Error(done.data?.message || "결제 검증 실패");
-          }
         });
-      } catch (e2) {
-        console.error("[PAY] 에러:", e2);
-        // 결제창 뜨기 전/후 모든 예외 케이스에서 한번 더 실패 보고
-        await reportFail(merchantUid, e2?.message || "클라이언트 오류로 결제 실패");
-        alert(e2.message || "결제 처리 중 오류");
+
+        const done = await axiosInstance.post("/payment/api/complete", { token, impUid: rsp.imp_uid });
+        if (done.data?.status === "success" && done.data?.successRedirect) {
+          window.location.href = done.data.successRedirect;
+        } else {
+          throw new Error(done.data?.message || "결제 검증 실패");
+        }
+      } catch (e) {
+        console.error("[PAY] ", e);
+        alert(e.message || "결제 처리 중 오류");
       }
     });
   }
 
-  // ====== (공통) 페이지에서 쉽게 부르는 시작 함수 2가지 ======
-  // 추후 화면에서 계산된 합계로 가져와야함
-  async function startBookPayment({ bookId, qty = 1, method = "CARD" }) {
-    await ensureAuth();
-    const res = await axiosInstance.post("/payment/session/start", null, { params: { bookId, qty, method } });
-    const data = res.data;
-    if (data.status === "success" && data.redirectUrl) {
-      window.location.href = data.redirectUrl;
-      return;
+  /*** DOM 주문 ***/
+  function extractOrderFromDom() {
+    // 1) 금액: #totalAmount 하나만 본다 (텍스트/값 둘 다 대응, 원/콤마 제거)
+    const amount = parseAmountById("totalAmount");
+
+    // 2) 제목
+    const titles = (Array.isArray(window.orderItems) && window.orderItems.length)
+      ? window.orderItems.map(it => (it.title || "").trim()).filter(Boolean)
+      : Array.from(document.querySelectorAll(
+          "[data-order-title], .book-title, .order-item .title, .order-item h3"
+        ))
+        .map(el => (el.textContent || "").trim())
+        .filter(Boolean);
+
+    let title = "BookAt 주문";
+    if (titles.length >= 1) {
+      const first = titles[0];
+      const rest = titles.length - 1;
+      title = rest > 0 ? `${first} 외 ${rest}권` : first;
     }
-    throw new Error(data.message || "결제 준비 실패");
+
+    //주문ID
+    const idEl = document.querySelector("[data-order-id]");
+    const orderIdRaw = idEl ? idEl.getAttribute("data-order-id") : null;
+    const orderId = orderIdRaw && /^\d+$/.test(orderIdRaw) ? Number(orderIdRaw) : null;
+
+    return { amount, title, orderId };
   }
 
-  async function startEventPayment({ eventId, amount, title, method = "CARD" }) {
-    await ensureAuth();
-    const res = await axiosInstance.post("/payment/session/start-event", null, { params: { eventId, amount, title, method } });
-    const data = res.data;
-    if (data.status === "success" && data.redirectUrl) {
-      window.location.href = data.redirectUrl;
-      return;
-    }
-    throw new Error(data.message || "결제 준비 실패");
+  // --- 금액 파싱 (#id) ---
+  function parseAmountById(id) {
+    const el = document.getElementById(id);
+    const raw = el ? (("value" in el ? el.value : el.textContent) || "0") : "0";
+    return parseInt(String(raw).replace(/[^\d]/g, ""), 10) || 0;
   }
 
-  // ====== 전역 노출 ======
-  window.PaymentStart = {
-    book: startBookPayment,
-    event: startEventPayment
+  /*** DOM 이벤트 ***/
+  function extractEventFromDom() {
+    const reservationToken = valueOf("#reservationToken");
+    const eventId        = valueOf("#eventId");
+    const scheduleId     = valueOf("#scheduleId");
+    const reservedCount  = Number(valueOf("#reservedCount") || "1");
+    const groupCounts    = valueOf("#groupCounts");
+
+    const amtEl = document.getElementById("summaryTotal");
+    const raw = amtEl ? (("value" in amtEl ? amtEl.value : amtEl.textContent) || "0") : "0";
+    const amount = parseInt(String(raw).replace(/[^\d]/g, ""), 10) || 0;
+
+    let title = valueOf("#eventName");
+
+    return { reservationToken, eventId, scheduleId, reservedCount, groupCounts, amount, title };
+  }
+
+  function valueOf(sel) {
+    const el = document.querySelector(sel);
+    if (!el) return "";
+    if ("value" in el) return el.value;
+    return el.textContent?.trim() || "";
+  }
+
+})();
+
+function wireTabs() {
+  const tabs = document.querySelectorAll(".pay-method-btn");
+  const card = document.getElementById("cardSection");
+  const vbank = document.getElementById("vbankSection");
+
+  // 초기 상태: 카드 활성화
+  let activeMethod = "card";
+  tabs.forEach(b => {
+    if (b.classList.contains("is-active")) activeMethod = b.dataset.method || "card";
+  });
+  if (!tabs.length) return;
+
+  const apply = (method) => {
+    tabs.forEach(x => x.classList.toggle("is-active", x.dataset.method === method));
+    if (card) card.style.display = method === "card" ? "block" : "none";
+    if (vbank) vbank.style.display = method === "vbank" ? "block" : "none";
   };
+  apply(activeMethod);
 
-  // ====== DOM 로딩 후 프래그먼트 바인딩 ======
-  document.addEventListener("DOMContentLoaded", () => {
-    bindPayFragment().catch(err => {
-      // 프래그먼트가 없거나 토큰이 없는 경우
-      if (err && /프래그먼트|토큰/.test(String(err.message || ""))) {
-        console.warn(err);
-      }
+  tabs.forEach(btn => {
+    btn.addEventListener("click", () => {
+      activeMethod = btn.dataset.method || "card";
+      apply(activeMethod);
+
     });
   });
-})();
+}
 
 

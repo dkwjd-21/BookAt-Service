@@ -229,23 +229,5 @@
 		</div>
 	</div>
 </body>
-
-
-<script>
-  document.getElementById('eventPayBtn')?.addEventListener('click', async (e) => {
-    const btn = e.currentTarget;
-    try {
-      await window.PaymentStart.event({
-        eventId: Number(btn.dataset.eventId),
-        amount: Number(btn.dataset.amount),
-        title:  btn.dataset.title,
-        method: "CARD"
-      });
-    } catch (err) {
-      console.error(err); alert(err.message || "결제 준비 실패");
-    }
-  });
-</script>
-
 </html>
 

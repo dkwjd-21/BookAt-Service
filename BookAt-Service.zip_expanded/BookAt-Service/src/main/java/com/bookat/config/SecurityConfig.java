@@ -39,7 +39,7 @@ public class SecurityConfig {
         		.requestMatchers("/api/**", "/queue/**", "/myPage/**",
         				"/payment/session/start-event",
         				"/reservation/**",
-        				"/payment/session/start",
+        				"/payment/session/start-order",
                         "/payment/session/context",
                         "/payment/api/complete",
                         "/order/**").authenticated()  // 로그인 한 사용자만 접근 가능

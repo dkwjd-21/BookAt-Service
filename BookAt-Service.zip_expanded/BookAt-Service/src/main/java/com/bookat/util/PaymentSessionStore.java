@@ -1,14 +1,14 @@
 package com.bookat.util;
 
 import java.time.Duration;
-import java.time.OffsetDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 import com.bookat.dto.PaymentSession;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
 
@@ -16,45 +16,56 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class PaymentSessionStore {
 
-  private final RedisTemplate<String, Object> redis;
-  private final ObjectMapper om = new ObjectMapper();
+    private static final String KEY_PREFIX = "payment:";
+    private static final Duration TTL = Duration.ofMinutes(10);
 
-  private static final String KEY_PREFIX = "payment:";
-  private static final Duration TTL = Duration.ofMinutes(10);
+    private final RedisTemplate<String, Object> redis;
 
-  public String create(PaymentSession session) {
-    try {
-      String token = UUID.randomUUID().toString();
-      String key = KEY_PREFIX + token;
-      String json = om.writeValueAsString(session);
-      redis.opsForValue().set(key, json, TTL);   
-      return token;
-    } catch (Exception e) {
-      throw new RuntimeException("Payment session create failed", e);
+    /** ✅ 권장: 이벤트/주문 공통 필드 “전부” Hash에 저장 */
+    public String create(Map<String, Object> fields) {
+        String token = UUID.randomUUID().toString().replace("-", "");
+        String key = KEY_PREFIX + token;
+
+        Map<String, Object> map = new HashMap<>();
+        if (fields != null) map.putAll(fields);
+
+        // 필수 기본값 방어
+        map.putIfAbsent("status", "READY");
+        map.putIfAbsent("method", "CARD");
+        map.putIfAbsent("impUid", ""); // 결제 전엔 비워둠
+
+        redis.opsForHash().putAll(key, map);
+        redis.expire(key, TTL);
+        return token;
     }
-  }
 
-  /** get: take=true → 1회용(읽고 즉시 삭제) */
-  public PaymentSession get(String token, boolean take) {
-    try {
-      String key = KEY_PREFIX + token;
-      Object v = redis.opsForValue().get(key); 
-      if (v == null) return null;
-      if (take) redis.delete(key);
-      return om.readValue(v.toString(), PaymentSession.class);
-    } catch (Exception e) {
-      return null;
+    /** (옵션) 과거 흐름 호환용: record → Hash 저장 */
+    public String create(PaymentSession s) {
+        Map<String, Object> m = new HashMap<>();
+        m.put("bookId", s.bookId());
+        m.put("qty", String.valueOf(s.qty()));
+        m.put("method", s.method());
+        m.put("amount", s.amount().toPlainString());
+        m.put("merchantUid", s.merchantUid());
+        m.put("userId", s.userId());
+        m.put("status", s.status());
+        m.put("createdAt", s.createdAt());
+        m.put("title", s.title());
+        return create(m);
     }
-  }
 
-  public void delete(String token) {redis.delete(KEY_PREFIX + token);
-  }
+    /** take=false: 조회만 / take=true: 조회 후 삭제 */
+    public Map<Object, Object> getRaw(String token, boolean take) {
+        String key = KEY_PREFIX + token;
+        Map<Object, Object> h = redis.opsForHash().entries(key);
+        if (h != null && !h.isEmpty()) {
+            if (take) redis.delete(key);
+            return h;
+        }
+        return null;
+    }
 
-  public static PaymentSession of(String bookId, int qty, String method,
-          java.math.BigDecimal amount, String merchantUid, String userId,
-          String title) {  
-	     return new PaymentSession(bookId, qty, method, amount, merchantUid, userId, "READY", OffsetDateTime.now().toString(),title
-         );
-  }
-  
+    public void delete(String token) {
+        redis.delete(KEY_PREFIX + token);
+    }
 }
