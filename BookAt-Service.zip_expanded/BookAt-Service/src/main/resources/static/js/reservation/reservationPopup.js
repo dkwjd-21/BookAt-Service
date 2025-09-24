@@ -278,6 +278,17 @@ document.addEventListener("DOMContentLoaded", () => {
 					console.log(res.data.paymentStepUrl);
 					const html = await axiosInstance.get(url);
 					document.querySelector('#event-payment-frag').innerHTML = html.data;
+					
+					requestAnimationFrame(() => {
+						bindPayFragment()
+						.then(() => {
+							console.log("[PAY] 프래그먼트 바인딩 성공");
+						})
+						.catch((err) => {
+							console.error("[PAY] 프래그먼트 바인딩 실패", err);
+						});
+					});
+					
 					showStep(currentStep + 1);
 				} else {
 					console.log("사용자 정보 저장 실패");

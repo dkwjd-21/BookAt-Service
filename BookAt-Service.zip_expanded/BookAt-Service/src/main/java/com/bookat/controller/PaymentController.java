@@ -286,10 +286,11 @@ public String devNew(@RequestParam Integer amount,
 		int reservedCount = session.reservedCount();
 		int eventId = session.eventId();
 		int scheduleId = session.scheduleId();
+		String title = session.title();
 		
 	    model.addAttribute("merchantUid", merchantUid);
 	    model.addAttribute("amount", totalPrice);
-	    model.addAttribute("title", "pay for event ticket");
+	    model.addAttribute("title", title);
 	    model.addAttribute("method", method);
 	    
 	    model.addAttribute("reservedCount", reservedCount);

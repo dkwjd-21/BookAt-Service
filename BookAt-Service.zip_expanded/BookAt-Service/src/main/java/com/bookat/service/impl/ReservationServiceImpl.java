@@ -40,8 +40,8 @@ public class ReservationServiceImpl implements ReservationService {
 	private final ReservationMapper reservationMapper;
 	private final EventPartMapper eventPartMapper;
 	private final StringRedisTemplate redisTemplate;
-//	private static final long TTL_SECONDS = 900;	// 15분
-	private static final long TTL_SECONDS = 100;	// 테스트 용
+	private static final long TTL_SECONDS = 900;	// 15분
+//	private static final long TTL_SECONDS = 100;	// 테스트 용
 
 	// 예매 시작 (초기 진입)
 	@Override
@@ -283,12 +283,14 @@ public class ReservationServiceImpl implements ReservationService {
 		
 		int eventId = Integer.parseInt(redisData.get("eventId").toString());
 		int scheduleId = Integer.parseInt(redisData.get("scheduleId").toString());
+		String title = (String) redisData.get("title");
 		int totalPrice = Integer.parseInt(redisData.get("totalPrice").toString());
 		int reservedCount = Integer.parseInt(redisData.get("reservedCount").toString());
 		
 		PaymentInfoResDto paymentInfoResDto = new PaymentInfoResDto();
 		paymentInfoResDto.setEventId(eventId);
 		paymentInfoResDto.setScheduleId(scheduleId);
+		paymentInfoResDto.setTitle(title);
 		paymentInfoResDto.setTotalPrice(totalPrice);
 		paymentInfoResDto.setReservedCount(reservedCount);
 		

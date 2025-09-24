@@ -127,6 +127,7 @@ public class ReservationController {
 					reservationToken, 
 					getPaymentInfo.getEventId(),
 					getPaymentInfo.getScheduleId(),
+					getPaymentInfo.getTitle(),
 					getPaymentInfo.getReservedCount(),
 					enforcedMethod,
 					BigDecimal.valueOf(getPaymentInfo.getTotalPrice()),

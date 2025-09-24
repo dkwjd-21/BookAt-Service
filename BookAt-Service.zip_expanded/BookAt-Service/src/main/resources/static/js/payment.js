@@ -170,6 +170,9 @@
 	  }
 	});
 }
+
+window.bindPayFragment = bindPayFragment;
+
   // ====== (공통) 페이지에서 쉽게 부르는 시작 함수 2가지 ======
   // 추후 화면에서 계산된 합계로 가져와야함
   async function startBookPayment({ bookId, qty = 1, method = "CARD" }) {

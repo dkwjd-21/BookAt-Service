@@ -83,6 +83,7 @@ public class PaymentSessionStore {
 			paymentData.put("reservationToken", session.reservationToken());
 			paymentData.put("eventId", String.valueOf(session.eventId()));
 			paymentData.put("scheduleId", String.valueOf(session.scheduleId()));
+			paymentData.put("title", session.title());
 			paymentData.put("reservedCount", String.valueOf(session.reservedCount()));
 			paymentData.put("method", (session.method() == null || session.method().isBlank()) ? "CARD" : session.method());
 			paymentData.put("amount", session.amount().toPlainString());
@@ -111,6 +112,7 @@ public class PaymentSessionStore {
 				(String) paymentData.get("reservationToken"),
 				Integer.parseInt((String) paymentData.get("eventId")),
 				Integer.parseInt((String) paymentData.get("scheduleId")),
+				(String) paymentData.get("title"),
 				Integer.parseInt((String) paymentData.get("reservedCount")),
 				(String) paymentData.get("method"),
 				new BigDecimal((String) paymentData.get("amount")),
@@ -132,13 +134,13 @@ public class PaymentSessionStore {
 		// redis.expire(key, java.time.Duration.ofMinutes(5));
 	}
 	
-	public static PaymentReservationSession of(String reservationToken, int eventId, int scheduleId, int reservedCount, String method, BigDecimal amount, String merchantUid, String userId) {
+	public static PaymentReservationSession of(String reservationToken, int eventId, int scheduleId, String title, int reservedCount, String method, BigDecimal amount, String merchantUid, String userId) {
 		Instant now = Instant.now();
 		ZoneId seoulZone = ZoneId.of("Asia/Seoul");
 		LocalDateTime koreaTime = LocalDateTime.ofInstant(now, seoulZone);
 		
 		// impUid 는 결제 완료 후 세팅 : 포트원에서 결제가 실제로 발생했을 때 응답으로 부여하는 값
-		return new PaymentReservationSession(reservationToken, eventId, scheduleId, reservedCount, method, amount, merchantUid, null, userId, PaymentStatus.READY, koreaTime);
+		return new PaymentReservationSession(reservationToken, eventId, scheduleId, title, reservedCount, method, amount, merchantUid, null, userId, PaymentStatus.READY, koreaTime);
 	}
   
 }
