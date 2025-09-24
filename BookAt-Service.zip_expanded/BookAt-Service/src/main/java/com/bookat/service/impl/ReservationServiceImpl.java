@@ -2,6 +2,7 @@ package com.bookat.service.impl;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
@@ -10,6 +11,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -331,8 +333,34 @@ public class ReservationServiceImpl implements ReservationService {
 
 		String eventId = (String) data.get("eventId");
 		String scheduleId = (String) data.get("scheduleId");
-
-		if (eventId != null && scheduleId != null) {
+		String seatNamesStr = (String) data.get("seatNames");
+		
+		if (eventId == null || scheduleId == null) {
+	        log.warn("취소 실패: eventId 또는 scheduleId 없음 [{}]", reservationToken);
+	        redisTemplate.delete(reservationKey);
+	        redisTemplate.delete("RESERVATION_META:" + reservationToken);
+	        return;
+	    }
+		
+		// 좌석 이름이 존재 -> SEAT_TYPE 처리 
+		if(seatNamesStr != null && !seatNamesStr.isEmpty()) {
+			List<String> seatNames = Arrays.stream(seatNamesStr.split(","))
+						 				   .map(String::trim)
+						 				   .filter(s -> !s.isEmpty())
+						 				   .collect(Collectors.toList());
+			if(!seatNames.isEmpty()) {
+				try {
+					int evtId = Integer.parseInt(eventId);
+					int schId = Integer.parseInt(scheduleId);
+					seatService.releaseSeats(evtId, schId, seatNames);
+					log.info("예약 취소 시 좌석 초기화 완료");
+				} catch (Exception e) {
+					log.error("좌석 초기화 중 오류 발생", e);
+				}
+			}
+			
+		} else {
+			// 좌석 정보가 없으면 PERSON_TYPE 처리 
 			String availableSeatsKey = String.format("EVENT:%s:SCHEDULE:%s:AVAILABLE_SEAT", eventId, scheduleId);
 
 			// 예약된 전체 인원의 수 구하기
@@ -355,11 +383,11 @@ public class ReservationServiceImpl implements ReservationService {
 		// 나중에 결제 세션도 함께 삭제 구현하기
 //		String paymentKey = "payment:" + "";
 
+		// 예약 데이터와 meta 키 삭제 
 		redisTemplate.delete(reservationKey);
-
-		// meta 키 삭제 (정상 취소 시에는 TTL 만료 복구 필요 없음)
 		redisTemplate.delete("RESERVATION_META:" + reservationToken);
 
+		log.info("예약 취소 완료: reservationToken={}", reservationKey);
 	}
 
 	@Override
