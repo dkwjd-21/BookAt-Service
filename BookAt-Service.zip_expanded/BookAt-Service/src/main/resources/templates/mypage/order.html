@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>주문하기 - BookAt</title>
     <link rel="stylesheet" th:href="@{/css/header.css}" />
+    <link rel="stylesheet" th:href="@{/css/footer.css}" />
     <link rel="stylesheet" th:href="@{/css/order.css}" />
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script th:src="@{/js/utils/axiosIntercepter.js}"></script>
@@ -160,6 +161,21 @@
 
     <!-- 다음 주소 API -->
     <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+
+    <!-- Thymeleaf 데이터를 JavaScript로 전달 -->
+    <script th:inline="javascript">
+      // 서버에서 전달받은 도서 정보를 JavaScript에서 사용할 수 있도록 설정
+      window.bookData = {
+        bookId: /*[[${book?.bookId}]]*/ null,
+        title: /*[[${book?.title}]]*/ null,
+        author: /*[[${book?.author}]]*/ null,
+        price: /*[[${book?.price}]]*/ 0,
+        imageUrl: /*[[${book?.imageUrl}]]*/ null,
+        coverImage: /*[[${book?.imageUrl}]]*/ null, // imageUrl을 coverImage로도 사용
+      };
+      window.quantity = /*[[${quantity}]]*/ 1;
+      window.isDirectOrder = /*[[${isDirectOrder}]]*/ false;
+    </script>
 
     <div th:replace="~{fragments/footer :: main-footer}"></div>
   </body>

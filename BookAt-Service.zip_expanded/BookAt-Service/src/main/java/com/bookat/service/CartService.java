@@ -12,4 +12,7 @@ public interface CartService {
 	void updateCartItemQuantity(String cartId, int quantity);
 
 	void deleteCartItems(List<String> cartIds);
+	
+	// 장바구니에 도서 추가
+	boolean addToCart(String userId, String bookId, int quantity);
 }
