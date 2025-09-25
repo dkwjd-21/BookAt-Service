@@ -260,7 +260,7 @@ public String devNew(@RequestParam Integer amount,
     }
   }
   
-  	// 이벤트 예약 결제 과정
+  	// 이벤트 예약 결제창 진입
 	@GetMapping("/{paymentToken}/paymentUI")
 	public String renderPaymentFrag(@PathVariable String paymentToken, @RequestParam(name = "method", required = false) String requestMethod, @AuthenticationPrincipal User user, Model model) {
 		
@@ -279,7 +279,7 @@ public String devNew(@RequestParam Integer amount,
 			return "error/403";
 		}
 	    
-		// 2) 프래그먼트에 필요한 값 모델로 주입 (서버 신뢰값만)
+		// 프래그먼트에 필요한 값 모델로 주입 (서버 신뢰값만)
 		String merchantUid = session.merchantUid();
 		int totalPrice = session.amount().intValue();
 		String method = (requestMethod != null && !requestMethod.isBlank()) ? requestMethod : (session.method() == null ? "CARD" : session.method());
@@ -301,48 +301,70 @@ public String devNew(@RequestParam Integer amount,
 	    return "fragments/payFragment :: payFragment";
 	}
 	
-	  @PostMapping("/api/complete_event")
-	  @ResponseBody
-	  public Map<String, Object> apiCompleteEventPay(@RequestBody PaymentCompleteRequest req, @AuthenticationPrincipal(expression = "userId") String userId) {
+	// 이벤트 결제 성공 or 실패 응답
+	@PostMapping("/api/complete_event")
+	@ResponseBody
+	public Map<String, Object> apiCompleteEventPay(@RequestBody PaymentCompleteRequest req, @AuthenticationPrincipal(expression = "userId") String userId) {
 		  
-		  if(userId == null || userId.isBlank()) {
-			  return Map.of("status", "error", "message", "unauthorized");
-		  }
+		if(userId == null || userId.isBlank()) {
+			return Map.of("status", "error", "message", "unauthorized");
+		}
 		  
-		  try {
-			  PaymentReservationSession session = sessionStore.getEventPay(req.getToken());
-			  if(session == null || !userId.equals(session.userId())) {
-				  return Map.of("status", "error", "message", "session_invalid");
-			  }
+		try {
+			PaymentReservationSession session = sessionStore.getEventPay(req.getToken());
+			if(session == null || !userId.equals(session.userId())) {
+				return Map.of("status", "error", "message", "session_invalid");
+			}
 			  
-			  String accessToken = portOneClient.getAccessToken().block();
-			  var impPayment = portOneClient.getPaymentByImpUid(accessToken, req.getImpUid()).block();
+			String accessToken = portOneClient.getAccessToken().block();
+			var impPayment = portOneClient.getPaymentByImpUid(accessToken, req.getImpUid()).block();
 			  
-			  @SuppressWarnings("unchecked")
-			  var resp = (Map<String, Object>) impPayment.get("response");
+			@SuppressWarnings("unchecked")
+			var resp = (Map<String, Object>) impPayment.get("response");
 			  
-	          int paidAmount = ((Number) resp.get("amount")).intValue();
-	          String status   = (String) resp.get("status");
-	          String pgTid    = (String) resp.get("pg_tid");
-	          String receipt  = (String) resp.get("receipt_url");
+			int paidAmount = ((Number) resp.get("amount")).intValue();
+			String status   = (String) resp.get("status");
+			String pgTid    = (String) resp.get("pg_tid");
+			String receipt  = (String) resp.get("receipt_url");
 	          
-	          PaymentDto local = paymentService.findByMerchantUid(req.getMerchantUid());
-	          if(!status.equals("paid") || local.getPaymentPrice() != paidAmount) {
-	        	  paymentService.markFailed(req.getMerchantUid(), "검증 불일치 또는 미결제");
-	        	  return Map.of("status", "error", "message", "verify_failed");
-	          }
+			PaymentDto local = paymentService.findByMerchantUid(req.getMerchantUid());
+			if(!status.equals("paid") || local.getPaymentPrice() != paidAmount) {
+				paymentService.markFailed(req.getMerchantUid(), "검증 불일치 또는 미결제");
+				return Map.of("status", "error", "message", "verify_failed");
+			}
 	          
-	          paymentService.markPaid(req.getMerchantUid(), req.getImpUid(), pgTid, receipt);
+			paymentService.markPaid(req.getMerchantUid(), req.getImpUid(), pgTid, receipt);
 	          
-	          sessionStore.updateImpUid(req.getToken(), req.getImpUid());
+			sessionStore.updateImpUid(req.getToken(), req.getImpUid());
 	          
-	          return Map.of("status", "success", "successRedirect", "/payment/success?m=" + req.getMerchantUid() + "&i=" + req.getImpUid());
-		  } catch (Exception e) {
-			  paymentService.markFailed(req.getMerchantUid(), "서버오류: " + e.getMessage());
-			  return Map.of("status", "error", "message", "server_error");
-		  }
+			return Map.of("status", "success", "successRedirect", "/payment/success?m=" + req.getMerchantUid() + "&i=" + req.getImpUid());
+		} catch (Exception e) {
+			paymentService.markFailed(req.getMerchantUid(), "서버오류: " + e.getMessage());
+			return Map.of("status", "error", "message", "server_error");
+		}
 		  
-	  }
-	  
+	}
+	 
+	// 결제 완료 후 자동 호출 reservation 1건 + ticket N건을 생성 -> payment.js
+	// 결제 실패나 사용자가 중간에 닫은 경우엔 만료시간 TTL로 자연 삭제
+	@PostMapping("/paid_after")
+	@ResponseBody
+	public Map<String, Object> paidAfter(@RequestBody Map<String, String> request) {
+		String paymentToken = request.get("token");
+		
+		PaymentReservationSession session = sessionStore.getEventPay(paymentToken);
+		
+		if(session == null) {
+			return Map.of("status", "error", "message", "세션이 존재하지 않음");
+		}
+		
+		try {
+			paymentService.completeEventPayment(paymentToken, session);
+			
+			return Map.of("status", "success");
+		} catch(Exception e) {
+			return Map.of("status", "error", "message", e);
+		}
+	}
   
 }  

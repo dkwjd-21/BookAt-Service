@@ -225,6 +225,7 @@ document.addEventListener("DOMContentLoaded", () => {
 						YOUTH: parseInt(document.getElementById("youthCount").value) || 0,
 						CHILD: parseInt(document.getElementById("childCount").value) || 0,
 					},
+					ticketType: document.getElementById("ticket-type").value,
 					totalPrice: parseInt(document.getElementById("total-price").value) || totalPrice,
 				};
 

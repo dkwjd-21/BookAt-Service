@@ -362,7 +362,8 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       await axiosInstance.get(`/reservation/${token}/check`);
 	  
-	  const res = await axiosInstance.get('/reservation/complete', { token });
+	  // 여기서는 레디스 세션 정보 삭제
+	  const res = await axiosInstance.post('/reservation/complete', { token });
 	  
 	  if(res.data?.status === 'SUCCESS') {
 		alert("예매 완료되었습니다.");

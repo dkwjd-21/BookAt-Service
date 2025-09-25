@@ -18,7 +18,9 @@ public interface ReservationService {
 	void cancelReservation(String reservationToken);
 	void validateReservation(String reservationToken);
 	PaymentInfoResDto getPaymentInfo(String reservationToken);
-	int createReservationAndTicket(String paymentToken, String reservationToken);
+	void createReservation(String reservationToken, Long paymentId);
+	// 예매 완료
+	void completeReservation(String reservationToken, String userId);
 	
 	// eventId로 회차 리스트 조회 
 	List<EventPart> selectPartsByEventId(int eventId);	

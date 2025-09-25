@@ -120,6 +120,7 @@ public class PaymentSessionStore {
 				);
 	}
 	
+	// 결제 후 포트원 결제정보 및 결제상태 갱신
 	public void updateImpUid(String token, String impUid) {
 		String key = KEY_PREFIX + token;
 		redis.opsForHash().put(key, "impUid", impUid);

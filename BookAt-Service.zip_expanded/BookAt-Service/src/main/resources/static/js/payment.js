@@ -170,10 +170,17 @@
 	    if (done.data?.status === "success" && done.data?.successRedirect) {
 	      //window.location.href = done.data.successRedirect;
 		  
-		  // 이벤트 결제 후 리다이렉트 말고 결제창만 꺼지고 완려버튼 활성화
-		  if(submitBtn) {
-		  	submitBtn.disabled = false;
-		  	submitBtn.classList.remove("btn-disabled");
+		  // 결제 완료 시점 : 디비 트랜잭션 수행
+		  const res = await axiosInstance.post("/payment/paid_after", { token });
+		  
+		  if(res.data?.status === "success") {
+			// 이벤트 결제 후 리다이렉트 말고 결제창만 꺼지고 완료버튼 활성화
+			if(submitBtn) {
+				submitBtn.disabled = false;
+				submitBtn.classList.remove("btn-disabled");
+			}
+		  } else {
+			console.log("예약 저장 실패 : ", res.data?.message);
 		  }
 		  
 	    } else {
