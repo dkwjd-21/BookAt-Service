@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>주문/배송 조회 - BookAt</title>
+    <link rel="stylesheet" th:href="@{/css/header.css}" />
+    <link rel="stylesheet" th:href="@{/css/footer.css}" />
+    <link rel="stylesheet" th:href="@{/css/orderlist.css}" />
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script th:src="@{/js/utils/axiosIntercepter.js}"></script>
+    <script th:src="@{/js/utils/logout.js}"></script>
+    <script th:src="@{/js/utils/userAuth.js}"></script>
+    <script th:src="@{/js/utils/header.js}"></script>
+  </head>
+  <body>
+    <div th:replace="~{fragments/header :: main-header}"></div>
+
+    <main class="orderlist-wrapper">
+      <section class="orderlist-status-panel" id="statusPanel" style="display: none">
+        <div class="status-box">
+          <div class="status-item">
+            <span class="status-label">배송준비중 (결제완료)</span>
+            <span class="status-count" data-type="ready">0</span>
+          </div>
+          <div class="status-item">
+            <span class="status-label">배송중</span>
+            <span class="status-count" data-type="shipping">0</span>
+          </div>
+          <div class="status-item">
+            <span class="status-label">배송완료</span>
+            <span class="status-count" data-type="completed">0</span>
+          </div>
+          <div class="status-item">
+            <span class="status-label">교환/반품/취소</span>
+            <span class="status-count" data-type="return">0</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="orderlist-recent" id="orderSection" style="display: none">
+        <header class="recent-header">
+          <h2>최근 주문 <span class="recent-period">(최근 6개월 이내)</span></h2>
+        </header>
+
+        <div class="order-history" id="orderHistory"></div>
+        <div class="order-empty" id="orderEmpty" style="display: none">
+          <p>조회 가능한 주문이 없습니다.</p>
+        </div>
+      </section>
+
+      <section class="orderlist-guide" id="guideSection" style="display: none">
+        <div class="guide-card">
+          <p>새로운 주문을 진행하시겠어요?</p>
+          <a class="btn-primary" th:href="@{/books}">도서 둘러보기</a>
+        </div>
+      </section>
+
+      <section class="orderlist-login" id="loginSection" style="display: none">
+        <div class="login-callout">
+          <p>로그인이 필요한 서비스입니다.</p>
+          <a class="btn-primary" th:href="@{/user/login}">로그인하기</a>
+        </div>
+      </section>
+    </main>
+
+    <div th:replace="~{fragments/footer :: main-footer}"></div>
+
+    <div id="trackingModal" class="tracking-modal" style="display: none">
+      <div class="tracking-modal__content" role="dialog" aria-modal="true" aria-labelledby="trackingModalTitle">
+        <button type="button" class="tracking-modal__close" aria-label="닫기">&times;</button>
+        <h3 id="trackingModalTitle">배송 조회</h3>
+        <p class="tracking-modal__description">운송장 정보를 입력하고 배송 상태를 확인하세요.</p>
+        <form action="https://info.sweettracker.co.kr/tracking/4" method="post" class="tracking-form" target="trackingPopup">
+          <input type="hidden" name="t_key" th:value="${sweetTrackerApiKey}" />
+          <div class="form-group">
+            <label for="t_code">택배사 코드</label>
+            <input type="text" class="form-control" name="t_code" id="t_code" placeholder="택배사 코드" required />
+          </div>
+          <div class="form-group">
+            <label for="t_invoice">운송장 번호</label>
+            <input type="text" class="form-control" name="t_invoice" id="t_invoice" placeholder="운송장 번호" required />
+          </div>
+          <div class="tracking-form__actions">
+            <button type="submit" class="btn-primary">조회하기</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script th:src="@{/js/mypage/orderList.js}"></script>
+  </body>
+</html>

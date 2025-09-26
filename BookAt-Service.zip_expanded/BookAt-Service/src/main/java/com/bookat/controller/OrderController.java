@@ -3,8 +3,10 @@ package com.bookat.controller;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
@@ -13,15 +15,21 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.bookat.entity.User;
+import com.bookat.dto.BookDto;
+import com.bookat.dto.BookOrderItemRequestDto;
+import com.bookat.dto.BookOrderRequestDto;
+import com.bookat.dto.CartResponse;
+import com.bookat.dto.OrderItemResponse;
+import com.bookat.dto.OrderListItemResponse;
+import com.bookat.dto.OrderStatusSummary;
 import com.bookat.entity.Address;
-import com.bookat.service.OrderService;
+import com.bookat.entity.User;
 import com.bookat.service.AddressService;
 import com.bookat.service.BookService;
-import com.bookat.mapper.UserLoginMapper;
-import com.bookat.dto.BookDto;
-import org.springframework.web.bind.annotation.RequestParam;
+import com.bookat.service.OrderService;
 
 @Controller
 @RequestMapping("/order")
@@ -34,10 +42,37 @@ public class OrderController {
     private AddressService addressService;
     
     @Autowired
-    private UserLoginMapper userLoginMapper;
-    
-    @Autowired
     private BookService bookService;
+
+    @Value("${sweettracker.api.key:}")
+    private String sweetTrackerApiKey;
+
+    @GetMapping("/orderList")
+    public String orderListPage(Model model, @AuthenticationPrincipal User user) {
+        model.addAttribute("user", user);
+        model.addAttribute("sweetTrackerApiKey", sweetTrackerApiKey);
+        return "mypage/order_list";
+    }
+
+    @GetMapping("/orderList/api")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> orderListApi(@AuthenticationPrincipal User user) {
+        if (user == null) {
+            return ResponseEntity.status(401).body(Map.of(
+                    "success", false,
+                    "message", "로그인이 필요합니다."
+            ));
+        }
+
+        List<OrderListItemResponse> orders = orderService.getOrderList(user.getUserId());
+        OrderStatusSummary statusSummary = orderService.summarizeOrderStatus(orders);
+
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "orders", orders,
+                "statusSummary", statusSummary
+        ));
+    }
 
     @GetMapping
     public String orderPage(Model model, @AuthenticationPrincipal User user) {
@@ -46,12 +81,10 @@ public class OrderController {
         }
 
         try {
-            // 사용자의 기본 배송지 정보 가져오기 (없어도 페이지 접근 허용)
             Address defaultAddress = null;
             try {
                 defaultAddress = addressService.getDefaultAddressByUserId(user.getUserId());
             } catch (Exception addressException) {
-                // 배송지 정보가 없어도 페이지 접근 허용
                 System.out.println("배송지 정보가 없습니다: " + addressException.getMessage());
             }
             
@@ -70,23 +103,40 @@ public class OrderController {
         }
 
         try {
-            @SuppressWarnings("unchecked")
-            List<String> cartIds = (List<String>) request.get("cartIds");
-            
-            if (cartIds == null || cartIds.isEmpty()) {
-                return ResponseEntity.badRequest().body("주문할 상품을 선택해주세요.");
-            }
-
-            // 사용자의 기본 배송지 ID 가져오기
             Address defaultAddress = addressService.getDefaultAddressByUserId(user.getUserId());
             if (defaultAddress == null) {
                 return ResponseEntity.badRequest().body("배송지 정보가 없습니다. 배송지를 먼저 등록해주세요.");
             }
 
-            orderService.createOrder(user.getUserId(), cartIds, (long) defaultAddress.getAddrId());
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> items = (List<Map<String, Object>>) request.get("items");
+
+            if (items == null || items.isEmpty()) {
+                return ResponseEntity.badRequest().body("주문할 상품을 선택해주세요.");
+            }
+
+            List<CartResponse> orderItems = new java.util.ArrayList<>();
+            for (Map<String, Object> item : items) {
+                String cartId = item.get("cartId") != null ? item.get("cartId").toString() : null;
+                String bookId = item.get("bookId") != null ? item.get("bookId").toString() : null;
+
+                Number priceNumber = item.get("price") instanceof Number ? (Number) item.get("price") : 0;
+                Number quantityNumber = item.get("quantity") instanceof Number ? (Number) item.get("quantity") : 0;
+
+                CartResponse cartResponse = CartResponse.builder()
+                        .cartId(cartId)
+                        .bookId(bookId)
+                        .price(priceNumber.intValue())
+                        .cartQuantity(quantityNumber.intValue())
+                        .build();
+
+                orderItems.add(cartResponse);
+            }
+
+            orderService.createOrder(user.getUserId(), orderItems, (long) defaultAddress.getAddrId());
             return ResponseEntity.ok().body("주문 생성 완료되었습니다.");
         } catch (Exception e) {
-            e.printStackTrace(); // 디버깅을 위한 로그 추가
+            e.printStackTrace();
             return ResponseEntity.badRequest().body("주문 처리 중 오류가 발생했습니다: " + e.getMessage());
         }
     }
@@ -107,7 +157,6 @@ public class OrderController {
                 return ResponseEntity.badRequest().body("필수 정보를 모두 입력해주세요.");
             }
 
-            // 새 주소 객체 생성
             Address newAddress = new Address();
             newAddress.setUserId(user.getUserId());
             newAddress.setAddrName("기본 배송지");
@@ -115,17 +164,14 @@ public class OrderController {
             newAddress.setRecipientPhone(recipientPhone);
             newAddress.setAddr(address);
 
-            // 기존 기본 주소가 있는지 확인
             Address existingAddress = addressService.getDefaultAddressByUserId(user.getUserId());
             
             if (existingAddress != null) {
-                // 기존 주소가 있으면 업데이트
                 existingAddress.setRecipientName(recipientName);
                 existingAddress.setRecipientPhone(recipientPhone);
                 existingAddress.setAddr(address);
                 addressService.updateAddress(existingAddress);
             } else {
-                // 기존 주소가 없으면 새로 저장
                 addressService.saveAddress(newAddress);
             }
 
@@ -135,7 +181,6 @@ public class OrderController {
         }
     }
     
-    // 바로구매 페이지
     @GetMapping("/direct")
     public String directOrderPage(@RequestParam String bookId, 
                                  @RequestParam int qty, 
@@ -146,7 +191,6 @@ public class OrderController {
         }
 
         try {
-            // 도서 정보 가져오기
             System.out.println("바로구매 - 요청된 bookId: " + bookId);
             BookDto book = bookService.selectOne(bookId);
             System.out.println("바로구매 - 조회된 도서 정보: " + book);
@@ -155,7 +199,6 @@ public class OrderController {
                 return "redirect:/books";
             }
             
-            // 사용자의 기본 배송지 정보 가져오기
             Address defaultAddress = null;
             try {
                 defaultAddress = addressService.getDefaultAddressByUserId(user.getUserId());
@@ -167,15 +210,14 @@ public class OrderController {
             model.addAttribute("address", defaultAddress);
             model.addAttribute("book", book);
             model.addAttribute("quantity", qty);
-            model.addAttribute("isDirectOrder", true); // 바로구매임을 표시
+            model.addAttribute("isDirectOrder", true);
             
             return "mypage/order";
         } catch (Exception e) {
             return "redirect:/books";
         }
     }
-    
-    // 바로구매 데이터 API (JSON 응답)
+
     @GetMapping("/direct/api")
     public ResponseEntity<Map<String, Object>> getDirectOrderData(@RequestParam String bookId, 
                                                                  @RequestParam int qty, 
@@ -189,7 +231,6 @@ public class OrderController {
         }
 
         try {
-            // 도서 정보 가져오기
             BookDto book = bookService.selectOne(bookId);
             if (book == null) {
                 response.put("success", false);
@@ -197,7 +238,6 @@ public class OrderController {
                 return ResponseEntity.ok(response);
             }
             
-            // 사용자의 기본 배송지 정보 가져오기
             Address defaultAddress = null;
             try {
                 defaultAddress = addressService.getDefaultAddressByUserId(user.getUserId());

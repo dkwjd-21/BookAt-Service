@@ -166,13 +166,20 @@ document.addEventListener("DOMContentLoaded", function () {
     const shippingFee = subtotal > 0 && subtotal < 15000 ? 3000 : 0;
     const totalAmount = subtotal + shippingFee;
 
+    const orderPayload = {
+      items: orderItems.map((item) => ({
+        cartId: item.cartId || null,
+        bookId: item.bookId,
+        price: item.price,
+        quantity: item.quantity,
+      })),
+      subtotal,
+      shippingFee,
+      totalAmount,
+    };
+
     axiosInstance
-      .post("/order/create", {
-        cartIds: cartIds,
-        subtotal: subtotal,
-        shippingFee: shippingFee,
-        totalAmount: totalAmount,
-      })
+      .post("/order/create", orderPayload)
       .then((response) => {
         if (response.data) {
           showOrderResultModal(response.data, true);
