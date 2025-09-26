@@ -32,7 +32,7 @@
 	
 	function scheduleTokenRefresh(token) {
 		
-		clearRefreshTimer();
+	  clearRefreshTimer();
 
 	  const payload = parseJwt(token);
 	  if (!payload || !payload.exp) return;
@@ -64,6 +64,7 @@
 				window.updateAuthUI();
 			}
 			
+			// 대기 중 요청들에 새 토큰 전달
 			onRefreshed(newToken);
 		} catch(err) {
 			console.error('토큰 자동 갱신 실패:', err);
@@ -87,6 +88,7 @@
 	);
 	
 	// refresh 중복 요청 방지 및 대기열 처리
+	// 여러 401이 동시에 떠도 실제 갱신은 1번만
 	let isRefreshing = false;
 	let refreshSubscribers = [];
 	
@@ -127,8 +129,9 @@
 			  
 			  if (typeof window.updateAuthUI === 'function') {
 			     window.updateAuthUI();
-			   }
+			  }
 	
+			  // 대기 중 요청들에 새 토큰 전달
 	          onRefreshed(newToken);
 	        } catch (refreshError) {
 	          // refresh 토큰 만료 → 자동 로그아웃

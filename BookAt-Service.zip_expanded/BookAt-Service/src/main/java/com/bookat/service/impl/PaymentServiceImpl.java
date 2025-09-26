@@ -22,8 +22,6 @@ import lombok.extern.slf4j.Slf4j;
 @Transactional
 public class PaymentServiceImpl implements PaymentService {
 
-    private final PaymentSessionStore paymentSessionStore;
-
   private final PaymentMapper paymentMapper;
   private final ReservationService reservationService;
   private final PaymentSessionStore sessionStore;

@@ -60,12 +60,9 @@ public class ReservationController {
 		ReservationStartDto reservationStartDto = reservationService.startReservation(eventId, user.getUserId());
 		model.addAttribute("event", reservationStartDto.getEvent());
 		model.addAttribute("eventParts", reservationStartDto.getEventParts());
-		log.info("eventParts 잔여석 : {}", reservationStartDto.getEventParts().get(0).getRemainingSeat());
 		model.addAttribute("reservationToken", reservationStartDto.getReservationToken());
 
-
 		return "reservation/ReservationPopup";
-		//return "reservation/ReservationPopup_Seat2";
 	}
 
 	// step1: 날짜/회차 선택
@@ -181,7 +178,7 @@ public class ReservationController {
 			PaymentInfoResDto getPaymentInfo = reservationService.getPaymentInfo(reservationToken);
 
 			String enforcedMethod = "CARD";
-			PaymentDto pay = paymentService.createReadyPayment(getPaymentInfo.getTotalPrice(), enforcedMethod, "pay for event ticket", user.getUserId());
+			PaymentDto pay = paymentService.createReadyPayment(getPaymentInfo.getTotalPrice(), enforcedMethod, getPaymentInfo.getTitle(), user.getUserId());
 			
 			PaymentReservationSession session = PaymentSessionStore.of(
 					reservationToken, 

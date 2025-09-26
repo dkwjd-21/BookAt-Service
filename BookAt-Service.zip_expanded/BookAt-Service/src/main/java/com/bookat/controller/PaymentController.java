@@ -280,23 +280,15 @@ public String devNew(@RequestParam Integer amount,
 		}
 	    
 		// 프래그먼트에 필요한 값 모델로 주입 (서버 신뢰값만)
-		String merchantUid = session.merchantUid();
-		int totalPrice = session.amount().intValue();
 		String method = (requestMethod != null && !requestMethod.isBlank()) ? requestMethod : (session.method() == null ? "CARD" : session.method());
-
-		int reservedCount = session.reservedCount();
-		int eventId = session.eventId();
-		int scheduleId = session.scheduleId();
-		String title = session.title();
 		
-	    model.addAttribute("merchantUid", merchantUid);
-	    model.addAttribute("amount", totalPrice);
-	    model.addAttribute("title", title);
+	    model.addAttribute("merchantUid", session.merchantUid());
+	    model.addAttribute("amount", session.amount().intValue());
+	    model.addAttribute("title", session.title());
 	    model.addAttribute("method", method);
-	    
-	    model.addAttribute("reservedCount", reservedCount);
-	    model.addAttribute("eventId", eventId);
-	    model.addAttribute("scheduleId", scheduleId);
+	    model.addAttribute("reservedCount", session.reservedCount());
+	    model.addAttribute("eventId", session.eventId());
+	    model.addAttribute("scheduleId", session.scheduleId());
 		
 	    return "fragments/payFragment :: payFragment";
 	}
@@ -345,7 +337,7 @@ public String devNew(@RequestParam Integer amount,
 		  
 	}
 	 
-	// 결제 완료 후 자동 호출 reservation 1건 + ticket N건을 생성 -> payment.js
+	// 결제 완료 후 자동 호출 reservation 1건 + ticket N건을 생성
 	// 결제 실패나 사용자가 중간에 닫은 경우엔 만료시간 TTL로 자연 삭제
 	@PostMapping("/paid_after")
 	@ResponseBody
