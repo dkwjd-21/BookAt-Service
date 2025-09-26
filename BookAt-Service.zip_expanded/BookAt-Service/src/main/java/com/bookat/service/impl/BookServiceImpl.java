@@ -45,7 +45,15 @@ public class BookServiceImpl implements BookService {
   //상세페이지
   @Override
   public BookDto selectOne(String bookId) {
+	  System.out.println("BookService - 요청된 bookId: " + bookId);
 	  Book b = bookMapper.selectOne(bookId);
+	  System.out.println("BookService - 조회된 Book 객체: " + b);
+	  
+	  if (b == null) {
+		  System.out.println("BookService - Book 객체가 null입니다!");
+		  return null;
+	  }
+	  
 	    return BookDto.builder()
 	            .bookId(b.getBookId())
 	            .title(b.getBookTitle())

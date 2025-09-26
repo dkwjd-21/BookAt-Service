@@ -17,4 +17,13 @@ public interface CartMapper {
     void deleteCartItem(String cartId);
 
     void updateCartItemQuantity(@Param("cartId") String cartId, @Param("quantity") int quantity);
+    
+    // 장바구니 추가 메서드
+    void addToCart(@Param("cartId") String cartId, @Param("userId") String userId, @Param("bookId") String bookId, @Param("quantity") int quantity);
+    
+    // 장바구니에 이미 같은 도서가 있는지 확인
+    int checkCartItem(@Param("userId") String userId, @Param("bookId") String bookId);
+    
+    // 기존 장바구니 아이템 수량 업데이트
+    void updateExistingCartItem(@Param("userId") String userId, @Param("bookId") String bookId, @Param("quantity") int quantity);
 }
