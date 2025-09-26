@@ -18,23 +18,23 @@
     </select>
 
     <select id="selectByLocalCodeAndStartTime" resultType="com.bookat.dto.EventResDto">
-       SELECT * FROM (SELECT * FROM EVENT WHERE LOCAL_CODE=#{local_code} AND EVENT_DATE > SYSDATE + 30 ORDER BY EVENT_DATE ASC) WHERE ROWNUM &lt;= 6
+       SELECT * FROM (SELECT * FROM EVENT WHERE LOCAL_CODE=#{local_code} AND EVENT_DATE > SYSDATE + 30 ORDER BY EVENT_DATE ASC) WHERE ROWNUM &lt;= 12
     </select>
 
     <select id="selectByLocalCodeAndCloseTime" resultType="com.bookat.dto.EventResDto">
-        SELECT * FROM (SELECT * FROM EVENT WHERE LOCAL_CODE=#{local_code} AND EVENT_DATE > SYSDATE ORDER BY EVENT_DATE ASC) WHERE ROWNUM &lt;= 6
+        SELECT * FROM (SELECT * FROM EVENT WHERE LOCAL_CODE=#{local_code} AND EVENT_DATE > SYSDATE ORDER BY EVENT_DATE ASC) WHERE ROWNUM &lt;= 12
     </select>
     
     <select id="selectForMain" resultType="com.bookat.dto.EventResDto">
-    	SELECT * FROM (SELECT * FROM EVENT) WHERE ROWNUM &lt; = 6
+    	SELECT * FROM (SELECT * FROM EVENT ORDER BY EVENT_DATE DESC, EVENT_ID DESC) WHERE ROWNUM &lt;= 12
     </select>
     
     <select id="selectByStartTime" resultType="com.bookat.dto.EventResDto">
-    	SELECT * FROM (SELECT * FROM EVENT WHERE EVENT_DATE > SYSDATE + 30 ORDER BY EVENT_DATE ASC) WHERE ROWNUM &lt;= 6
+    	SELECT * FROM (SELECT * FROM EVENT WHERE EVENT_DATE > SYSDATE + 30 ORDER BY EVENT_DATE ASC) WHERE ROWNUM &lt;= 12
     </select>
     
     <select id="selectByCloseTime" resultType="com.bookat.dto.EventResDto">
-        SELECT * FROM (SELECT * FROM EVENT WHERE EVENT_DATE > SYSDATE ORDER BY EVENT_DATE ASC) WHERE ROWNUM &lt;= 6
+        SELECT * FROM (SELECT * FROM EVENT WHERE EVENT_DATE > SYSDATE ORDER BY EVENT_DATE ASC) WHERE ROWNUM &lt;= 12
     </select>
 
 	<select id="selectBookOne"  parameterType="string" resultType="Book">

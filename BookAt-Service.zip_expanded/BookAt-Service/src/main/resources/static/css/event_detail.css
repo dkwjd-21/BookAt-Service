@@ -206,7 +206,7 @@ body {
   gap: 30px;
   display: flex;
   position: absolute;
-  bottom: 50px;
+  bottom: 40px;
   width: 100%;
 }
 .price {
@@ -497,4 +497,16 @@ body {
 
 .modal-content .submit-btn:hover {
   background-color: #fdd835;
+}
+
+.schedule-list ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 8px 0 0;
+}
+
+.schedule-list li {
+  margin-bottom: 4px;
+  font-size: 16px;
+  color: #4b5563;
 }
