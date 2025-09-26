@@ -143,7 +143,7 @@
 		</dependency>
 		
 		<!-- 캡챠 관련 의존성 추가 -->
-        <dependency>
+		<dependency>
     		<groupId>nl.captcha</groupId>
 		    <artifactId>simplecaptcha</artifactId>
 		    <version>1.2.1</version>

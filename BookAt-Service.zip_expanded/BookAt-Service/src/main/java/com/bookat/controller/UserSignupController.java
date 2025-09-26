@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.RestTemplate;
 
@@ -131,6 +132,7 @@ public class UserSignupController {
 		
 		Map<String, Object> responseBody = new HashMap<>();
 		
+		
 		if(res > 0) {
 			responseBody.put("message", "회원가입 성공");
 			responseBody.put("userName", input.getUserName());
@@ -174,5 +176,14 @@ public class UserSignupController {
 		}	
 				
 		return ResponseEntity.ok(isEmailAvailable);
+	}
+	
+	// 본인인증시 이미 가입된 유저인지 확인
+	@GetMapping("/userExists")
+	public ResponseEntity<Boolean> checkUserExists(@RequestParam String phone){
+		UserSignup user = service.getUserByPhone(phone);
+		System.out.println("[PHONE] 유저 셀렉트 결과 : "+user);
+		boolean exists = (user != null);
+		return ResponseEntity.ok(exists);
 	}
 }

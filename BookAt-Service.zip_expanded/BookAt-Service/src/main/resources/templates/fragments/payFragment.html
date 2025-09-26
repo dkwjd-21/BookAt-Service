@@ -36,8 +36,12 @@
       </div>
     </div>
 
-    <button id="payBtn" type="button" class="btn pay-button">결제하기</button>
-    <input type="hidden" id="pay_token"/>
+    <button id="payBtn"
+            type="button"
+            class="btn pay-button"
+            th:attr="data-token=${paymentToken},data-merchant=${merchantUid},data-amount=${amount},data-title=${title}">
+      결제하기
+    </button>
 
   </div>
 </div>

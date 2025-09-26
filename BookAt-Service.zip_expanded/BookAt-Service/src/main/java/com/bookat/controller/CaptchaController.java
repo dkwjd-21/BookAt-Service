@@ -79,4 +79,3 @@ public class CaptchaController {
 		return ResponseEntity.ok(response);
 	}
 }
-

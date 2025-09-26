@@ -13,8 +13,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Reservation {
 
-	private int reservationId;
-	private int paymentId;
+	private Long reservationId;
+	private Long paymentId;
 	private Date reservationDate;
 	private int reservationStatus;
 	private int scheduleId;
