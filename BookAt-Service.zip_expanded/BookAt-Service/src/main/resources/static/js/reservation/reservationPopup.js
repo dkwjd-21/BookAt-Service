@@ -80,6 +80,8 @@ document.addEventListener("DOMContentLoaded", () => {
 			// 회차 ID 취득
 			const scheduleId = part.getAttribute("data-session-id");
 			
+			/*
+			
 			// 회차 수정시 다음단계 값 초기화
 			if(currentScheduleId && currentScheduleId !== scheduleId) {
 				resetPersonSelection();
@@ -89,6 +91,7 @@ document.addEventListener("DOMContentLoaded", () => {
 			}
 			
 			currentScheduleId = scheduleId;
+			*/
 
 			// 좌석 타입이면 서버에서 좌석 정보를 조회해서 렌더
 			if (ticketType === "SEAT_TYPE") {
@@ -142,6 +145,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 			// 이전 단계만 이동 가능
 			if (targetStep < currentStep) {
+				
+				/*
 				showStep(targetStep);
 				
 				// 이전단계로 돌아가면 모든값이 초기화되어버려서 일단 조건
@@ -175,6 +180,11 @@ document.addEventListener("DOMContentLoaded", () => {
 				}
 				
 				// 요약도 갱신
+				if (typeof updateSummary === "function") updateSummary();
+				*/
+				
+				// 뒤로가기 값 유지
+				showStep(targetStep);
 				if (typeof updateSummary === "function") updateSummary();
 			}
 		});
@@ -251,6 +261,7 @@ document.addEventListener("DOMContentLoaded", () => {
 				// 서버에 선택 회차 전달 (API 규칙: /reservation/{token}/step1)
 				const res = await axiosInstance.post(`/reservation/${token}/step1`, { scheduleId: parseInt(scheduleId) });
 				if (res.data.status === "STEP2") {
+					/*
 					// 사용자가 회차를 변경했으면 인원/좌석 선택 초기화
 					if (currentScheduleId !== scheduleId) {
 						resetPersonSelection();
@@ -258,6 +269,23 @@ document.addEventListener("DOMContentLoaded", () => {
 						totalPrice = 0;
 						currentScheduleId = scheduleId;
 					}
+					*/
+					
+					if(currentScheduleId !== scheduleId) {
+						// 인원형은 인원/금액 초기화
+						resetPersonSelection();
+						totalPrice = 0;
+						
+						// 좌석형은 서버 홀드 좌석 해제 + 프론트 초기화
+						if (ticketType === "SEAT_TYPE" && currentScheduleId && selectedSeats.length > 0) {
+							await resetReservationOnServer(token, eventId, currentScheduleId, selectedSeats);
+						}
+						
+						resetSeatSelection();
+						
+						currentScheduleId = scheduleId;
+					}
+					
 					showStep(2);
 				} else {
 					console.warn("서버에서 STEP2로 넘어가지 않음", res.data);
