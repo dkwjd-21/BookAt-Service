@@ -397,6 +397,7 @@ document.addEventListener("DOMContentLoaded", () => {
 				const res = await axiosInstance.post(`/reservation/${token}/step3`, payload);
 				if (res.data.status === "STEP4") {
 					
+					// 결제 프래그먼트 렌더링
 					const url = res.data.paymentStepUrl;
 					const html = await axiosInstance.get(url);
 					document.querySelector('#event-payment-frag').innerHTML = html.data;
@@ -457,7 +458,8 @@ document.addEventListener("DOMContentLoaded", () => {
 			const res = await axiosInstance.post('/reservation/complete', { token });
 			
 			if(res.data?.status === 'SUCCESS') {
-				alert("예매 완료되었습니다.");
+				alert(res.data?.message);
+				//alert("예매가 완료되었습니다");
 				sessionStorage.removeItem("reservationToken");
 				sessionStorage.removeItem("eventId");
 				try { window.close(); } catch (err) { console.warn("팝업 닫기 실패:", err); }

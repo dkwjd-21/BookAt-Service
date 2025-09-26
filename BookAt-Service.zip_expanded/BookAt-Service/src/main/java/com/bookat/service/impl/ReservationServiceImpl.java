@@ -477,7 +477,7 @@ public class ReservationServiceImpl implements ReservationService {
 
 	// 예매 완료 버튼 누를 때 호출 - 레디스에 저장된 예약세션, 결제정보 삭제
 	// 레디스 잔여좌석 유지 (복구X)
-	@Transactional
+//	@Transactional
 	public void completeReservation(String reservationToken, String userId) {
 
 		sessionStore.deleteDataAll(reservationToken);
