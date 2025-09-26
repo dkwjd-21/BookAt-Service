@@ -41,7 +41,22 @@
             <br />
             <div class="meta">
               <h2>날짜</h2>
-              <p class="date" th:text="${#dates.format(event.eventDate, 'yyyy년 MM월 dd일')}"></p>
+              <p
+                class="date"
+                th:text="${#lists.size(eventParts) == 1
+                   ? #temporals.format(eventParts[0].scheduleTime, 'yyyy년 MM월 dd일 HH:mm')
+                   : #dates.format(event.eventDate, 'yyyy년 MM월 dd일')}"
+              ></p>
+              <div th:if="${#lists.size(eventParts) > 1}" class="schedule-list">
+                <ul>
+                  <li
+                    th:each="part : ${eventParts}"
+                    th:text="${part.scheduleName != null
+                        ? part.scheduleName + ' - ' + #temporals.format(part.scheduleTime, 'HH:mm')
+                        : #temporals.format(part.scheduleTime, 'yyyy년 MM월 dd일 HH:mm')}"
+                  ></li>
+                </ul>
+              </div>
               <h2>장소</h2>
               <p class="location" th:text="${event.address}"></p>
             </div>
@@ -88,20 +103,38 @@
             <p th:text="${event.address}"></p>
             <br />
             <h2>참가 금액</h2>
-            <table>
-              <tr>
-                <td>성인</td>
-                <td style="padding-left: 10px" th:text="${#numbers.formatDecimal(event.eventPrice, 0, 'COMMA', 0, 'POINT')} + '원'"></td>
-              </tr>
-              <tr>
-                <td>청소년</td>
-                <td style="padding-left: 10px" th:text="${#numbers.formatDecimal(event.eventPrice * 0.8, 0, 'COMMA', 0, 'POINT')} + '원'"></td>
-              </tr>
-              <tr>
-                <td>어린이</td>
-                <td style="padding-left: 10px" th:text="${#numbers.formatDecimal(event.eventPrice * 0.5, 0, 'COMMA', 0, 'POINT')} + '원'"></td>
-              </tr>
-            </table>
+            <div th:if="${event.ticketType == 'PERSON_TYPE'}">
+              <table>
+                <tr>
+                  <td>성인</td>
+                  <td style="padding-left: 10px" th:text="${#numbers.formatDecimal(event.eventPrice, 0, 'COMMA', 0, 'POINT')} + '원'"></td>
+                </tr>
+                <tr>
+                  <td>청소년</td>
+                  <td style="padding-left: 10px" th:text="${#numbers.formatDecimal(event.eventPrice * 0.8, 0, 'COMMA', 0, 'POINT')} + '원'"></td>
+                </tr>
+                <tr>
+                  <td>어린이</td>
+                  <td style="padding-left: 10px" th:text="${#numbers.formatDecimal(event.eventPrice * 0.5, 0, 'COMMA', 0, 'POINT')} + '원'"></td>
+                </tr>
+              </table>
+            </div>
+            <div th:if="${event.ticketType == 'SEAT_TYPE'}">
+              <table>
+                <tr>
+                  <td>일반석</td>
+                  <td style="padding-left: 10px" th:text="${#numbers.formatDecimal(seatPrices['STANDARD'], 0, 'COMMA', 0, 'POINT')} + '원'"></td>
+                </tr>
+                <!-- <tr>
+                  <td>프리미엄석</td>
+                  <td style="padding-left: 10px" th:text="${#numbers.formatDecimal(seatPrices['PREMIUM'], 0, 'COMMA', 0, 'POINT')} + '원'"></td>
+                </tr>
+                <tr>
+                  <td>VIP석</td>
+                  <td style="padding-left: 10px" th:text="${#numbers.formatDecimal(seatPrices['VIP'], 0, 'COMMA', 0, 'POINT')} + '원'"></td>
+                </tr>                 추후 구현을 위해 주석처리 해뒀습니다.-->
+              </table>
+            </div>
           </div>
           <div class="event-map">
             <div id="map"></div>
