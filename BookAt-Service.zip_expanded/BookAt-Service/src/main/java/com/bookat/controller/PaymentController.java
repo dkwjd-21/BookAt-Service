@@ -60,39 +60,52 @@ public class PaymentController {
   //도서 세션
   @PostMapping("/session/start")
   @ResponseBody
-  public Map<String, Object> start(@RequestParam String bookId,
-                                   @RequestParam(defaultValue = "1") Integer qty,
-                                   @RequestParam(defaultValue = "CARD") String method,
-                                   @AuthenticationPrincipal(expression = "userId") String userId) {
+  public Map<String,Object> startBook(@RequestParam String bookId,
+                                      @RequestParam(defaultValue="1") int qty,
+                                      @AuthenticationPrincipal com.bookat.entity.User user) {
+      if (user == null) return Map.of("status","error","message","unauthorized");
 
-    if (userId == null || userId.isBlank()) {
-      return Map.of("status","error","message","unauthorized");
-    }
+      var book = bookService.selectOne(bookId);                 // title/price 얻기
+      if (book == null) return Map.of("status","error","message","book_not_found");  // BookService.selectOne 사용 :contentReference[oaicite:3]{index=3}
 
-    var book = bookService.selectOne(bookId);
-    if (book == null) {
-      return Map.of("status","error","message","invalid bookId");
-    }
+      int amount = book.getPrice().intValue() * Math.max(qty, 1);
+      String title = book.getTitle();                           // BookDto.title 사용 :contentReference[oaicite:4]{index=4}
 
-    int safeQty = (qty == null || qty < 1) ? 1 : qty;
-    BigDecimal amount = book.getPrice().multiply(BigDecimal.valueOf(safeQty));
-    String rawTitle = book.getTitle();
-    String payTitle = safeQty > 1 ? rawTitle + " 외 " + (safeQty - 1) + "권" : rawTitle;
-
-    // 무통장입금 실제 구현 x CARD로 강제
-    String enforcedMethod = "CARD";
-
-    var pay = paymentService.createReadyPayment(
-          amount.intValueExact(), enforcedMethod, payTitle, userId);
-
-    PaymentSession session = PaymentSessionStore.of(
-    		"BOOK:" + bookId, safeQty, enforcedMethod, amount, pay.getMerchantUid(), userId, payTitle);
-
-    String token = sessionStore.create(session);
-
-    return Map.of("status","success","redirectUrl","/payment/frag-test?token=" + token);
+      // READY 생성(merchantUid 발급) → 결제세션 저장(토큰 생성)
+      var pay = paymentService.createReadyPayment(amount, "CARD", title, user.getUserId());
+      var session = new PaymentSession(
+          bookId, qty, "CARD",
+          java.math.BigDecimal.valueOf(amount),
+          pay.getMerchantUid(), user.getUserId(),
+          "READY",
+          java.time.OffsetDateTime.now().toString(),
+          title
+      );
+      String token = sessionStore.create(session);
+      return Map.of("status","success","token", token);
   }
+  
+  @PostMapping("/session/start-cart")
+  @ResponseBody
+  public Map<String,Object> startCart(@RequestParam int amount,
+                                      @RequestParam String title,
+                                      @AuthenticationPrincipal com.bookat.entity.User user) {
+      if (user == null) return Map.of("status","error","message","unauthorized");
 
+      var pay = paymentService.createReadyPayment(amount, "CARD", title, user.getUserId());
+      var session = new PaymentSession(
+          null, 0, "CARD",
+          java.math.BigDecimal.valueOf(amount),
+          pay.getMerchantUid(), user.getUserId(),
+          "READY",
+          java.time.OffsetDateTime.now().toString(),
+          title
+      );
+      String token = sessionStore.create(session);
+      return Map.of("status","success","token", token);
+  }
+  
+  
   @GetMapping("/session/context")
   @ResponseBody
   public Map<String, Object> context(@RequestParam String token,

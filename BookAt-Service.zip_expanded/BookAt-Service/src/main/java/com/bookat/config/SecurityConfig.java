@@ -41,6 +41,7 @@ public class SecurityConfig {
         				"/payment/**",
         				"/payment/session/start-event",
         				"/payment/session/start",
+        				"/payment/session/start-cart",
                         "/payment/session/context",
                         "/payment/api/complete","/reservation/**").authenticated()
                 .anyRequest().denyAll()

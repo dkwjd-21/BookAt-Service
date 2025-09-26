@@ -1,4 +1,4 @@
-<div th:fragment="payFragment (merchantUid, amount, title, method)">
+<div th:fragment="payFragment">
 <link rel="stylesheet" th:href="@{/css/payment.css}">
   <div class="pay-wrap">
     <input type="hidden" id="method" th:value="${method != null ? method : 'card'}">

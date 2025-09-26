@@ -7,12 +7,14 @@
     <link rel="stylesheet" th:href="@{/css/header.css}" />
     <link rel="stylesheet" th:href="@{/css/footer.css}" />
     <link rel="stylesheet" th:href="@{/css/order.css}" />
+    <script src="https://cdn.iamport.kr/v1/iamport.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script th:src="@{/js/utils/axiosIntercepter.js}"></script>
     <script th:src="@{/js/utils/logout.js}"></script>
     <script th:src="@{/js/utils/userAuth.js}"></script>
     <script th:src="@{/js/utils/header.js}"></script>
     <script th:src="@{/js/order.js}"></script>
+    <script th:src="@{/js/payment.js}"></script>
   </head>
   <body>
     <div th:replace="~{fragments/header :: header}"></div>
@@ -110,7 +112,7 @@
                 <span id="points">0P</span>
               </div>
             </div>
-            <button type="button" class="btn-payment" id="paymentBtn">결제하기</button>
+            <div th:replace="~{fragments/payFragment :: payFragment}"></div>
           </div>
         </div>
       </div>
