@@ -217,13 +217,15 @@ public class ReservationController {
 		}
 	}
 	
-	// 좌석 취소 : 팝업닫기, 예약 세션 만료, 결제취소(결제 구현 후에 추가 예정) 등
+	// 좌석 취소 : 팝업닫기, 예약 세션 만료, 결제취소(결제 전 브라우저종료 or step4에서 이전단계로 이동) 등
 	@PostMapping("/{reservationToken}/cancel")
-	public ResponseEntity<Map<String, Object>> cancelReservation(@PathVariable String reservationToken,
-			@RequestBody(required = false) Map<String, Object> body) {
+	public ResponseEntity<Map<String, Object>> cancelReservation(@PathVariable String reservationToken, @RequestBody Map<String, Object> body) {
 
+		boolean isPaymentStep = Boolean.parseBoolean(String.valueOf(body.getOrDefault("isPaymentStep", "false")));
+		String reason = String.valueOf(body.getOrDefault("reason", null));
+		
 		try {
-			reservationService.cancelReservation(reservationToken);
+			reservationService.cancelReservation(reservationToken, isPaymentStep, reason);
 
 			return ResponseEntity.ok(Map.of("message", "예약이 성공적으로 취소되었습니다.", "status", "CANCEL"));
 		} catch (IllegalStateException ie) {
