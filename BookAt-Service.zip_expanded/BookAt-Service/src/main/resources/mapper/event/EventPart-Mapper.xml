@@ -9,4 +9,12 @@
 		SELECT * FROM EVENT_PART WHERE EVENT_ID = #{eventId}
 	</select>
 	
+	<update id="updateRemainingSeatByReservation">
+		UPDATE EVENT_PART
+		SET REMAINING_SEAT = REMAINING_SEAT - #{reservedCount}
+		WHERE SCHEDULE_ID = #{scheduleId}
+			AND EVENT_ID = #{eventId}
+			AND REMAINING_SEAT >= #{reservedCount}
+	</update>
+	
 </mapper>

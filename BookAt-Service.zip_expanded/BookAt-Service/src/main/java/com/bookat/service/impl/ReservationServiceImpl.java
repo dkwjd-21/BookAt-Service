@@ -5,20 +5,19 @@ import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.bookat.dto.reservation.PaymentInfoResDto;
+import com.bookat.domain.ReservationStatus;
+import com.bookat.domain.TicketStatus;
 import com.bookat.dto.EventSeatDto;
-import com.bookat.dto.reservation.CreateReservationReqDto;
 import com.bookat.dto.reservation.PersonTypeReqDto;
 import com.bookat.dto.reservation.ReservationStartDto;
 import com.bookat.dto.reservation.SeatTypeReqDto;
@@ -30,7 +29,9 @@ import com.bookat.entity.reservation.Ticket;
 import com.bookat.enums.PersonType;
 import com.bookat.mapper.EventPartMapper;
 import com.bookat.mapper.ReservationMapper;
+import com.bookat.mapper.TicketMapper;
 import com.bookat.service.ReservationService;
+import com.bookat.util.ReservationSessionStore;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,13 +41,12 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class ReservationServiceImpl implements ReservationService {
 
-	@Autowired
 	private final ReservationMapper reservationMapper;
+	private final TicketMapper ticketMapper;
 	private final EventPartMapper eventPartMapper;
 	private final StringRedisTemplate redisTemplate;
 	private final SeatServiceImpl seatService;
-	private static final long TTL_SECONDS = 900; // 15분
-//	private static final long TTL_SECONDS = 100;	// 테스트 용
+	private final ReservationSessionStore sessionStore;
 
 	// 예매 시작 (초기 진입)
 	@Override
@@ -56,13 +56,19 @@ public class ReservationServiceImpl implements ReservationService {
 		Event event = reservationMapper.findEventByEventId(eventId);
 		// 이벤트 회차 조회
 		List<EventPart> eventParts = eventPartMapper.findEventPartsByEventId(eventId);
+		// 이벤트 날짜
+		LocalDate eventDate = null;
 		// 이벤트 회차 조회
 		eventParts.sort(Comparator.comparing(EventPart::getScheduleTime));
 
 		// 이벤트의 날짜
-		Date scheduleTime = eventParts.get(0).getScheduleTime();
-		LocalDate eventDate = scheduleTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-
+		if(eventParts != null) {
+			for(EventPart part : eventParts) {
+				Date scheduleTime = part.getScheduleTime();
+				eventDate = scheduleTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+			}
+		}
+		
 		// person type - 잔여좌석 불러오기
 		if ("PERSON_TYPE".equals(event.getTicketType())) {
 			for (EventPart eventPart : eventParts) {
@@ -77,31 +83,20 @@ public class ReservationServiceImpl implements ReservationService {
 				}
 			}
 		}
-
-		// 예약 토큰 생성
-		String reservationToken = UUID.randomUUID().toString();
-		String reservationKey = "RESERVATION:" + reservationToken;
-
-		// redis 에 초기 세션 저장 (Hash 구조)
-		Map<String, String> reservationData = new HashMap<>();
-		reservationData.put("eventId", String.valueOf(eventId));
-		reservationData.put("status", "STEP1");
-		reservationData.put("userId", userId);
-		reservationData.put("eventDate", String.valueOf(eventDate));
-
-		redisTemplate.opsForHash().putAll(reservationKey, reservationData);
-		redisTemplate.expire(reservationKey, TTL_SECONDS, TimeUnit.SECONDS); // 15분 저장 (변경 가능)
-
+		
+		// 예약 세션 생성
+		String reservationToken = sessionStore.createInit(eventId, event.getEventName(), userId, String.valueOf(eventDate));
 		return new ReservationStartDto(event, eventParts, reservationToken);
 	}
 
 	// step1 : 날짜/회차 선택
 	@Override
 	public void selectSchedule(String reservationToken, int scheduleId) {
-		String reservationKey = getReservationTokenKey(reservationToken);
+		if(!sessionStore.validateReservationSession(reservationToken)) {
+			throw new IllegalStateException("예약 세션이 만료되었습니다. 다시 예약해주세요.");
+		}
 
-		Map<Object, Object> existingData = redisTemplate.opsForHash().entries(reservationKey);
-
+		Map<Object, Object> existingData = sessionStore.getDataAll(reservationToken);
 		String prevEventId = (String) existingData.get("eventId");
 		String prevScheduleId = (String) existingData.get("scheduleId");
 
@@ -112,43 +107,37 @@ public class ReservationServiceImpl implements ReservationService {
 		}
 
 		// 회차를 변경할 경우 기존 좌석의 복구처리
-		if (prevEventId != null && prevScheduleId != null) {
-			int prevReserved = 0;
-			for (PersonType type : PersonType.values()) {
-				Object val = existingData.get(type.name() + "_COUNT");
-				if (val != null)
-					prevReserved += Integer.parseInt(val.toString());
-			}
+		if(prevEventId != null && prevScheduleId != null) {
+			int prevReserved = Optional.ofNullable(existingData.get("reservedCount"))
+					.map(Object::toString)
+					.map(Integer::parseInt)
+					.orElse(0);
+			
+			if(prevReserved > 0) {
+				String availableSeatsKey = String.format("EVENT:%s:SCHEDULE:%s:AVAILABLE_SEAT", prevEventId, prevScheduleId);
 
-			if (prevReserved > 0) {
-				String availableSeatsKey = String.format("EVENT:%s:SCHEDULE:%s:AVAILABLE_SEAT", prevEventId,
-						prevScheduleId);
 				redisTemplate.opsForValue().increment(availableSeatsKey, prevReserved);
-				log.info("회차 변경으로 좌석 복구: eventId={}, scheduleId={}, 복구좌석={}", prevEventId, prevScheduleId,
-						prevReserved);
+				log.info("회차 변경으로 좌석 복구: eventId={}, scheduleId={}, 복구좌석={}", prevEventId, prevScheduleId, prevReserved);
 			}
-
-			for (PersonType type : PersonType.values()) {
-				redisTemplate.opsForHash().delete(reservationKey, type.name() + "_COUNT");
-			}
-			redisTemplate.opsForHash().delete(reservationKey, "totalPrice");
-
-			// 기존 메타 삭제
-			redisTemplate.delete("RESERVATION_META:" + reservationToken);
+			
+			// 세션 값 정리 + META 삭제
+			sessionStore.clearStep2(reservationToken);
+			sessionStore.deleteMetaData(reservationToken);
 		}
 
-		// redis 에 정보 반영 (변경할경우는 덮어쓰기)
-		redisTemplate.opsForHash().put(reservationKey, "scheduleId", String.valueOf(scheduleId));
-		redisTemplate.opsForHash().put(reservationKey, "status", "STEP2");
+		// 회차 저장 & STEP2 세팅
+		sessionStore.updateStep1(reservationToken, scheduleId);
 	}
 
 	// step2 : 인원등급/인원수 선택
 	@Override
 	public void selectPersonType(String reservationToken, PersonTypeReqDto personTypeReqDto) {
-		String reservationKey = getReservationTokenKey(reservationToken);
+		if(!sessionStore.validateReservationSession(reservationToken)) {
+			throw new IllegalStateException("예약 세션이 만료되었습니다. 다시 예약해주세요.");
+		}
 
-		String eventId = (String) redisTemplate.opsForHash().get(reservationKey, "eventId");
-		String scheduleId = (String) redisTemplate.opsForHash().get(reservationKey, "scheduleId");
+		String eventId = sessionStore.getDataField(reservationToken, "eventId");
+		String scheduleId = sessionStore.getDataField(reservationToken, "scheduleId");
 
 		if (eventId == null || scheduleId == null) {
 			throw new IllegalStateException("예약 토큰에 회차 정보가 없습니다.");
@@ -157,60 +146,38 @@ public class ReservationServiceImpl implements ReservationService {
 		String availableSeatsKey = String.format("EVENT:%s:SCHEDULE:%s:AVAILABLE_SEAT", eventId, scheduleId);
 
 		// 현재 잔여 좌석 확인
-		String availableSeatsStr = redisTemplate.opsForValue().get(availableSeatsKey);
-		int availableSeats = availableSeatsStr == null ? 0 : Integer.parseInt(availableSeatsStr);
-
+		int availableSeats = Optional.ofNullable(redisTemplate.opsForValue().get(availableSeatsKey))
+				.map(Integer::parseInt)
+				.orElse(0);
+		
 		// 기존에 요청받았던 인원
-		int prevTotal = 0;
-		Map<Object, Object> existingData = redisTemplate.opsForHash().entries(reservationKey);
-		for (PersonType type : PersonType.values()) {
-			Object val = existingData.get(type.name() + "_COUNT");
-			if (val != null) {
-				prevTotal += Integer.parseInt(val.toString());
-			}
-		}
+		int prevTotal = Optional.ofNullable(sessionStore.getDataField(reservationToken, "reservedCount"))
+				.map(Integer::parseInt)
+				.orElse(0);
 
 		// 새로 요청받은 인원 합계
 		int totalPersonCount = personTypeReqDto.getPersonCounts().values().stream().mapToInt(Integer::intValue).sum();
 
-		int diffPersonCount = totalPersonCount - prevTotal;
+		int diff = totalPersonCount - prevTotal;
 
-		if (diffPersonCount > 0) {
+		if (diff > 0) {
 			// 인원 초과 에러
-			if (diffPersonCount > availableSeats) {
+			if (diff > availableSeats) {
 				throw new IllegalArgumentException(
 						String.format("잔여 좌석 부족: 요청 %d석, 잔여 %d석", totalPersonCount, availableSeats));
 			}
 			// 인원 증가 -> 잔여 좌석 차감
-			redisTemplate.opsForValue().decrement(availableSeatsKey, diffPersonCount);
-		} else if (diffPersonCount < 0) {
+			redisTemplate.opsForValue().decrement(availableSeatsKey, diff);
+		} else if (diff < 0) {
 			// 인원 감소 -> 잔여 좌석 복구
-			redisTemplate.opsForValue().increment(availableSeatsKey, Math.abs(diffPersonCount));
+			redisTemplate.opsForValue().increment(availableSeatsKey, Math.abs(diff));
 		}
+		
+		// 인원 저장 & STEP3 세팅
+		sessionStore.updateStep2PersonType(reservationToken, totalPersonCount, personTypeReqDto.getTotalPrice(), personTypeReqDto.getPersonCounts());
 
-		// 인원등급별 인원수와 총 금액 저장
-		Map<String, String> redisData = new HashMap<>();
-		personTypeReqDto.getPersonCounts().forEach((type, count) -> {
-			String personTypeKey = String.format("%s_COUNT", type);
-			redisData.put(personTypeKey, String.valueOf(count));
-		});
-
-		redisData.put("totalPrice", String.valueOf(personTypeReqDto.getTotalPrice()));
-		redisData.put("status", "STEP3");
-
-		redisTemplate.opsForHash().putAll(reservationKey, redisData);
-
-		// TTL 만료 시 잔여 좌석 복구를 위해 필요한 메타데이터도 생성 (TTL 만료되면 예약해둔 좌석정보도 사라지기 때문)
-		// TTL 없는 별도 키에 복구용 최소 데이터 저장
-		String metaKey = "RESERVATION_META:" + reservationToken;
-
-		Map<String, String> metaData = new HashMap<>();
-		metaData.put("eventId", eventId);
-		metaData.put("scheduleId", scheduleId);
-		metaData.put("reservedCount", String.valueOf(totalPersonCount));
-
-		redisTemplate.opsForHash().putAll(metaKey, metaData);
-
+		// TTL 만료 시 복구용 METADATA 생성
+		sessionStore.createPersonMetaDataForSessionExpired(reservationToken, Integer.parseInt(eventId), Integer.parseInt(scheduleId), totalPersonCount);
 	}
 
 	// step2 : 좌석 선택
@@ -230,6 +197,14 @@ public class ReservationServiceImpl implements ReservationService {
 			throw new IllegalArgumentException("다른 고객님께서 이미 선택한 좌석입니다.");
 		}
 
+		// 좌석 갱신
+		String seatsCsv = String.join(",", reqDto.getSeatNames());
+		sessionStore.updateStep2SeatType(reservationToken, seatsCsv, reqDto.getTotalPrice());
+		
+		// TTL 만료시 복구용 메타데이터 생성
+		sessionStore.createSeatMetaDataForSessionExpired(reservationToken, reqDto.getEventId(), reqDto.getScheduleId(), seatsCsv);
+		
+		/*
 		// 예약 토큰에 좌석 정보 및 총 금액 저장
 		String reservationKey = getReservationTokenKey(reservationToken);
 		Map<String, String> redisData = new HashMap<>();
@@ -245,32 +220,34 @@ public class ReservationServiceImpl implements ReservationService {
 		metaData.put("scheduleId", String.valueOf(reqDto.getScheduleId()));
 		metaData.put("reservedSeats", String.join(",", reqDto.getSeatNames()));
 		redisTemplate.opsForHash().putAll(metaKey, metaData);
+		*/
 	}
 
 	// step3 : 주문자 정보 입력
 	@Override
 	public boolean inputUserInfo(String reservationToken, String userId, UserInfoReqDto userInfoReqDto) {
-		String reservationKey = getReservationTokenKey(reservationToken);
+		if(!sessionStore.validateReservationSession(reservationToken)) {
+			throw new IllegalStateException("예약 세션이 만료되었습니다. 다시 예약해주세요.");
+		}
 
-		String redisUserId = (String) redisTemplate.opsForHash().get(reservationKey, "userId");
+		String redisUserId = sessionStore.getDataField(reservationToken, "userId");
 		if (redisUserId == null || !redisUserId.equals(userId)) {
 			log.info("유저 불일치");
 			return false;
 		}
 
-		redisTemplate.opsForHash().put(reservationKey, "userName", userInfoReqDto.getUserName());
-		redisTemplate.opsForHash().put(reservationKey, "phone", userInfoReqDto.getPhone());
-		redisTemplate.opsForHash().put(reservationKey, "email", userInfoReqDto.getEmail());
-
-		redisTemplate.opsForHash().put(reservationKey, "status", "STEP4");
+		sessionStore.updateStep3(reservationToken, userInfoReqDto.getUserName(), userInfoReqDto.getPhone(), userInfoReqDto.getEmail());
 
 		return true;
-
 	}
 
 	// 좌석 확정 로직
 	@Override
 	public void confirmBooking(String reservationToken, SeatTypeReqDto reqDto) {
+		if(!sessionStore.validateReservationSession(reservationToken)) {
+			throw new IllegalStateException("예약 세션이 만료되었습니다. 다시 예약해주세요.");
+		}
+		
 		// 좌석 DB 상태 변경
 		for (String seatName : reqDto.getSeatNames()) {
 			EventSeatDto seatDto = new EventSeatDto();
@@ -280,7 +257,29 @@ public class ReservationServiceImpl implements ReservationService {
 			seatDto.setSeatStatus(0); // 0 = 예약 완료
 			seatService.updateSeatStatus(seatDto);
 		}
+		
+		// Redis 좌석 상태 업데이트
+		String seatsHashKey = String.format("EVENT:%d:SCHEDULE:%d:SEATS", reqDto.getEventId(), reqDto.getScheduleId());
+		String holdSetKey = String.format("EVENT:%d:SCHEDULE:%d:HOLDED_SEATS", reqDto.getEventId(),
+				reqDto.getScheduleId());
+		String bookedSetKey = String.format("EVENT:%d:SCHEDULE:%d:BOOKED_SEATS", reqDto.getEventId(),
+				reqDto.getScheduleId());
+		
+		for (String seatName : reqDto.getSeatNames()) {
+		    // Hash에서 상태 변경
+		    redisTemplate.opsForHash().put(seatsHashKey, seatName, "0"); // 0 = 예약 완료
 
+		    // Set 이동: 홀드 -> booked
+		    redisTemplate.opsForSet().remove(holdSetKey, seatName);
+		    redisTemplate.opsForSet().add(bookedSetKey, seatName);
+		}
+		
+		// Redis 예약 정보 업데이트
+		sessionStore.updateStepStatus(reservationToken, "COMPLETED");
+		sessionStore.updateReservationStatus(reservationToken, ReservationStatus.RESERVED);
+		sessionStore.deleteMetaData(reservationToken);
+		
+		/*
 		// Redis 예약 정보 업데이트
 		String reservationKey = getReservationTokenKey(reservationToken);
 		Map<String, String> redisData = new HashMap<>();
@@ -308,32 +307,39 @@ public class ReservationServiceImpl implements ReservationService {
 		
 		// TTL 기반 복구용 메타 삭제
 	    redisTemplate.delete("RESERVATION_META:" + reservationToken);
+	    */
 	}
 
 	// 좌석 취소 로직
 	@Override
 	public void cancelReservation(String reservationToken) {
-		String reservationKey = getReservationTokenKey(reservationToken);
 
-		if (!Boolean.TRUE.equals(redisTemplate.hasKey(reservationKey))) {
+		if (!sessionStore.validateReservationSession(reservationToken)) {
 			log.warn("취소 시도: 유효하지 않은 예약 토큰 [{}]", reservationToken);
 			return;
 		}
 
-		Map<Object, Object> data = redisTemplate.opsForHash().entries(reservationKey);
-		if (data.isEmpty())
+		Map<Object, Object> data = sessionStore.getDataAll(reservationToken);
+		if (data.isEmpty()) {
 			return;
+		}
 
 		String eventId = (String) data.get("eventId");
 		String scheduleId = (String) data.get("scheduleId");
 		String seatNamesStr = (String) data.get("seatNames");
+		String reservationStatus = (String) data.get("reservationStatus");
 		
 		if (eventId == null || scheduleId == null) {
 	        log.warn("취소 실패: eventId 또는 scheduleId 없음 [{}]", reservationToken);
-	        redisTemplate.delete(reservationKey);
-	        redisTemplate.delete("RESERVATION_META:" + reservationToken);
+	        sessionStore.deleteDataAll(reservationToken);
 	        return;
 	    }
+		
+		if(reservationStatus != null && Integer.parseInt(reservationStatus.toString()) == ReservationStatus.RESERVED.code) {
+			log.info("이미 결제 완료된 예약, 좌석 복구 스킵");
+			sessionStore.deleteDataAll(reservationToken);
+			return;
+		}
 		
 		// 좌석 이름이 존재 -> SEAT_TYPE 처리 
 		if(seatNamesStr != null && !seatNamesStr.isEmpty()) {
@@ -358,10 +364,12 @@ public class ReservationServiceImpl implements ReservationService {
 
 			// 예약된 전체 인원의 수 구하기
 			int totalReserved = 0;
-			for (PersonType type : PersonType.values()) {
-				Object val = data.get(type.name() + "_COUNT");
-				if (val != null)
-					totalReserved += Integer.parseInt(val.toString());
+
+			Object reservedCount = data.get("reservedCount");
+			
+			if(reservedCount != null) {
+				totalReserved = Integer.parseInt(reservedCount.toString());
+
 			}
 
 			// 취소시에는 예약된 인원 수만큼 잔여 좌석 복구
@@ -369,79 +377,112 @@ public class ReservationServiceImpl implements ReservationService {
 				redisTemplate.opsForValue().increment(availableSeatsKey, totalReserved);
 				log.info("좌석 복구 완료: eventId={}, scheduleId={}, 복구좌석={}", eventId, scheduleId, totalReserved);
 			}
-
 		}
 
 		// 예약 데이터와 meta 키 삭제 
-		redisTemplate.delete(reservationKey);
-		redisTemplate.delete("RESERVATION_META:" + reservationToken);
+		sessionStore.deleteDataAll(reservationToken);
 
-		log.info("예약 취소 완료: reservationToken={}", reservationKey);
+		log.info("예약 취소 완료: reservationToken=RESERVATION:{}", reservationToken);
 	}
 
 	@Override
 	public void validateReservation(String reservationToken) {
-		String reservationKey = "RESERVATION:" + reservationToken;
-
-		if (!Boolean.TRUE.equals(redisTemplate.hasKey(reservationKey))) {
+		if(!sessionStore.validateReservationSession(reservationToken)) {
 			throw new IllegalStateException("예약 세션이 만료되었습니다. 다시 예약해주세요.");
 		}
 	}
-
-	private String getReservationTokenKey(String reservationToken) {
-		String reservationKey = "RESERVATION:" + reservationToken;
-
-		if (!Boolean.TRUE.equals(redisTemplate.hasKey(reservationKey))) {
+	
+	@Override
+	public PaymentInfoResDto getPaymentInfo(String reservationToken) {
+		if(!sessionStore.validateReservationSession(reservationToken)) {
 			throw new IllegalStateException("예약 세션이 만료되었습니다. 다시 예약해주세요.");
 		}
-
-		return reservationKey;
+		
+		Map<Object, Object> redisData = sessionStore.getDataAll(reservationToken);
+		
+		int eventId = Integer.parseInt(redisData.get("eventId").toString());
+		int scheduleId = Integer.parseInt(redisData.get("scheduleId").toString());
+		String title = (String) redisData.get("title");
+		int totalPrice = Integer.parseInt(redisData.get("totalPrice").toString());
+		int reservedCount = Integer.parseInt(redisData.get("reservedCount").toString());
+		
+		PaymentInfoResDto paymentInfoResDto = new PaymentInfoResDto();
+		paymentInfoResDto.setEventId(eventId);
+		paymentInfoResDto.setScheduleId(scheduleId);
+		paymentInfoResDto.setTitle(title);
+		paymentInfoResDto.setTotalPrice(totalPrice);
+		paymentInfoResDto.setReservedCount(reservedCount);
+		
+		return paymentInfoResDto;
 	}
 
 	// =========================================================================================================
-
-	// 결제 완료 후 reservation 1건 + ticket N건을 생성
+	
+	// 결제 시점 예매 1건 + 티켓 N건 insert, 이벤트회차 잔여좌석 update
 	@Transactional
-	public int createReservationAndTicket(CreateReservationReqDto createReservationReqDto) {
-
-		// 예약 생성
+	public void createReservation(String reservationToken, Long paymentId) {
+		if(!sessionStore.validateReservationSession(reservationToken)) {
+			throw new IllegalStateException("예약 세션이 만료되었습니다. 다시 예약해주세요.");
+		}
+		
+		Map<Object, Object> reservationData = sessionStore.getDataAll(reservationToken);
+		if(reservationData == null || reservationData.isEmpty()) {
+			throw new IllegalArgumentException("예약 세션이 존재하지 않습니다.");
+		}
+				  
+		// 예매 1건 디비 저장
 		Reservation reservation = new Reservation();
-		reservation.setPaymentId(createReservationReqDto.getPaymentId());
-		reservation.setReservationDate(new Date());
-		reservation.setReservationStatus(1);
-		reservation.setScheduleId(createReservationReqDto.getScheduleId());
-		reservation.setUserId(createReservationReqDto.getUserId());
-
+		reservation.setPaymentId(paymentId);
+		reservation.setReservationStatus(ReservationStatus.RESERVED.code);
+		reservation.setScheduleId(Integer.parseInt(reservationData.get("scheduleId").toString()));
+		reservation.setUserId((String) reservationData.get("userId"));
 		reservationMapper.insertReservation(reservation);
-		int reservationId = reservation.getReservationId();
-
-		// 인원별 티켓 생성
-		int adult = createReservationReqDto.getAdultCount();
-		int youth = createReservationReqDto.getYouthCount();
-		int child = createReservationReqDto.getChildCount();
-
-		// count 0 이면 생성 안하는 조건 필요
-		insertPersonTicket(reservationId, createReservationReqDto.getPaymentId(), PersonType.ADULT, adult);
-		insertPersonTicket(reservationId, createReservationReqDto.getPaymentId(), PersonType.YOUTH, youth);
-		insertPersonTicket(reservationId, createReservationReqDto.getPaymentId(), PersonType.CHILD, child);
-
-		return 0;
+		
+		sessionStore.updateReservationStatus(reservationToken, ReservationStatus.RESERVED);
+		
+		// 티켓 N건 디비 저장
+		String groupCountsJson = (String) reservationData.get("groupCounts");
+		var parsed = sessionStore.parseGroupCounts(groupCountsJson)
+				.orElseThrow(() -> new IllegalArgumentException("예매 인원 정보 파싱 오류"));
+		Long reservationId = reservation.getReservationId();
+		
+		for(Map.Entry<String, Integer> entry : parsed.entrySet()) {
+			String personType = entry.getKey();
+			int personTypeCount = entry.getValue();
+			
+			for(int i = 0; i < personTypeCount; i++) {
+				Ticket ticket = new Ticket();
+				ticket.setTicketStatus(TicketStatus.ACTIVE.code);
+				ticket.setTicketType("PERSON_TYPE");
+				ticket.setPersonType(PersonType.valueOf(personType).name());
+				ticket.setReservationId(reservationId);
+				ticket.setSeatId(null);
+				ticket.setPaymentId(paymentId);
+				ticketMapper.insertTicket(ticket);
+			}
+		}
+		
+		// 이벤트 회차의 잔여좌석 차감
+		int reservedCount = Integer.parseInt(reservationData.get("reservedCount").toString());
+		int scheduleId = Integer.parseInt(reservationData.get("scheduleId").toString());
+		int eventId = Integer.parseInt(reservationData.get("eventId").toString());
+		int updateResult = eventPartMapper.updateRemainingSeatByReservation(scheduleId, eventId, reservedCount);
+		
+		if(updateResult == 0) {
+			throw new IllegalStateException("잔여좌석 부족으로 업데이트 실패");
+		}
+		
+		log.info("결제 후 DB 저장 완료");	
 	}
 
-	private void insertPersonTicket(int reservationId, int paymentId, PersonType personType, int personCount) {
-		for (int i = 0; i < personCount; i++) {
-			Ticket ticket = new Ticket();
+	// 예매 완료 버튼 누를 때 호출 - 레디스에 저장된 예약세션, 결제정보 삭제
+	// 레디스 잔여좌석 유지 (복구X)
+//	@Transactional
+	public void completeReservation(String reservationToken, String userId) {
 
-			ticket.setTicketCreatedDate(new Date());
-			ticket.setTicketStatus(1);
-			ticket.setTicketType("PERSON_TYPE");
-			ticket.setPersonType(personType);
-			ticket.setReservationId(reservationId);
-			ticket.setSeatId(null);
-			ticket.setPaymentId(paymentId);
-
-			reservationMapper.insertTicket(ticket);
-		}
+		sessionStore.deleteDataAll(reservationToken);
+		
+		log.info("예매 프로세스 완료");
 	}
 
 	@Override

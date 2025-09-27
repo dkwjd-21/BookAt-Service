@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8">
+  <title>북캣 결제</title>
+    <script src="https://cdn.iamport.kr/v1/iamport.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script th:src="@{/js/utils/axiosIntercepter.js}"></script>
+  <script th:src="@{/js/utils/userAuth.js}"></script>
+
+  <script th:src="@{/js/payment.js}"></script>
+</head>
+<body>
+  <h1>결제 프래그먼트 테스트</h1>
+
+<input type="hidden" id="token" th:value="${token}">
+
+<div th:replace="~{fragments/payFragment :: payFragment(${null}, ${null}, ${null}, ${null})}"></div>
+
+</body>
+</html>

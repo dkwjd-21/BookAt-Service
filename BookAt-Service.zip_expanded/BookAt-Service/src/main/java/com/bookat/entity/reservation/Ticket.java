@@ -15,13 +15,13 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Ticket {
 	
-	private int ticketId;
+	private Long ticketId;
 	private Date ticketCreatedDate;
 	private int ticketStatus;
 	private String ticketType;		// 'PERSON_TYPE' , 'SEAT_TYPE'
-	private PersonType personType;		// 'ADULT' , 'YOUTH' , 'CHILD' (인원형일 때)
-	private int reservationId;
+	private String personType;		// 'ADULT' , 'YOUTH' , 'CHILD' (인원형일 때)
+	private Long reservationId;
 	private Integer seatId;
-	private int paymentId;
+	private Long paymentId;
 	
 }

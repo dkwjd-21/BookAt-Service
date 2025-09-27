@@ -15,4 +15,25 @@
 		ORDER BY SCHEDULE_ID
 	</select>
 	
+	<insert id="insertReservation" parameterType="Reservation">
+		<selectKey keyProperty="reservationId" resultType="long" order="BEFORE">
+			SELECT SEQ_RESERVATION.NEXTVAL FROM DUAL
+		</selectKey>
+		INSERT INTO RESERVATION (
+			RESERVATION_ID,
+			PAYMENT_ID,
+			RESERVATION_DATE,
+			RESERVATION_STATUS,
+			SCHEDULE_ID,
+			USER_ID
+		) VALUES (
+			#{reservationId},
+			#{paymentId},
+			SYSDATE,
+			#{reservationStatus},
+			#{scheduleId},
+			#{userId}
+		)
+	</insert>
+	
 </mapper>

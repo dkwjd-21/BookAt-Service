@@ -10,5 +10,6 @@ import com.bookat.entity.reservation.EventPart;
 public interface EventPartMapper {
 
 	List<EventPart> findEventPartsByEventId(int eventId);
+	int updateRemainingSeatByReservation(int scheduleId, int eventId, int reservedCount);
 	
 }

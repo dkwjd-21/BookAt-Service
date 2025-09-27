@@ -1,15 +1,19 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head>
 	<meta charset="UTF-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<title>예약 팝업</title>
 	<link rel="stylesheet" th:href="@{/css/ReservationPopup.css}" />
+	<link rel="stylesheet" th:href="@{/css/ReservationSeat.css}" />
 	<link rel="stylesheet" th:href="@{/css/captcha.css}" />
 	<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 	<script th:src="@{/js/utils/axiosIntercepter.js}"></script>
+	<script src="https://cdn.iamport.kr/v1/iamport.js"></script>
 	<script th:src="@{/js/utils/logout.js}"></script>
 	<script th:src="@{/js/utils/userAuth.js}"></script>
+	<script th:src="@{/js/payment.js}"></script>
 	<script th:src="@{/js/utils/captcha.js}"></script>
 	<script th:src="@{/js/reservation/reservationPopup.js}"></script>
 </head>
@@ -36,7 +40,10 @@
 					<form action="/reservation" method="post" id="reservation-form">
 						<input type="hidden" id="reservation-token" th:value="${reservationToken}">
 						<section class="selection-area step firstSection active" data-step="1">
-							<input type="hidden" id="eventDate" th:value="${#dates.format(event.eventDate, 'yyyy-MM-dd')}">
+							<input type="hidden" id="eventDate"
+								th:value="${#dates.format(event.eventDate, 'yyyy-MM-dd')}">
+							<input type="hidden" id="eventId" th:value="${event.eventId}">
+							<input type="hidden" id="eventPrice" th:value="${event.eventPrice}">
 							<div class="calendar-container">
 								<div id="Date">
 									<b onclick="defaultCalendar()" style="cursor: pointer;">2025년 5월</b>
@@ -72,10 +79,11 @@
 									회차 선택
 								</div>
 								<div class="part-options-container">
-									<div th:each="eventTime : ${eventParts}" class="option-part" 
-										th:attr="data-session-id=${eventTime.scheduleId}"
-										th:text="${#dates.format(eventTime.scheduleTime, 'HH:mm')} + ' ' + ${eventTime.scheduleName}"
-										th:classappend="${eventTime.remainingSeat == 0} ? ' disabled' : ''">
+									<div th:each="part : ${eventParts}" class="option-part"
+										th:data-session-id="${part.scheduleId}"
+										th:classappend="${part.remainingSeat == 0} ? ' disabled' : ''">
+										<span th:text="${#dates.format(part.scheduleTime, 'HH:mm')}"></span>
+										<span th:text="${part.scheduleName}"></span>
 									</div>
 								</div>
 							</div>
@@ -96,40 +104,49 @@
 										<tbody>
 											<tr>
 												<td>성인</td>
-												<td th:text="${#numbers.formatInteger(event.eventPrice, 3, 'COMMA')} + ' 원'"></td>
+												<td
+													th:text="${#numbers.formatInteger(event.eventPrice, 3, 'COMMA')} + ' 원'">
+												</td>
 												<td>
 													<div class="person-count-row">
 														<label for="adultCount" class="hidden"></label>
-														<input class="input-count" id="adultCount" name="adultCount" type="number" 
-														value="0" min="0" th:attr="data-unit-price=${event.eventPrice}">
+														<input class="input-count" id="adultCount" name="adultCount"
+															type="number" value="0" min="0"
+															th:attr="data-unit-price=${event.eventPrice}">
 													</div>
 												</td>
 											</tr>
 											<tr>
 												<td>청소년(80%)</td>
-												<td th:text="${#numbers.formatInteger(event.eventPrice * 8 / 10, 3, 'COMMA')} + ' 원'"></td>
+												<td
+													th:text="${#numbers.formatInteger(event.eventPrice * 8 / 10, 3, 'COMMA')} + ' 원'">
+												</td>
 												<td>
 													<div class="person-count-row">
 														<label for="youthCount" class="hidden"></label>
-														<input class="input-count" id="youthCount" name="youthCount" type="number" 
-														value="0" min="0" th:attr="data-unit-price=${event.eventPrice * 8 / 10}">
+														<input class="input-count" id="youthCount" name="youthCount"
+															type="number" value="0" min="0"
+															th:attr="data-unit-price=${event.eventPrice * 8 / 10}">
 													</div>
 												</td>
 											</tr>
 											<tr>
 												<td>유아(50%)</td>
-												<td th:text="${#numbers.formatInteger(event.eventPrice / 2, 3, 'COMMA')} + ' 원'"></td>
+												<td
+													th:text="${#numbers.formatInteger(event.eventPrice / 2, 3, 'COMMA')} + ' 원'">
+												</td>
 												<td>
 													<div class="person-count-row">
 														<label for="childCount" class="hidden"></label>
-														<input class="input-count" id="childCount" name="childCount" type="number" 
-														value="0" min="0" th:attr="data-unit-price=${event.eventPrice / 2}">
+														<input class="input-count" id="childCount" name="childCount"
+															type="number" value="0" min="0"
+															th:attr="data-unit-price=${event.eventPrice / 2}">
 													</div>
 												</td>
 											</tr>
 										</tbody>
 									</table>
-									
+
 									<table class="person-select-table">
 										<tbody>
 											<tr>
@@ -148,10 +165,32 @@
 									<input type="hidden" id="total-price" name="total-price" value="0">
 								</div>
 								<div th:if="${event.ticketType == 'SEAT_TYPE'}">
-									
-									<!-- 좌석 선택 섹션 미작성! -->
-									<h2>좌석 선택 UI 영역</h2>
-								
+									<h2 class="seat-title" style="display: inline-block;">좌석 선택</h2>
+									<div class="seat-legend">
+										<span class="seat-legend-item">
+											<span class="seat-available"></span> 선택가능
+										</span>
+										<span class="seat-legend-item">
+											<span class="seat-selected"></span> 선택중
+										</span>
+										<span class="seat-legend-item">
+											<span class="seat-unavailable"></span> 선택불가
+										</span>
+									</div>
+
+									<p style="float: right;" th:text="'일반석 ' + ${event.eventPrice} + '원'"></p>
+
+									<div class="seat-map-container">
+										<div id="seat-container" class="seat-grid">
+											<div class="stage">STAGE</div>
+											<div class="stage-seat">
+												<!--JS로 좌석이 렌더링 될 영역-->
+											</div>
+										</div>
+									</div>
+									<div class="refresh-container">
+										<div class="refresh-btn" th:onclick="refreshSeats()">새로고침</div>
+									</div>
 								</div>
 							</div>
 						</section>
@@ -160,22 +199,22 @@
 								<h2>주문자 정보 입력</h2>
 								<div class="pay-info-form">
 									<div>
-									    <label for="user-name">이름</label>
-									    <input type="text" id="user-name" name="user-name" placeholder="김북캣">
+										<label for="user-name">이름</label>
+										<input type="text" id="user-name" name="user-name" placeholder="김북캣">
 									</div>
 									<div>
-									    <label for="phone">전화번호</label>
-									    <input type="text" id="phone" name="phone" placeholder="010XXXXXXXX">
+										<label for="phone">전화번호</label>
+										<input type="text" id="phone" name="phone" placeholder="010XXXXXXXX">
 									</div>
 									<div>
-									    <label for="email">이메일</label>
-									    <input type="text" id="email" name="email" placeholder="bookat@gmail.com">
+										<label for="email">이메일</label>
+										<input type="text" id="email" name="email" placeholder="bookat@gmail.com">
 									</div>
 								</div>
 							</div>
 						</section>
 						<section class="selection-area step" data-step="4">
-							<div class="calendar-container">결제<br>컨텐츠 추가 영역</div>
+							<div id="event-payment-frag"></div>
 						</section>
 					</form>
 				</main>
@@ -188,21 +227,25 @@
 					<p id="selected-date" th:text="${#dates.format(event.eventDate, 'yyyy년 M월 d일')}">이벤트날짜</p>
 					<p id="selected-session">선택회차</p>
 				</div>
-				<div class="person-info">
-					
+				<div class="person-info" th:if="${event.ticketType == 'PERSON_TYPE'}">
+
+				</div>
+				<div class="seat-info" th:if="${event.ticketType == 'SEAT_TYPE'}">
+					<p id="selected-seats-info"></p>
+					<p id="seat-count-info"></p>
 				</div>
 				<div class="pay-info">
 					<p><strong>총 결제금액:</strong> <span id="summaryTotal"></span></p>
 				</div>
 				<button id="next-btn" class="next-button">다음 단계</button>
-				<button id="submit-btn" type="submit" class="next-button" form="reservation-form" style="display: none;">결제</button>
+				<button id="submit-btn" type="submit" class="next-button" form="reservation-form" style="display: none;" disabled>완료</button>
 			</aside>
 
 		</div>
 	</div>
-	
+
 	<!-- 캡챠 인증 모달 -->
-	<div id="captchaModal" class="modal-overlay">
+	<div id="captchaModal" class="modal-overlay" style="display: none;">
 		<div class="captcha-form">
 			<label class="captcha-label">매크로 방지</label>
 			<div class="captcha-body">

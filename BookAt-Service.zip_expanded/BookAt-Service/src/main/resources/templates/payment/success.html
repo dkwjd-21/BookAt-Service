@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8">
+  <title>Bookat 결제완료</title>
+  <link rel="stylesheet" th:href="@{/css/header.css}" />
+  <link rel="stylesheet" th:href="@{/css/footer.css}" />
+  <link rel="stylesheet" th:href="@{/css/payment.css}" />
+  	<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+	<script th:src="@{/js/utils/axiosIntercepter.js}"></script>
+	<script th:src="@{/js/utils/logout.js}"></script>
+	<script th:src="@{/js/utils/userAuth.js}"></script>
+	<script th:src="@{/js/utils/header.js}"></script>
+</head>
+<body style="background-color:#f0f2f5;">
+<div th:replace="~{fragments/header :: main-header}"></div>
+<main class="container payment-complete">
+
+  <!-- 상단 완료 헤더 -->
+  <section class="panel">
+    <div class="success-head">
+      <svg class="icon-check" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"></path>
+      </svg>
+      <div>
+        <h1 class="title">결제가 완료되었습니다</h1>
+        <p class="meta">
+          주문번호(merchant_uid) <strong th:text="${merchantUid}">PAY-XXXX</strong>
+          · 결제수단 <span th:text="${method}">CARD</span>
+          · 상태 <span th:text="${status}">paid</span>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 결제 요약 -->
+  <section class="panel">
+    <div class="summary">
+      <div class="summary-row total">
+        <span>결제금액</span>
+        <div><strong th:text="${#numbers.formatInteger(amount, 3, 'COMMA')}">0</strong>원</div>
+      </div>
+
+      <div class="summary-divider"></div>
+
+      <div class="summary-sub">
+        PG 거래번호 <span th:text="${pgTid != null ? pgTid : '-'}">-</span>
+      </div>
+      <div class="summary-sub">
+        영수증
+        <a th:if="${receiptUrl != null}" th:href="${receiptUrl}" target="_blank" rel="noopener">열기</a>
+        <span th:unless="${receiptUrl != null}">-</span>
+      </div>
+      <div class="summary-sub">
+        imp_uid <span th:text="${impUid != null ? impUid : '-'}">-</span>
+      </div>
+    </div>
+
+    <div class="action-row">
+      <a class="btn btn--primary" th:href="@{/books}">메인으로</a>
+      <a class="btn" href="#">마이페이지</a>
+    </div>
+  </section>
+
+</main>
+<div th:replace="~{fragments/footer :: main-footer}"></div>
+</body>
+</html>

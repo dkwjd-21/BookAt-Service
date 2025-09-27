@@ -1,11 +1,11 @@
 package com.bookat.controller;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -17,15 +17,22 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.bookat.dto.PaymentDto;
+import com.bookat.dto.reservation.PaymentInfoResDto;
+import com.bookat.dto.reservation.PaymentReservationSession;
 import com.bookat.dto.EventSeatInfoDto;
 import com.bookat.dto.reservation.PersonTypeReqDto;
 import com.bookat.dto.reservation.ReservationStartDto;
 import com.bookat.dto.reservation.SeatTypeReqDto;
 import com.bookat.dto.reservation.UserInfoReqDto;
 import com.bookat.entity.User;
-import com.bookat.enums.PersonType;
+import com.bookat.service.PaymentService;
 import com.bookat.service.ReservationService;
+import com.bookat.util.PaymentSessionStore;
+
+import com.bookat.enums.PersonType;
 import com.bookat.service.SeatService;
 
 import lombok.RequiredArgsConstructor;
@@ -37,11 +44,10 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class ReservationController {
 
-	@Autowired
 	private final ReservationService reservationService;
-
-	@Autowired
+	private final PaymentService paymentService;
 	private final SeatService seatService;
+	private final PaymentSessionStore paymentSessionStore;
 	
 	// 티켓팅 팝업 오픈
 	@GetMapping("/start")
@@ -54,10 +60,9 @@ public class ReservationController {
 		ReservationStartDto reservationStartDto = reservationService.startReservation(eventId, user.getUserId());
 		model.addAttribute("event", reservationStartDto.getEvent());
 		model.addAttribute("eventParts", reservationStartDto.getEventParts());
-		log.info("eventParts 잔여석 : {}", reservationStartDto.getEventParts().get(0).getRemainingSeat());
 		model.addAttribute("reservationToken", reservationStartDto.getReservationToken());
 
-		return "reservation/ReservationPopup_Seat2";
+		return "reservation/ReservationPopup";
 	}
 
 	// step1: 날짜/회차 선택
@@ -105,7 +110,6 @@ public class ReservationController {
 	            int totalPrice = (int) payload.getOrDefault("totalPrice", 0);
 	            
 	            PersonTypeReqDto dto = new PersonTypeReqDto(personCounts, totalPrice);
-	            
 	            
 				// 인원 선택 유형 처리 
 				reservationService.selectPersonType(reservationToken, dto);
@@ -162,14 +166,42 @@ public class ReservationController {
 		if (user == null) {
 			return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", "로그인이 필요합니다."));
 		}
+		
+		try {
+			boolean success = reservationService.inputUserInfo(reservationToken, user.getUserId(), userInfoReqDto);
+			
+			if(!success) {
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "예약 정보 저장 실패"));
+			}
+			
+			// 결제 프레그먼트 연결
+			PaymentInfoResDto getPaymentInfo = reservationService.getPaymentInfo(reservationToken);
 
-		boolean success = reservationService.inputUserInfo(reservationToken, user.getUserId(), userInfoReqDto);
-
-		if (!success) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "예약 정보 저장 실패"));
+			String enforcedMethod = "CARD";
+			PaymentDto pay = paymentService.createReadyPayment(getPaymentInfo.getTotalPrice(), enforcedMethod, getPaymentInfo.getTitle(), user.getUserId());
+			
+			PaymentReservationSession session = PaymentSessionStore.of(
+					reservationToken, 
+					getPaymentInfo.getEventId(),
+					getPaymentInfo.getScheduleId(),
+					getPaymentInfo.getTitle(),
+					getPaymentInfo.getReservedCount(),
+					enforcedMethod,
+					BigDecimal.valueOf(getPaymentInfo.getTotalPrice()),
+					pay.getMerchantUid(),
+					user.getUserId());
+			
+			String paymentToken =  paymentSessionStore.createEventPay(session);
+		      
+			String paymentStepUrl = "/payment/" + paymentToken + "/paymentUI";
+			
+			return ResponseEntity.ok(Map.of("message", "사용자 정보 저장 완료", "status", "STEP4", "paymentStepUrl", paymentStepUrl));
+			
+		} catch (IllegalStateException ise) {
+			return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("status", "STEP3", "error", ise.getMessage()));
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("status", "STEP3", "error", "서버 오류가 발생했습니다."));
 		}
-
-		return ResponseEntity.ok(Map.of("message", "사용자 정보 저장 완료", "status", "STEP4"));
 	}
 
 	// 예약 확인 : 토큰 유효한지 확인 
@@ -220,10 +252,33 @@ public class ReservationController {
 		}
 	}
 	
+	// =========================================================================================================
 	
-	// 결제 완료 후 reservation 1건 + ticket N건을 생성
+	// 예매 완료 버튼 누르면 호출 (submit) -> 결제성공이 완료된 시점
+	@PostMapping("/complete")
+	@ResponseBody
+	public ResponseEntity<Map<String, Object>> completeReservation(@RequestBody Map<String, String> request, @AuthenticationPrincipal(expression = "userId") String userId) {
+
+		String reservationToken = request.get("token");
+		
+		if(reservationToken == null || userId == null) {
+			return ResponseEntity.badRequest().body(Map.of("error", "잘못된 요청입니다.", "status", "INVALID_REQUEST"));
+		}
+		
+		try {
+			
+			// redis 예매 세션 삭제, 좌석 복구X
+			reservationService.completeReservation(reservationToken, userId);
+			
+			return ResponseEntity.ok(Map.of("message", "예매가 성공적으로 완료되었습니다.", "status", "SUCCESS"));
+			
+		} catch(Exception e) {
+			log.error("예매 완료 실패 : {}", e.getMessage(), e);
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "예매 완료 처리 중 오류 발생", "status", "ERROR"));
+		}
+	}
 	
-	
+	// =========================================================================================================
 	
 	// 좌석 조회 API 
 	@GetMapping("/seat/getSeats")
