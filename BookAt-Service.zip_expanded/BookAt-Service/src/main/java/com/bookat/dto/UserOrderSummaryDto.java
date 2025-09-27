@@ -17,4 +17,5 @@ public class UserOrderSummaryDto {
     private Integer orderStatus;
     private Integer totalPrice;
     private Integer shippingFee;
+    private String trackingNumber;
 }

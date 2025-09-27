@@ -7,6 +7,7 @@
         <result property="orderDate" column="order_date" />
         <result property="orderStatus" column="order_status" />
         <result property="totalPrice" column="total_price" />
+        <result property="trackingNumber" column="tracking_number" />
     </resultMap>
 
     <resultMap id="orderItemMap" type="com.bookat.dto.OrderItemResponse">
@@ -39,7 +40,8 @@
             bo.order_id,
             bo.order_date,
             bo.order_status,
-            bo.total_price
+            bo.total_price,
+            bo.tracking_number
         FROM book_order bo
         WHERE bo.user_id = #{userId}
         ORDER BY bo.order_date DESC

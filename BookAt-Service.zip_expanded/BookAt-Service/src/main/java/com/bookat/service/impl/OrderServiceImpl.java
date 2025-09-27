@@ -57,6 +57,7 @@ public class OrderServiceImpl implements OrderService {
                             .orderStatus(summary.getOrderStatus())
                             .statusLabel(convertStatus(summary.getOrderStatus()))
                             .totalPrice(summary.getTotalPrice())
+                            .trackingNumber(summary.getTrackingNumber())
                             .shippingFee(shippingFee)
                             .items(items)
                             .totalQuantity(items.stream().mapToInt(OrderItemResponse::getQuantity).sum())
@@ -97,6 +98,7 @@ public class OrderServiceImpl implements OrderService {
                 case 2 -> summary.incrementCancelled();
                 case -2 -> summary.incrementRefunded();
                 case 3 -> summary.incrementFulfilled();
+                case 4 -> summary.incrementShipping();
                 default -> {
                 }
             }
@@ -115,6 +117,7 @@ public class OrderServiceImpl implements OrderService {
             case 2 -> "취소완료";
             case -2 -> "환불완료";
             case 3 -> "배송완료";
+            case 4 -> "배송중";
             default -> "기타";
         };
     }

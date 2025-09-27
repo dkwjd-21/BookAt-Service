@@ -66,27 +66,11 @@
 
     <div th:replace="~{fragments/footer :: main-footer}"></div>
 
-    <div id="trackingModal" class="tracking-modal" style="display: none">
-      <div class="tracking-modal__content" role="dialog" aria-modal="true" aria-labelledby="trackingModalTitle">
-        <button type="button" class="tracking-modal__close" aria-label="닫기">&times;</button>
-        <h3 id="trackingModalTitle">배송 조회</h3>
-        <p class="tracking-modal__description">운송장 정보를 입력하고 배송 상태를 확인하세요.</p>
-        <form action="https://info.sweettracker.co.kr/tracking/4" method="post" class="tracking-form" target="trackingPopup">
-          <input type="hidden" name="t_key" th:value="${sweetTrackerApiKey}" />
-          <div class="form-group">
-            <label for="t_code">택배사 코드</label>
-            <input type="text" class="form-control" name="t_code" id="t_code" placeholder="택배사 코드" required />
-          </div>
-          <div class="form-group">
-            <label for="t_invoice">운송장 번호</label>
-            <input type="text" class="form-control" name="t_invoice" id="t_invoice" placeholder="운송장 번호" required />
-          </div>
-          <div class="tracking-form__actions">
-            <button type="submit" class="btn-primary">조회하기</button>
-          </div>
-        </form>
-      </div>
-    </div>
+    <form id="trackingForm" action="https://info.sweettracker.co.kr/tracking/4" method="post" target="trackingPopup" style="display: none">
+      <input type="hidden" name="t_key" th:value="${sweetTrackerApiKey}" />
+      <input type="hidden" name="t_code" value="04" />
+      <input type="hidden" name="t_invoice" />
+    </form>
 
     <script th:src="@{/js/mypage/orderList.js}"></script>
   </body>

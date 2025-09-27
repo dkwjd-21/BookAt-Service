@@ -5,10 +5,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   const orderEmpty = document.getElementById("orderEmpty");
   const guideSection = document.getElementById("guideSection");
   const loginSection = document.getElementById("loginSection");
-  const trackingModal = document.getElementById("trackingModal");
-  const trackingModalClose = trackingModal?.querySelector(".tracking-modal__close");
-  const trackingForm = trackingModal?.querySelector(".tracking-form");
+  const trackingForm = document.getElementById("trackingForm");
   const trackingKeyInput = trackingForm?.querySelector('input[name="t_key"]');
+  const trackingCodeInput = trackingForm?.querySelector('input[name="t_code"]');
+  const trackingInvoiceInput = trackingForm?.querySelector('input[name="t_invoice"]');
 
   const statusCounts = {
     ready: document.querySelector(".status-count[data-type='ready']"),
@@ -101,7 +101,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           )
           .join("");
 
-        const trackingButton = Number(order.orderStatus) === 1 ? '<button type="button" class="btn-secondary btn-tracking">배송조회</button>' : "";
+        const trackingButton = Number(order.orderStatus) === 4 && order.trackingNumber ? `<button type="button" class="btn-secondary btn-tracking" data-tracking="${order.trackingNumber}">배송조회</button>` : "";
 
         return `
         <article class="order-card" data-status="${order.orderStatus ?? ""}">
@@ -175,21 +175,24 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   function handleTrackingButtonClick(event) {
     const target = event.target;
-    if (!trackingModal) return;
+    if (!trackingForm || !trackingKeyInput || !trackingCodeInput || !trackingInvoiceInput) return;
+
     if (target && target.classList.contains("btn-tracking")) {
-      if (!trackingKeyInput || !trackingKeyInput.value) {
+      const trackingNumber = target.getAttribute("data-tracking");
+      if (!trackingKeyInput.value) {
         alert("배송 조회 API 키가 설정되지 않았습니다.");
         return;
       }
-      trackingModal.style.display = "flex";
-      document.body.style.overflow = "hidden";
-    }
-  }
+      if (!trackingNumber) {
+        alert("운송장 번호가 존재하지 않습니다.");
+        return;
+      }
 
-  function closeTrackingModal() {
-    if (!trackingModal) return;
-    trackingModal.style.display = "none";
-    document.body.style.overflow = "";
+      trackingCodeInput.value = "04";
+      trackingInvoiceInput.value = trackingNumber;
+
+      openTrackingPopup(event);
+    }
   }
 
   function openTrackingPopup(event) {
@@ -213,11 +216,5 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   orderHistory?.addEventListener("click", handleTrackingButtonClick);
-  trackingModalClose?.addEventListener("click", closeTrackingModal);
-  trackingModal?.addEventListener("click", (event) => {
-    if (event.target === trackingModal) {
-      closeTrackingModal();
-    }
-  });
   trackingForm?.addEventListener("submit", openTrackingPopup);
 });

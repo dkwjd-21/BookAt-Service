@@ -19,5 +19,6 @@ public class OrderListItemResponse {
     private Integer shippingFee;
     private Integer totalQuantity;
     private Integer distinctBookCount;
+    private String trackingNumber;
     private List<OrderItemResponse> items;
 }
