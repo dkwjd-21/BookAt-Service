@@ -13,7 +13,6 @@ import org.springframework.stereotype.Component;
 import com.bookat.domain.PaymentStatus;
 import com.bookat.domain.ReservationStatus;
 import com.bookat.enums.PersonType;
-import com.bookat.security.JwtAuthenticationFilter;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -158,6 +157,7 @@ public class ReservationSessionStore {
 		
 		redisTemplate.opsForHash().put(key, "reservationStatus", reservationStatus.name());
 		redisTemplate.opsForHash().delete(key, "paymentToken");
+
 	}
 	
 	// 임의 step 문자열 갱신
@@ -217,7 +217,6 @@ public class ReservationSessionStore {
 	public void deleteDataAll(String token) {
 		redisTemplate.delete(KEY_PREFIX + token);
 		redisTemplate.delete(META_PREFIX + token);
-		
 	}
 	
 	// 결제 진행 전 결제 세션 삭제 (STEP4에서 브라우저 종료 or 뒤로가기)

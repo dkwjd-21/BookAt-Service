@@ -349,7 +349,7 @@ public class ReservationServiceImpl implements ReservationService {
 				sessionStore.deletePaymentData(reservationToken);
 			}
 		}
-		
+
 		// 좌석 이름이 존재 -> SEAT_TYPE 처리 
 		if(seatNamesStr != null && !seatNamesStr.isEmpty()) {
 			List<String> seatNames = Arrays.stream(seatNamesStr.split(","))

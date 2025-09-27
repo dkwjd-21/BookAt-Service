@@ -13,6 +13,7 @@ import com.bookat.dto.EventSeatDto;
 import com.bookat.dto.EventSeatInfoDto;
 import com.bookat.mapper.SeatMapper;
 import com.bookat.service.SeatService;
+import com.bookat.util.SeatRedisUtil;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -21,7 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 public class SeatServiceImpl implements SeatService {
 
 	@Autowired
-	private StringRedisTemplate redisTemplate;
+	private SeatRedisUtil seatRedisUtil;
 
 	@Autowired
 	private SeatMapper mapper;
@@ -31,7 +32,7 @@ public class SeatServiceImpl implements SeatService {
 		String hashKey = "EVENT:" + eventId + ":SCHEDULE:" + scheduleId + ":SEATS";
 
 		// Redis에서 hashKey에 해당하는 값들 가져오기
-		Map<Object, Object> seatMap = redisTemplate.opsForHash().entries(hashKey);
+		Map<Object, Object> seatMap = seatRedisUtil.getSeatMap(eventId, scheduleId);
 
 		List<EventSeatInfoDto> seatList = new ArrayList<>();
 
@@ -52,7 +53,7 @@ public class SeatServiceImpl implements SeatService {
 
 		// Redis의 Set에서 각 좌석이 존재하는지 isMember로 확인한다.
 		for (String seatName : seatNames) {
-			Boolean isAvailable = redisTemplate.opsForSet().isMember(availableSetKey, seatName);
+			Boolean isAvailable = seatRedisUtil.isSeatAvailable(eventId, scheduleId, seatName);
 			log.info("좌석 {}에 대한 Redis 조회 결과: {}", seatName, isAvailable);
 			// 하나라도 존재하지 않으면 false 반환
 			if (isAvailable == null || !isAvailable) {
@@ -73,16 +74,7 @@ public class SeatServiceImpl implements SeatService {
 		log.info("좌석 {} 선점 시도. AVAILABLE_SET: {}, HOLD_SET: {}", seatNames, availableSetKey, holdSetKey);
 
 		// Redis 파이프라인을 사용해 여러 명령어를 한 번에 실행
-		List<Object> results = redisTemplate.executePipelined((RedisCallback<Void>) connection -> {
-			for (String seatName : seatNames) {
-				// SMOVE 명령어 실행: AVAILABLE Set에서 HOLD Set으로 좌석을 이동
-				connection.setCommands().sMove(availableSetKey.getBytes(), holdSetKey.getBytes(), seatName.getBytes());
-				// HSET 명령어 실행: Hash의 좌석 상태를 "HOLD"로 변경
-				connection.hashCommands().hSet(hashKey.getBytes(), seatName.getBytes(), "HOLD".getBytes());
-			}
-			// 여기서 return null은 명령어를 모두 작성했음을 의미함
-			return null;
-		});
+		List<Object> results = seatRedisUtil.holdSeats(eventId, scheduleId, seatNames);
 
 		// 트랜잭션 결과 검증
 		for (int i = 0; i < results.size(); i += 2) {
@@ -133,28 +125,21 @@ public class SeatServiceImpl implements SeatService {
 
 		for (String seatName : seatNames) {
 			try {
-				// Redis에서 HOLD/BOOKED 제거
-				redisTemplate.opsForSet().remove(holdSetKey, seatName);
-				redisTemplate.opsForSet().remove(bookedSetKey, seatName);
+				// Redis에서 좌석 해제
+				seatRedisUtil.releaseSeat(eventId, scheduleId, seatName);
 
-				// AVAILABLE로 이동
-				redisTemplate.opsForSet().add(availableSetKey, seatName);
+				// DB 상태 확인 -> 예약 가능 상태가 아니면 1로 되돌림
+				EventSeatDto seat = selectOneBySeatName(seatName, eventId, scheduleId);
+				if (seat != null && seat.getSeatStatus() != 1) {
+					seat.setSeatStatus(1); // 예약 가능
+					updateSeatStatus(seat);
+				}
 
-				// Hash 상태 업데이트
-				redisTemplate.opsForHash().put(hashKey, seatName, "AVAILABLE");
-				
-				// 2. DB 상태 확인 -> 예약 가능 상태가 아니면 1로 되돌림
-	            EventSeatDto seat = selectOneBySeatName(seatName, eventId, scheduleId);
-	            if (seat != null && seat.getSeatStatus() != 1) {
-	                seat.setSeatStatus(1); // 예약 가능
-	                updateSeatStatus(seat);
-	            }
-				
 			} catch (Exception e) {
 				log.warn("좌석 릴리즈 실패 : {}", seatName, e);
 				allReleased = false;
 			}
-		}	
+		}
 		return allReleased;
 	}
 

@@ -264,8 +264,8 @@ public String devNew(@RequestParam Integer amount,
   
   	// 이벤트 예약 결제창 진입
 	@GetMapping("/{paymentToken}/paymentUI")
+
 	public String renderPaymentFrag(@PathVariable String paymentToken, @RequestParam(name = "method", required = false) String requestMetohd, @RequestParam(name = "token", required = false) String reservationToken, @AuthenticationPrincipal User user, Model model) {
-		
 		String token = paymentToken.startsWith("payment:") ? paymentToken.substring("payment:".length()) : paymentToken;
 		
 		PaymentReservationSession session = sessionStore.getEventPay(token);
@@ -280,7 +280,7 @@ public String devNew(@RequestParam Integer amount,
 			// 세션없음 : 권한 없음 -> 현재 페이지가 없어서 여기 진입하면 템플릿에러남
 			return "error/403";
 		}
-		
+
 		// 예약 세션 토큰 값
 		if (reservationToken != null && !reservationToken.isBlank()) {
 			boolean updatePaymentToken = reservationSessionStore.updatePaymentSessionToken(reservationToken, paymentToken);

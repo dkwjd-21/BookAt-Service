@@ -643,7 +643,6 @@ function defaultCalendar() { today = eventDay; buildCalendar(); }
 async function cancelReservationSync() {
 	const token = sessionStorage.getItem('reservationToken');
 	if (!token) return;
-	
 	const isPaymentStep = window.currentStep === 4;
 	const url = `/reservation/${token}/cancel`;
 	const data = JSON.stringify({ reason: 'popup close', isPaymentStep });
@@ -670,6 +669,7 @@ async function cancelReservation() {
 		const res = await axiosInstance.post(`/reservation/${token}/cancel`, {
 			reason: 'cancel', isPaymentStep
 		});
+
 		alert(res.data.message || '예약이 취소되었습니다.');
 		sessionStorage.removeItem('reservationToken');
 		sessionStorage.removeItem('eventId');
