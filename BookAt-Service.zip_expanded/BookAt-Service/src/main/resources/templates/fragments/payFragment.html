@@ -1,47 +1,80 @@
 <div th:fragment="payFragment">
-<link rel="stylesheet" th:href="@{/css/payment.css}">
+  <link rel="stylesheet" th:href="@{/css/payment.css}">
   <div class="pay-wrap">
-
-
     <div class="pay-tabs">
-      <button type="button" class="pay-method-btn is-active" data-method="card">신용카드</button>
-      <button type="button" class="pay-method-btn" data-method="vbank">무통장입금</button>
-    </div>
 
-    <!-- 여기: 패널 적용 + 고정 문구 -->
-    <div id="vbankSection" class="panel pay-card">
-      <h4>입금계좌</h4>
-      <div class="bank-line">국민은행 000000-00-000-000</div>
-      <div class="bank-meta">예금주: 주식회사 북캣</div>
-
-      <div class="field" style="margin-top:12px;">
-        <div class="label">입금자명</div>
-        <input id="depositor_name_input" class="input" type="text" placeholder="입금자명(미입력시 주문자명)">
-      </div>
-
-      <div class="ctrl-row">
-        <input type="checkbox" id="cash_rcpt_check" class="check">
-        <label for="cash_rcpt_check">현금영수증 신청</label>
-      </div>
-
-      <div id="cash_rcpt_detail">
-        <div class="ctrl-row" style="margin-left:1px;">
-          <input type="radio" name="cash_rcpt_type" id="rcpt_ded" value="DED" class="radio" checked>
-          <label for="rcpt_ded">소득공제용</label>
-          <input type="radio" name="cash_rcpt_type" id="rcpt_biz" value="BIZ" class="radio" style="margin-left:14px;">
-          <label for="rcpt_biz">지출증빙용</label>
+      <!-- 포인트 -->
+      <div class="point-panel">
+        <div class="point-row">
+          <div>보유 포인트</div>
+          <div class="point-amt" id="ui-point-have">5,000P</div>
         </div>
-        <input id="cash_rcpt_number_input" class="input" type="text" placeholder="휴대폰번호 입력">
-        <div class="help">(-) 없이 숫자만 입력</div>
+        <div class="point-row point-use">
+          <label for="ui-point-input" class="pay-muted">사용 포인트</label>
+          <input id="ui-point-input" type="number" min="0" step="1" placeholder="0" inputmode="numeric">
+        </div>
+        <span class="help">* 보유 포인트 3,000P부터 사용가능</span>
       </div>
-    </div>
 
-    <button id="payBtn"
-            type="button"
-            class="btn pay-button"
-            th:attr="data-token=${paymentToken},data-merchant=${merchantUid},data-amount=${amount},data-title=${title}">
-      결제하기
-    </button>
+      <!-- 북캣페이 -->
+      <div class="pay-brand panel">
+        <div class="logo">B</div>
+        <div>
+          <div class="tit">북캣페이</div>
+          <div class="sub">카드 등록 시 다양한 혜택 제공</div>
+        </div>
+      </div>
+
+      <!-- 즉시 할인/혜택 카드 -->
+      <div class="benefit-grid">
+        <div class="benefit"><strong>신규 등록 1,000P 적립</strong></div>
+        <div class="benefit"><strong>북캣데이(매주 수요일) 3% 할인</strong></div>
+        <div class="benefit"><strong>전월 실적 5%(월 최대 5,000P) 적립</strong></div>
+      </div>
+
+      <!-- 결제수단 버튼 -->
+      <div class="pay-methods">
+        <button type="button" class="pay-method-btn is-active" data-method="card">신용카드</button>
+        <button type="button" class="pay-method-btn" data-method="vbank">무통장입금</button>
+      </div>
+
+      <!-- 무통장 섹션 (기본 display:none; .open일 때 표시) -->
+      <div id="vbankSection" class="panel pay-card">
+        <h4>입금계좌</h4>
+        <div class="bank-line">국민은행 000000-00-000-000</div>
+        <div class="bank-meta">예금주: 주식회사 북캣</div>
+
+        <div class="field" style="margin-top:12px;">
+          <div class="label">입금자명</div>
+          <input id="depositor_name_input" class="input" type="text" placeholder="입금자명(미입력시 주문자명)">
+        </div>
+
+        <div class="ctrl-row">
+          <input type="checkbox" id="cash_rcpt_check" class="check">
+          <label for="cash_rcpt_check">현금영수증 신청</label>
+        </div>
+
+        <div class="field" id="cash_rcpt_detail">
+          <div class="ctrl-row">
+            <input type="radio" name="cash_rcpt_type" id="rcpt_ded" value="DED" class="radio" checked>
+            <label for="rcpt_ded">소득공제용</label>
+            <input type="radio" name="cash_rcpt_type" id="rcpt_biz" value="BIZ" class="radio" style="margin-left:14px;">
+            <label for="rcpt_biz">지출증빙용</label>
+          </div>
+          <input id="cash_rcpt_number_input" class="input" type="text" placeholder="휴대폰번호 입력">
+          <div class="help">(-) 없이 숫자만 입력</div>
+        </div>
+      </div>
+
+      <button id="payBtn"
+              type="button"
+              class="btn pay-button"
+              th:attr="data-token=${paymentToken},data-merchant=${merchantUid},data-amount=${amount},data-title=${title}">
+        결제하기
+      </button>
+
+    </div> 
 
   </div>
 </div>
+

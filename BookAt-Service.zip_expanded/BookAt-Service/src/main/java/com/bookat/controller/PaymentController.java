@@ -33,29 +33,6 @@ public class PaymentController {
   private final BookService bookService;
   private final PaymentSessionStore sessionStore;
   private final EventService eventService;
-
-  /* 이벤트 결제 시작 (팝업 우측 요약에서 eventId/amount만 넘김)   */
-  @PostMapping("/session/start-event")
-  @ResponseBody
-  public Map<String, Object> startEvent(@RequestParam Integer eventId,
-                                        @RequestParam Integer amount,
-                                        @RequestParam String title,
-                                        @RequestParam(defaultValue = "CARD") String method,
-                                        @AuthenticationPrincipal(expression = "userId") String userId) {
-      if (userId == null || userId.isBlank()) return Map.of("status","error","message","unauthorized");
-
-      String enforcedMethod = "CARD";
-      var pay = paymentService.createReadyPayment(amount, enforcedMethod, title, userId);
-
-      PaymentSession session = PaymentSessionStore.of(
-          "EVENT:" + eventId, 1, enforcedMethod,
-          java.math.BigDecimal.valueOf(amount),
-          pay.getMerchantUid(), userId, title
-      );
-      String token = sessionStore.create(session);
-      return Map.of("status","success","redirectUrl","/payment/frag-test?token=" + token);
-  }
-  
   
   //도서 세션
   @PostMapping("/session/start")
@@ -66,10 +43,10 @@ public class PaymentController {
       if (user == null) return Map.of("status","error","message","unauthorized");
 
       var book = bookService.selectOne(bookId);                 // title/price 얻기
-      if (book == null) return Map.of("status","error","message","book_not_found");  // BookService.selectOne 사용 :contentReference[oaicite:3]{index=3}
+      if (book == null) return Map.of("status","error","message","book_not_found");  // BookService.selectOne 사용
 
       int amount = book.getPrice().intValue() * Math.max(qty, 1);
-      String title = book.getTitle();                           // BookDto.title 사용 :contentReference[oaicite:4]{index=4}
+      String title = book.getTitle();                           // BookDto.title 사용
 
       // READY 생성(merchantUid 발급) → 결제세션 저장(토큰 생성)
       var pay = paymentService.createReadyPayment(amount, "CARD", title, user.getUserId());
@@ -131,28 +108,6 @@ public class PaymentController {
       );
   }
   
-  @GetMapping("/frag-test")
-  public String fragTest(@RequestParam String token, Model model) {
-      model.addAttribute("token", token); 
-      return "payment/frag-test";
-  }
-
-
-
-/* 개발용: 페이지 전체 결제 테스트 
-@GetMapping("/dev/new")
-public String devNew(@RequestParam Integer amount,
-                     @RequestParam String method,
-                     Model model,
-                     @AuthenticationPrincipal(expression = "userId") String userId) {
-	  
-
-  PaymentDto pay = paymentService.createReadyPayment(amount, method, "개발용 결제",userId);
-  model.addAttribute("merchantUid", pay.getMerchantUid());
-  model.addAttribute("amount", pay.getPaymentPrice());
-  model.addAttribute("userId", userId);
-  return "payment/pay";
-}*/
   @PostMapping("/api/complete")
   @ResponseBody
   public Map<String, Object> apiComplete(@RequestBody PaymentCompleteRequest req,

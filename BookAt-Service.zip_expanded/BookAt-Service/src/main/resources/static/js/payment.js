@@ -135,36 +135,48 @@
   }
 
   // ====== 탭 UI ======
-  function setupTabs() {
-    const tabs = document.querySelectorAll(".pay-method-btn");
-    if (!tabs.length) return;
+  function initPayTabs(context = document) {
+    const roots = (context.querySelectorAll ? context.querySelectorAll(".pay-tabs")
+                                            : document.querySelectorAll(".pay-tabs"));
+    if (!roots.length) return;
 
-    const btnCard = document.querySelector('.pay-method-btn[data-method="card"]');
-    const vbankSection = document.getElementById("vbankSection");
-
-    tabs.forEach((b) => b.classList.remove("is-active"));
-    if (btnCard) btnCard.classList.add("is-active");
-    if (vbankSection) vbankSection.classList.remove("open");
-
-    tabs.forEach((btn) => {
-      btn.addEventListener("click", () => {
-        tabs.forEach((b) => b.classList.remove("is-active"));
-        btn.classList.add("is-active");
-        const method = btn.dataset.method;
-        if (vbankSection) {
-          if (method === "vbank") vbankSection.classList.add("open");
-          else vbankSection.classList.remove("open");
-        }
-      });
+    roots.forEach((root) => {
+      if (!root || root.dataset.init === "1") return;  // 이미 초기화된 경우 스킵
+      const btnCard = root.querySelector('.pay-method-btn[data-method="card"]');
+      const vbank   = root.querySelector("#vbankSection");
+      // 기본: 카드 선택 / 무통장 섹션 닫기
+      root.querySelectorAll(".pay-method-btn").forEach(b => b.classList.remove("is-active"));
+      if (btnCard) btnCard.classList.add("is-active");
+      if (vbank)   vbank.classList.remove("open");
+      root.dataset.init = "1";
     });
   }
-  setupTabs();
+  // 탭 클릭 전역 위임: 프래그먼트가 어디에 주입되든 동작
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest(".pay-method-btn");
+    if (!btn) return;
+
+    const root = btn.closest(".pay-tabs");
+    if (!root) return;
+
+    // 탭 active 토글
+    root.querySelectorAll(".pay-method-btn").forEach(b => b.classList.remove("is-active"));
+    btn.classList.add("is-active");
+
+    // 같은 프래그먼트 내부의 vbankSection만 열고 닫기
+    const vbank = root.querySelector("#vbankSection");
+    if (vbank) {
+      if (btn.dataset.method === "vbank") vbank.classList.add("open");
+      else vbank.classList.remove("open");
+    }
+  });
 
   // ====== 프래그먼트 페이지용: 버튼 바인딩 ======
   async function bindPayFragment() {
+	initPayTabs();
     const btn = document.getElementById("payBtn");
     if (!btn) return; // 프래그먼트가 없는 페이지
-
+	
     // 이벤트예약 팝업 존재 여부로 분기
     const submitBtn = document.getElementById("submit-btn");
     const isEvent = !!submitBtn;
@@ -244,14 +256,15 @@
       return; // 이벤트 분기 종료
     }
 
-    // ---------- [주문(도서/장바구니)] ----------
+    // ---------- 주문 페이지 ----------
     try {
       await ensureAuth().catch(() => {});
       await prepOrderPayContext(); // 토큰 생성/해시 기록/컨텍스트 로딩
     } catch (preErr) {
       console.warn("사전 컨텍스트 주입 실패(주문):", preErr);
     }
-
+    
+	// 결제 버튼 클릭
     btn.addEventListener("click", async (e) => {
       try {
         e.preventDefault();
@@ -277,7 +290,7 @@
         const token = btn.dataset.token || getPayTokenFromHash();
         const merchantUid = btn.dataset.merchant;
         const amount = parseInt(btn.dataset.amount || "0", 10);
-        const title = btn.dataset.title || "도서 결제";
+        const title = btn.dataset.title || "도서 상품명";
         const method = btn.dataset.method || "card";
 
         if (!token || !merchantUid || !amount) {
@@ -331,6 +344,7 @@
 
   // ====== DOM 로딩 후 프래그먼트 바인딩 ======
   document.addEventListener("DOMContentLoaded", () => {
+	initPayTabs();
     if (!window.axiosInstance) console.warn("axiosInstance not initialized");
     bindPayFragment().catch((err) => {
       // 프래그먼트가 없거나 토큰 이슈 등은 경고만
