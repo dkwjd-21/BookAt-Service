@@ -18,6 +18,7 @@ import com.bookat.service.EventService;
 import com.bookat.service.PaymentService;
 import com.bookat.util.PaymentSessionStore;
 import com.bookat.util.PortOneClient;
+import com.bookat.util.ReservationSessionStore;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +33,7 @@ public class PaymentController {
   private final PortOneClient portOneClient;
   private final BookService bookService;
   private final PaymentSessionStore sessionStore;
+  private final ReservationSessionStore reservationSessionStore;
   private final EventService eventService;
 
   /* 이벤트 결제 시작 (팝업 우측 요약에서 eventId/amount만 넘김)   */
@@ -262,7 +264,7 @@ public String devNew(@RequestParam Integer amount,
   
   	// 이벤트 예약 결제창 진입
 	@GetMapping("/{paymentToken}/paymentUI")
-	public String renderPaymentFrag(@PathVariable String paymentToken, @RequestParam(name = "method", required = false) String requestMethod, @AuthenticationPrincipal User user, Model model) {
+	public String renderPaymentFrag(@PathVariable String paymentToken, @RequestParam(name = "method", required = false) String requestMetohd, @RequestParam(name = "token", required = false) String reservationToken, @AuthenticationPrincipal User user, Model model) {
 		
 		String token = paymentToken.startsWith("payment:") ? paymentToken.substring("payment:".length()) : paymentToken;
 		
@@ -278,9 +280,17 @@ public String devNew(@RequestParam Integer amount,
 			// 세션없음 : 권한 없음 -> 현재 페이지가 없어서 여기 진입하면 템플릿에러남
 			return "error/403";
 		}
+		
+		// 예약 세션 토큰 값
+		if (reservationToken != null && !reservationToken.isBlank()) {
+			boolean updatePaymentToken = reservationSessionStore.updatePaymentSessionToken(reservationToken, paymentToken);
+			if(!updatePaymentToken) {
+				log.warn("예약토큰 {} 에 이미 다른 결제세션이 매핑", reservationToken);
+			}
+		}
 	    
 		// 프래그먼트에 필요한 값 모델로 주입 (서버 신뢰값만)
-		String method = (requestMethod != null && !requestMethod.isBlank()) ? requestMethod : (session.method() == null ? "CARD" : session.method());
+		String method = (requestMetohd != null && !requestMetohd.isBlank()) ? requestMetohd : (session.method() == null ? "CARD" : session.method());
 		
 	    model.addAttribute("merchantUid", session.merchantUid());
 	    model.addAttribute("amount", session.amount().intValue());

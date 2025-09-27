@@ -312,8 +312,7 @@ public class ReservationServiceImpl implements ReservationService {
 
 	// 좌석 취소 로직
 	@Override
-	public void cancelReservation(String reservationToken) {
-
+	public void cancelReservation(String reservationToken, boolean isPaymentStep, String reason) {
 		if (!sessionStore.validateReservationSession(reservationToken)) {
 			log.warn("취소 시도: 유효하지 않은 예약 토큰 [{}]", reservationToken);
 			return;
@@ -330,15 +329,25 @@ public class ReservationServiceImpl implements ReservationService {
 		String reservationStatus = (String) data.get("reservationStatus");
 		
 		if (eventId == null || scheduleId == null) {
-	        log.warn("취소 실패: eventId 또는 scheduleId 없음 [{}]", reservationToken);
+	        log.warn("STEP1 취소 or eventId 또는 scheduleId 없음 [{}]", reservationToken);
 	        sessionStore.deleteDataAll(reservationToken);
 	        return;
 	    }
 		
-		if(reservationStatus != null && Integer.parseInt(reservationStatus.toString()) == ReservationStatus.RESERVED.code) {
+		if(reservationStatus != null && reservationStatus.toString().equals(ReservationStatus.RESERVED.name())) {
 			log.info("이미 결제 완료된 예약, 좌석 복구 스킵");
 			sessionStore.deleteDataAll(reservationToken);
 			return;
+		}
+		
+		// step4 에서 이전단계로 이동할 경우 결제세션만 삭제, step4 에서 브라우저를 닫을경우 결제세션 + 예약세션 함께 삭제
+		if(isPaymentStep) {
+			if(reason != null && reason.equals("from stage 4 to the previous step")) {
+				sessionStore.deletePaymentData(reservationToken);
+				return;
+			} else if(reason != null && reason.equals("popup close")) {
+				sessionStore.deletePaymentData(reservationToken);
+			}
 		}
 		
 		// 좌석 이름이 존재 -> SEAT_TYPE 처리 

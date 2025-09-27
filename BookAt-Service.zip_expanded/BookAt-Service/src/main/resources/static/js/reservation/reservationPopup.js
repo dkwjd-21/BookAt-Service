@@ -56,7 +56,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	if (reservationToken) sessionStorage.setItem("reservationToken", reservationToken);
 
 	// 내부 상태
-	let currentStep = 1;
+	window.currentStep = 1;
 
 	// ====== 초기화 작업 ======
 	// 캘린더 초기 렌더링 및 요약 갱신
@@ -128,7 +128,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 	// ====== 단계 표시 함수 ======
 	function showStep(step) {
-		currentStep = step;
+		window.currentStep = step;
 		steps.forEach((s, i) => s.classList.toggle("active", i === step - 1));
 		sections.forEach((sec) => sec.classList.toggle("active", sec.getAttribute("data-step") == step));
 
@@ -144,7 +144,22 @@ document.addEventListener("DOMContentLoaded", () => {
 			const targetStep = idx + 1;
 
 			// 이전 단계만 이동 가능
-			if (targetStep < currentStep) {
+			if (targetStep < window.currentStep) {
+				
+				if(window.currentStep === 4 && (targetStep <= 3 || targetStep >= 1)) {
+					const token = sessionStorage.getItem("reservationToken");
+					if (token) {
+						try {
+							await axiosInstance.post(`/reservation/${token}/cancel`, {
+								reason: "from stage 4 to the previous step",
+								isPaymentStep: true
+							});
+							console.log("step4 → 이전단계 이동: 결제세션 삭제 완료");
+						} catch (err) {
+							console.error("step4 → 이전단계 이동: 결제세션 삭제 실패", err);
+						}
+					}
+				}
 				
 				/*
 				showStep(targetStep);
@@ -248,7 +263,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		}
 
 		// STEP1: 회차 선택 검증 및 서버 등록
-		if (currentStep === 1) {
+		if (window.currentStep === 1) {
 			const chosen = document.querySelector(".option-part.selected");
 			if (!chosen) {
 				alert("회차를 선택해주세요.");
@@ -299,7 +314,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		}
 
 		// STEP2: 인원 선택 (PERSON_TYPE) 또는 좌석 선택 (SEAT_TYPE)
-		if (currentStep === 2) {
+		if (window.currentStep === 2) {
 			if (ticketType === "PERSON_TYPE") {
 				if (totalPrice <= 0) {
 					alert("예약인원을 선택해주세요!");
@@ -369,7 +384,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		}
 
 		// STEP3: 주문자 정보
-		if (currentStep === 3) {
+		if (window.currentStep === 3) {
 			if (!userNameInput?.value?.trim()) {
 				alert("이름을 입력해주세요.");
 				userNameInput?.focus();
@@ -399,7 +414,7 @@ document.addEventListener("DOMContentLoaded", () => {
 					
 					// 결제 프래그먼트 렌더링
 					const url = res.data.paymentStepUrl;
-					const html = await axiosInstance.get(url);
+					const html = await axiosInstance.get(url, { params: {token} });
 					document.querySelector('#event-payment-frag').innerHTML = html.data;
 					
 					// 프래그먼트 안의 결제 버튼 클릭시 실행되는 결제 진행 함수
@@ -427,7 +442,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		}
 
 		// 기본: 다음 단계로 이동
-		if (currentStep < steps.length) showStep(currentStep + 1);
+		if (window.currentStep < steps.length) showStep(window.currentStep + 1);
 	});
 
 	// ====== 제출(결제) 버튼 ======
@@ -628,8 +643,10 @@ function defaultCalendar() { today = eventDay; buildCalendar(); }
 async function cancelReservationSync() {
 	const token = sessionStorage.getItem('reservationToken');
 	if (!token) return;
+	
+	const isPaymentStep = window.currentStep === 4;
 	const url = `/reservation/${token}/cancel`;
-	const data = JSON.stringify({ reason: 'popup close' });
+	const data = JSON.stringify({ reason: 'popup close', isPaymentStep });
 	const blob = new Blob([data], { type: 'application/json' });
 	const ok = navigator.sendBeacon(url, blob);
 	if (!ok) {
@@ -642,11 +659,17 @@ async function cancelReservationSync() {
 	sessionStorage.removeItem('eventId');
 }
 
+// 직접 취소
 async function cancelReservation() {
 	const token = sessionStorage.getItem('reservationToken');
 	if (!token) return;
+	
+	const isPaymentStep = window.currentStep === 4;
+	
 	try {
-		const res = await axiosInstance.post(`/reservation/${token}/cancel`);
+		const res = await axiosInstance.post(`/reservation/${token}/cancel`, {
+			reason: 'cancel', isPaymentStep
+		});
 		alert(res.data.message || '예약이 취소되었습니다.');
 		sessionStorage.removeItem('reservationToken');
 		sessionStorage.removeItem('eventId');

@@ -10,8 +10,10 @@ import java.util.stream.Collectors;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
+import com.bookat.domain.PaymentStatus;
 import com.bookat.domain.ReservationStatus;
 import com.bookat.enums.PersonType;
+import com.bookat.security.JwtAuthenticationFilter;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -30,6 +32,7 @@ public class ReservationSessionStore {
 	private static final String META_PREFIX = "RESERVATION_META:";		// TTL 만료 시 좌석 복구용
 	private static final long TTL_SECONDS = 900;						// 만료 15분
 	private static final ObjectMapper OM = new ObjectMapper();
+	private final PaymentSessionStore paymentSessionStore;
 
 	// 예약 세션 생성 (예매 진입 초기값 세팅)
 	public String createInit(int eventId, String eventName, String userId, String eventDate) {
@@ -125,11 +128,36 @@ public class ReservationSessionStore {
 		redisTemplate.opsForHash().put(key, "status", "STEP4");
 	}
 	
+	// 결제창 진입시 생성되는 결제세션토큰값 업데이트
+	public boolean updatePaymentSessionToken(String reservationToken, String paymentToken) {
+		String key = KEY_PREFIX + reservationToken;
+		
+		Object existing = redisTemplate.opsForHash().get(key, "paymentToken");
+		
+		if(existing != null) {
+			if(paymentToken.equals(existing.toString())) {
+				// 이미 같은 값이면 그대로 두기 (멱등 처리)
+				log.debug("Reservation [{}] already mapped to paymentToken [{}], skip update.", reservationToken, paymentToken);
+				return true;
+			} else {
+				// 다른 paymentToken이 이미 매핑되어 있음, 정책적으로 덮어쓰지 않음
+				log.warn("Reservation [{}] already mapped to different paymentToken [{}] (new [{}]). Keeping existing.", 
+                        reservationToken, existing, paymentToken);
+				return false;
+			}
+		}
+		
+		redisTemplate.opsForHash().put(key, "paymentToken", paymentToken);
+		
+		return true;
+	}
+	
 	// 결제 완료 후 예약 상태
-	public void updateReservationStatus(String token, ReservationStatus status) {
+	public void updateReservationStatus(String token, ReservationStatus reservationStatus) {
 		String key = KEY_PREFIX + token;
 		
-		redisTemplate.opsForHash().put(key, "reservationStatus", String.valueOf(status.code));
+		redisTemplate.opsForHash().put(key, "reservationStatus", reservationStatus.name());
+		redisTemplate.opsForHash().delete(key, "paymentToken");
 	}
 	
 	// 임의 step 문자열 갱신
@@ -189,6 +217,27 @@ public class ReservationSessionStore {
 	public void deleteDataAll(String token) {
 		redisTemplate.delete(KEY_PREFIX + token);
 		redisTemplate.delete(META_PREFIX + token);
+		
+	}
+	
+	// 결제 진행 전 결제 세션 삭제 (STEP4에서 브라우저 종료 or 뒤로가기)
+	public void deletePaymentData(String token) {
+		String key = KEY_PREFIX + token;
+		
+		Object paymentTokenObj = redisTemplate.opsForHash().get(key, "paymentToken");
+		String paymentToken = (paymentTokenObj != null) ? paymentTokenObj.toString() : null;
+		
+		if(paymentToken != null) {
+			String paymentTokenKey = "payment:" + paymentToken;
+			Object paymentStatusObj = redisTemplate.opsForHash().get(paymentTokenKey, "status");
+			String paymentStatus = (paymentStatusObj.toString() != null) ? paymentStatusObj.toString() : null;
+			
+			if(!PaymentStatus.PAID.name().equals(paymentStatus)) {
+				paymentSessionStore.consumeEventPay(paymentToken);
+				redisTemplate.opsForHash().delete(key, "paymentToken");
+				log.info("STEP4, 결제세션 {} 삭제, status={})", token, paymentToken, paymentStatus);
+			}
+		}
 	}
 	
 	// 인원 유형 json 문자열 파싱
