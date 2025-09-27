@@ -41,13 +41,21 @@ public class OrderServiceImpl implements OrderService {
             return List.of();
         }
 
+        List<UserOrderSummaryDto> filteredSummaries = summaries.stream()
+                .filter(summary -> summary.getOrderStatus() == null || summary.getOrderStatus() != 0)
+                .collect(Collectors.toList());
+
+        if (filteredSummaries.isEmpty()) {
+            return List.of();
+        }
+
         Map<Long, List<OrderItemResponse>> itemsByOrderId = new HashMap<>();
-        for (UserOrderSummaryDto summary : summaries) {
+        for (UserOrderSummaryDto summary : filteredSummaries) {
             List<OrderItemResponse> items = orderMapper.selectOrderItemsByOrderId(summary.getOrderId());
             itemsByOrderId.put(summary.getOrderId(), items != null ? items : List.of());
         }
 
-        return summaries.stream()
+        return filteredSummaries.stream()
                 .map(summary -> {
                     List<OrderItemResponse> items = itemsByOrderId.getOrDefault(summary.getOrderId(), List.of());
                     int shippingFee = calculateShippingFee(items);

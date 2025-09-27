@@ -101,7 +101,9 @@ document.addEventListener("DOMContentLoaded", async () => {
           )
           .join("");
 
-        const trackingButton = Number(order.orderStatus) === 4 && order.trackingNumber ? `<button type="button" class="btn-secondary btn-tracking" data-tracking="${order.trackingNumber}">배송조회</button>` : "";
+        const statusCode = Number(order.orderStatus);
+        const trackingButton = statusCode === 4 && order.trackingNumber ? `<button type="button" class="btn-secondary btn-tracking" data-tracking="${order.trackingNumber}">배송조회</button>` : "";
+        const reviewButton = statusCode === 3 ? '<button type="button" class="btn-review">리뷰작성</button>' : "";
 
         return `
         <article class="order-card" data-status="${order.orderStatus ?? ""}">
@@ -118,7 +120,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             </div>
             <div class="order-actions">
               ${trackingButton}
-              <button type="button" class="btn-review">리뷰작성</button>
+              ${reviewButton}
             </div>
           </div>
 
