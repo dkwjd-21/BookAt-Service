@@ -108,21 +108,8 @@ public class ReservationServiceImpl implements ReservationService {
 
 		// 회차를 변경할 경우 기존 좌석의 복구처리
 		if(prevEventId != null && prevScheduleId != null) {
-			int prevReserved = Optional.ofNullable(existingData.get("reservedCount"))
-					.map(Object::toString)
-					.map(Integer::parseInt)
-					.orElse(0);
-			
-			if(prevReserved > 0) {
-				String availableSeatsKey = String.format("EVENT:%s:SCHEDULE:%s:AVAILABLE_SEAT", prevEventId, prevScheduleId);
-
-				redisTemplate.opsForValue().increment(availableSeatsKey, prevReserved);
-				log.info("회차 변경으로 좌석 복구: eventId={}, scheduleId={}, 복구좌석={}", prevEventId, prevScheduleId, prevReserved);
-			}
-			
-			// 세션 값 정리 + META 삭제
-			sessionStore.clearStep2(reservationToken);
-			sessionStore.deleteMetaData(reservationToken);
+			int result = sessionStore.restoreSeatsAndClearStep2DataOnScheduleChange(reservationToken, prevEventId, prevScheduleId);
+			log.info("회차 변경으로 좌석 복구: eventId={}, scheduleId={}, 복구좌석={}", prevEventId, prevScheduleId, result);
 		}
 
 		// 회차 저장 & STEP2 세팅
@@ -142,13 +129,6 @@ public class ReservationServiceImpl implements ReservationService {
 		if (eventId == null || scheduleId == null) {
 			throw new IllegalStateException("예약 토큰에 회차 정보가 없습니다.");
 		}
-
-		String availableSeatsKey = String.format("EVENT:%s:SCHEDULE:%s:AVAILABLE_SEAT", eventId, scheduleId);
-
-		// 현재 잔여 좌석 확인
-		int availableSeats = Optional.ofNullable(redisTemplate.opsForValue().get(availableSeatsKey))
-				.map(Integer::parseInt)
-				.orElse(0);
 		
 		// 기존에 요청받았던 인원
 		int prevTotal = Optional.ofNullable(sessionStore.getDataField(reservationToken, "reservedCount"))
@@ -159,25 +139,21 @@ public class ReservationServiceImpl implements ReservationService {
 		int totalPersonCount = personTypeReqDto.getPersonCounts().values().stream().mapToInt(Integer::intValue).sum();
 
 		int diff = totalPersonCount - prevTotal;
-
-		if (diff > 0) {
-			// 인원 초과 에러
-			if (diff > availableSeats) {
+		
+		if(diff != 0) {
+			int result = sessionStore.updateAvailableSeatsOnStep2PersonType(eventId, scheduleId, diff);
+			if(result == -1) {
 				throw new IllegalArgumentException(
-						String.format("잔여 좌석 부족: 요청 %d석, 잔여 %d석", totalPersonCount, availableSeats));
+						String.format("잔여 좌석 부족\n요청 %d석, 기존 인원 %d, 새로 추가된 인원 %d, 현재 잔여좌석 %d", totalPersonCount, prevTotal, diff, sessionStore.getAvailableSeats(eventId, scheduleId)));
 			}
-			// 인원 증가 -> 잔여 좌석 차감
-			redisTemplate.opsForValue().decrement(availableSeatsKey, diff);
-		} else if (diff < 0) {
-			// 인원 감소 -> 잔여 좌석 복구
-			redisTemplate.opsForValue().increment(availableSeatsKey, Math.abs(diff));
+			log.info("인원수 변경 완료: eventId={}, scheduleId={}, diff={}, 현재 잔여좌석={}", eventId, scheduleId, diff, result);
 		}
 		
 		// 인원 저장 & STEP3 세팅
 		sessionStore.updateStep2PersonType(reservationToken, totalPersonCount, personTypeReqDto.getTotalPrice(), personTypeReqDto.getPersonCounts());
 
 		// TTL 만료 시 복구용 METADATA 생성
-		sessionStore.createPersonMetaDataForSessionExpired(reservationToken, Integer.parseInt(eventId), Integer.parseInt(scheduleId), totalPersonCount);
+		sessionStore.createMetaDataForSessionExpired(reservationToken, Integer.parseInt(eventId), Integer.parseInt(scheduleId), totalPersonCount);
 	}
 
 	// step2 : 좌석 선택
@@ -369,29 +345,9 @@ public class ReservationServiceImpl implements ReservationService {
 			
 		} else {
 			// 좌석 정보가 없으면 PERSON_TYPE 처리 
-			String availableSeatsKey = String.format("EVENT:%s:SCHEDULE:%s:AVAILABLE_SEAT", eventId, scheduleId);
-
-			// 예약된 전체 인원의 수 구하기
-			int totalReserved = 0;
-
-			Object reservedCount = data.get("reservedCount");
-			
-			if(reservedCount != null) {
-				totalReserved = Integer.parseInt(reservedCount.toString());
-
-			}
-
-			// 취소시에는 예약된 인원 수만큼 잔여 좌석 복구
-			if (totalReserved > 0) {
-				redisTemplate.opsForValue().increment(availableSeatsKey, totalReserved);
-				log.info("좌석 복구 완료: eventId={}, scheduleId={}, 복구좌석={}", eventId, scheduleId, totalReserved);
-			}
+			int restored = sessionStore.restoreSeatsAndClearSessionOnCancel(reservationToken, eventId, scheduleId);
+			log.info("예약 취소 완료: eventId={}, scheduleId={}, 복구좌석={}", eventId, scheduleId, restored);
 		}
-
-		// 예약 데이터와 meta 키 삭제 
-		sessionStore.deleteDataAll(reservationToken);
-
-		log.info("예약 취소 완료: reservationToken=RESERVATION:{}", reservationToken);
 	}
 
 	@Override

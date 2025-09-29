@@ -161,7 +161,6 @@ document.addEventListener("DOMContentLoaded", () => {
 					}
 				}
 				
-				/*
 				showStep(targetStep);
 				
 				// 이전단계로 돌아가면 모든값이 초기화되어버려서 일단 조건
@@ -196,11 +195,7 @@ document.addEventListener("DOMContentLoaded", () => {
 				
 				// 요약도 갱신
 				if (typeof updateSummary === "function") updateSummary();
-				*/
-				
-				// 뒤로가기 값 유지
-				showStep(targetStep);
-				if (typeof updateSummary === "function") updateSummary();
+
 			}
 		});
 	});
