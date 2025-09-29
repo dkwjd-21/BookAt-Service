@@ -91,7 +91,6 @@ function initializeReviewModal() {
     const formData = new FormData(reviewForm);
     const data = Object.fromEntries(formData.entries());
 
-    // [주의!] URL을  Controller의 주소로 변경해야 합니다.	//미구현
     fetch("event/review", {
       method: "POST",
       headers: {
@@ -174,25 +173,90 @@ function initializeReserveButton() {
         const popupHeight = 700;
         const left = (window.innerWidth - popupWidth) / 2;
         const top = (window.innerHeight - popupHeight) / 2;
+        const popupName = `ReservationPopup_${Date.now()}`;
 
-        window.open(`/reservation/?eventId=${eventId}`, "ReservationPopup", `width=${popupWidth},height=${popupHeight},left=${left},top=${top},resizable=yes,scrollbars=yes`);
-        /*
-				try {
-					// 1. 현재 로그인 상태 확인 
-					const res = await validateUser();	// userAuth.js 전역 함수 
-					if(res.data.valid){
-						// 2. 로그인 상태라면 대기열 진입 -> 팝업창 
-						window.location.href = `/reservation/?eventId=${eventId}`; 
-					} else {
-						alert("로그인한 회원만 예매가 가능합니다.");
-						window.location.href = "/user/login";
-					}
-				} catch (e) {
-					console.error("사용자 인증 에러 : ", e);
-					alert("로그인한 회원만 예매가 가능합니다.");
-					window.location.href = "/user/login";
-				}
-				*/
+        const popup = window.open("about:blank", popupName, `width=${popupWidth},height=${popupHeight},left=${left},top=${top},resizable=yes,scrollbars=yes`);
+
+        if (!popup) {
+          alert("팝업이 차단되었습니다. 팝업 허용 후 다시 시도해주세요.");
+          return;
+        }
+
+        // 팝업을 띄우자마자 로딩 문구를 먼저 그려 두고,
+        // 내부에서 ensureAuthenticated()로 AccessToken 검증/재발급(필요 시)을 마친 뒤
+        // axiosInstance로 /reservation/start를 받아오면 그 페이지를 팝업에 덮어씌우도록 만듦
+        popup.document.open();
+        popup.document.write(`
+          <html>
+            <head>
+              <meta charset="UTF-8" />
+              <title>예매 페이지 로딩 중...</title>
+            </head>
+            <body style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;">
+              <p>예매 페이지를 불러오는 중입니다...</p>
+            </body>
+          </html>
+        `);
+        popup.document.close();
+
+        let authChecked = false;
+
+        const ensureAuthenticated = async () => {
+          if (authChecked) return;
+          try {
+            await validateUser();
+            authChecked = true;
+          } catch (authError) {
+            authChecked = true;
+            throw { ...authError, status: authError?.response?.status ?? 401 };
+          }
+        };
+
+        try {
+          await ensureAuthenticated();
+
+          const requestReservationPage = async () =>
+            axiosInstance.get(`/reservation/start?eventId=${eventId}`, {
+              responseType: "text",
+            });
+
+          let response;
+
+          try {
+            response = await requestReservationPage();
+          } catch (requestError) {
+            const status = requestError?.response?.status;
+            if (status === 401) {
+              await ensureAuthenticated();
+              response = await requestReservationPage();
+            } else {
+              throw requestError;
+            }
+          }
+
+          popup.document.open();
+          popup.document.write(response.data);
+          popup.document.close();
+        } catch (error) {
+          popup.close();
+
+          const status = error?.response?.status ?? error?.status ?? error?.code;
+
+          if (status === 401) {
+            alert("로그인한 회원만 예매가 가능합니다.");
+            window.location.href = "/user/login";
+            return;
+          }
+
+          if (status === 403) {
+            alert("접근 권한이 없습니다. 다시 로그인 후 이용해주세요.");
+            window.location.href = "/user/login";
+            return;
+          }
+
+          console.error("예매 페이지 로드 중 오류", error);
+          alert("예매 페이지를 여는 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+        }
       };
 
       if (countdownInterval) clearInterval(countdownInterval);
