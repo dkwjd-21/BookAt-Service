@@ -80,18 +80,14 @@ document.addEventListener("DOMContentLoaded", () => {
 			// 회차 ID 취득
 			const scheduleId = part.getAttribute("data-session-id");
 
-			
-			
 			// 회차 수정시 다음단계 값 초기화
-			if(currentScheduleId && currentScheduleId !== scheduleId) {
+			if(ticketType === "SEAT_TYPE" && currentScheduleId && currentScheduleId !== scheduleId) {
 				resetPersonSelection();
 				resetSeatSelection();
 				totalPrice = 0;
 				selectedSeats = [];
+				currentScheduleId = scheduleId;
 			}
-			
-			currentScheduleId = scheduleId;
-			
 
 			// 좌석 타입이면 서버에서 좌석 정보를 조회해서 렌더
 			if (ticketType === "SEAT_TYPE") {
@@ -283,19 +279,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
 					if (currentScheduleId !== scheduleId) {
 						// 인원형은 인원/금액 초기화
-						resetPersonSelection();
-						totalPrice = 0;
+						if(ticketType === "PERSON_TYPE") {
+							resetPersonSelection();
+							totalPrice = 0;
+						}
 
 						// 좌석형은 서버 홀드 좌석 해제 + 프론트 초기화
 						if (ticketType === "SEAT_TYPE" && currentScheduleId && selectedSeats.length > 0) {
 							await resetReservationOnServer(token, eventId, currentScheduleId, selectedSeats);
+							resetSeatSelection();
+							totalPrice = 0;
 						}
-
-						resetSeatSelection();
-
-						currentScheduleId = scheduleId;
 					}
-
+					
+					currentScheduleId = scheduleId;
 					showStep(2);
 				} else {
 					console.warn("서버에서 STEP2로 넘어가지 않음", res.data);
