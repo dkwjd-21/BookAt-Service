@@ -79,8 +79,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 			// 회차 ID 취득
 			const scheduleId = part.getAttribute("data-session-id");
+
 			
-			/*
 			
 			// 회차 수정시 다음단계 값 초기화
 			if(currentScheduleId && currentScheduleId !== scheduleId) {
@@ -91,7 +91,7 @@ document.addEventListener("DOMContentLoaded", () => {
 			}
 			
 			currentScheduleId = scheduleId;
-			*/
+			
 
 			// 좌석 타입이면 서버에서 좌석 정보를 조회해서 렌더
 			if (ticketType === "SEAT_TYPE") {
@@ -145,8 +145,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 			// 이전 단계만 이동 가능
 			if (targetStep < window.currentStep) {
-				
-				if(window.currentStep === 4 && (targetStep <= 3 || targetStep >= 1)) {
+
+				if (window.currentStep === 4 && (targetStep <= 3 || targetStep >= 1)) {
 					const token = sessionStorage.getItem("reservationToken");
 					if (token) {
 						try {
@@ -161,10 +161,10 @@ document.addEventListener("DOMContentLoaded", () => {
 					}
 				}
 				
-				showStep(targetStep);
-				
 				// 이전단계로 돌아가면 모든값이 초기화되어버려서 일단 조건
 				// 회차를 변경했을 때만 초기화되도록하고싶음
+				// 좌석 타입은 다음단계로 넘어가는 즉시 HOLD처리가 되기 때문에
+				// 이전 단계로 돌아갔을 때 HOLD를 해제하는 과정이 꼭 필요함 
 				if(ticketType !== "PERSON_TYPE") {
 					const token = sessionStorage.getItem("reservationToken");
 
@@ -172,7 +172,7 @@ document.addEventListener("DOMContentLoaded", () => {
 					if (targetStep === 1) {
 						// STEP1: 달력 초기화, 회차 선택 초기화
 						initCalendar();
-						resetPersonSelection();
+						// resetPersonSelection();
 
 						// STEP2에서 선택된 좌석 서버 초기화 
 						if (currentScheduleId && selectedSeats.length > 0) {
@@ -184,7 +184,7 @@ document.addEventListener("DOMContentLoaded", () => {
 						if (selectedSession) selectedSession.textContent = "선택회차";
 					} else if (targetStep === 2) {
 						// STEP2: 좌석/인원 선택 초기화
-						resetPersonSelection();
+						// resetPersonSelection();
 						// STEP2에서 선택된 좌석 서버 초기화 
 						if (currentScheduleId && selectedSeats.length > 0) {
 							await resetReservationOnServer(token, eventId, currentScheduleId, selectedSeats);
@@ -193,53 +193,53 @@ document.addEventListener("DOMContentLoaded", () => {
 					}
 				}
 				
-				// 요약도 갱신
+				// 뒤로가기 값 유지
+				showStep(targetStep);
 				if (typeof updateSummary === "function") updateSummary();
-
 			}
 		});
 	});
-	
+
 	async function handleReservationError(err, token) {
-	  if (!err?.response) {
-	    alert("네트워크 오류 발생");
-	    return true;
-	  }
+		if (!err?.response) {
+			alert("네트워크 오류 발생");
+			return true;
+		}
 
-	  const status = err?.response?.status;
-	  const errorMsg = err.response.data?.error || "알 수 없는 오류 발생";
+		const status = err?.response?.status;
+		const errorMsg = err.response.data?.error || "알 수 없는 오류 발생";
 
-	  // 예약 세션 만료 오류
-	  if (status === 410) {
-	    alert(
-	      errorMsg || "예약 세션이 만료되었습니다. 다시 예약을 진행해주세요."
-	    );
-	    sessionStorage.removeItem("reservationToken");
-	    sessionStorage.removeItem("eventId");
-	    try {
-	      window.close();
-	    } catch (err) {
-	      console.log("팝업창 닫기 실패");
-	    }
-	    return true;
-	  }
+		// 예약 세션 만료 오류
+		if (status === 410) {
+			alert(
+				errorMsg || "예약 세션이 만료되었습니다. 다시 예약을 진행해주세요."
+			);
+			sessionStorage.removeItem("reservationToken");
+			sessionStorage.removeItem("eventId");
+			try {
+				window.close();
+			} catch (err) {
+				console.log("팝업창 닫기 실패");
+			}
+			return true;
+		}
 
-	  // 좌석 초과 오류
-	  if (status === 409) {
-	    alert(
-	      errorMsg || "잔여좌석을 초과하여 선택할 수 없습니다. 다시 선택해주세요."
-	    );
-	    return true;
-	  }
+		// 좌석 초과 오류
+		if (status === 409) {
+			alert(
+				errorMsg || "잔여좌석을 초과하여 선택할 수 없습니다. 다시 선택해주세요."
+			);
+			return true;
+		}
 
-	  // 기타 오류
-	  if (errorMsg) {
-	    alert(errorMsg);
-	    return true;
-	  }
+		// 기타 오류
+		if (errorMsg) {
+			alert(errorMsg);
+			return true;
+		}
 
-	  console.error("요청 처리 중 에러 발생: ", err);
-	  return true;
+		console.error("요청 처리 중 에러 발생: ", err);
+		return true;
 	}
 
 	// ====== 단계 이동(다음 버튼) 처리 ======
@@ -249,12 +249,12 @@ document.addEventListener("DOMContentLoaded", () => {
 			alert("예약 세션이 없습니다. 다시 예약을 시작해주세요.");
 			return;
 		}
-		
+
 		try {
-		  await axiosInstance.get(`/reservation/${token}/check`);
+			await axiosInstance.get(`/reservation/${token}/check`);
 		} catch (err) {
-		  const handled = await handleReservationError(err, token);
-		  if (handled) return;
+			const handled = await handleReservationError(err, token);
+			if (handled) return;
 		}
 
 		// STEP1: 회차 선택 검증 및 서버 등록
@@ -280,22 +280,22 @@ document.addEventListener("DOMContentLoaded", () => {
 						currentScheduleId = scheduleId;
 					}
 					*/
-					
-					if(currentScheduleId !== scheduleId) {
+
+					if (currentScheduleId !== scheduleId) {
 						// 인원형은 인원/금액 초기화
 						resetPersonSelection();
 						totalPrice = 0;
-						
+
 						// 좌석형은 서버 홀드 좌석 해제 + 프론트 초기화
 						if (ticketType === "SEAT_TYPE" && currentScheduleId && selectedSeats.length > 0) {
 							await resetReservationOnServer(token, eventId, currentScheduleId, selectedSeats);
 						}
-						
+
 						resetSeatSelection();
-						
+
 						currentScheduleId = scheduleId;
 					}
-					
+
 					showStep(2);
 				} else {
 					console.warn("서버에서 STEP2로 넘어가지 않음", res.data);
@@ -406,24 +406,24 @@ document.addEventListener("DOMContentLoaded", () => {
 				const token = sessionStorage.getItem("reservationToken");
 				const res = await axiosInstance.post(`/reservation/${token}/step3`, payload);
 				if (res.data.status === "STEP4") {
-					
+
 					// 결제 프래그먼트 렌더링
 					const url = res.data.paymentStepUrl;
-					const html = await axiosInstance.get(url, { params: {token} });
+					const html = await axiosInstance.get(url, { params: { token } });
 					document.querySelector('#event-payment-frag').innerHTML = html.data;
-					
+
 					// 프래그먼트 안의 결제 버튼 클릭시 실행되는 결제 진행 함수
 					requestAnimationFrame(() => {
 						bindPayFragment()
-						.then(() => {
-							console.log("[PAY] 프래그먼트 바인딩 성공");
-						})
-						.catch((err) => {
-							console.error("[PAY] 프래그먼트 바인딩 실패", err);
-						});
+							.then(() => {
+								console.log("[PAY] 프래그먼트 바인딩 성공");
+							})
+							.catch((err) => {
+								console.error("[PAY] 프래그먼트 바인딩 실패", err);
+							});
 
 					})
-					
+
 					showStep(4);
 				}
 				else {
@@ -461,13 +461,13 @@ document.addEventListener("DOMContentLoaded", () => {
 					seatNames: selectedSeats,
 					totalPrice: totalPrice
 				};
-				
+
 				await axiosInstance.post(`/reservation/${token}/confirmBooking`, payload);
 			}
 			// 완료버튼 클릭 시 레디스 세션 정보 삭제
 			const res = await axiosInstance.post('/reservation/complete', { token });
-			
-			if(res.data?.status === 'SUCCESS') {
+
+			if (res.data?.status === 'SUCCESS') {
 				alert(res.data?.message);
 				//alert("예매가 완료되었습니다");
 				sessionStorage.removeItem("reservationToken");
@@ -648,7 +648,7 @@ async function cancelReservationSync() {
 		fetch(url, { method: 'POST', body: data, headers: { 'Content-Type': 'application/json' }, keepalive: true })
 			.catch(err => console.warn('cancelReservationSync fallback error:', err));
 	}
-	
+
 	sessionStorage.removeItem('reservationToken');
 	sessionStorage.removeItem('eventId');
 }
@@ -657,9 +657,9 @@ async function cancelReservationSync() {
 async function cancelReservation() {
 	const token = sessionStorage.getItem('reservationToken');
 	if (!token) return;
-	
+
 	const isPaymentStep = window.currentStep === 4;
-	
+
 	try {
 		const res = await axiosInstance.post(`/reservation/${token}/cancel`, {
 			reason: 'cancel', isPaymentStep
@@ -768,7 +768,7 @@ function toggleSeatSelection(el, seatObj = null) {
 	// 총 금액 계산: 좌석 객체에 price가 있으면 사용, 없으면 기본값(예: 10000원)
 	const eventPriceEl = document.getElementById("eventPrice");
 	const unitPrice = eventPriceEl ? parseInt(eventPriceEl.value, 10) : 10000;
-	
+
 	totalPrice = selectedSeats.length * unitPrice;
 
 	// 좌석 선택/해제 후 요약 갱신

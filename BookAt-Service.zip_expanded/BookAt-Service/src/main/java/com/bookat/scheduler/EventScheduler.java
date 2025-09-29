@@ -44,7 +44,7 @@ public class EventScheduler {
 //	@PostConstruct
 	public void preloadEventSeatsByEventId() {
 		System.out.println("애플리케이션이 시작되었습니다. 이벤트 좌석을 미리 로드합니다...");
-//		preloadSeatsLogicByEventId(75);
+		preloadSeatsLogicByEventId(115);
 //		preloadSeatsLogicByScheduleId(10);
 	}
 
