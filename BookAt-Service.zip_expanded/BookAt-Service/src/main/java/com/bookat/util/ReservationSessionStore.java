@@ -94,7 +94,7 @@ public class ReservationSessionStore {
 	    			"   if count > 0 then " +
 	    			"       redis.call('INCRBY', KEYS[2], count) " +
 	    			"   end " +
-	    			"   redis.call('HDEL', KEYS[1], 'reservedCount', 'groupCounts', 'totalPrice') " +	// STEP2 필드 삭제
+	    			"   redis.call('HDEL', KEYS[1], 'reservedCount', 'groupCounts', 'totalPrice') " +	// STEP2 관련 필드 삭제
 	    			"end " +
 	    			"redis.call('DEL', KEYS[3]) " +														// 메타 삭제
 	    			"return reservedCount or 0";
@@ -106,14 +106,6 @@ public class ReservationSessionStore {
 	    Long result = redisTemplate.execute(redisScript, Arrays.asList(key, availableSeatsKey, metaKey));
 		
 	    return result != null ? result.intValue() : 0;
-	}
-	
-	// 회차를 변경할 경우 관련 값 제거
-	public void clearStep2(String token) {
-		String key = KEY_PREFIX + token;
-		
-		// personType
-		redisTemplate.opsForHash().delete(key, "reservedCount", "groupCounts", "totalPrice");
 	}
 	
 	// step2 update
@@ -164,6 +156,7 @@ public class ReservationSessionStore {
 	    return result != null ? result.intValue() : -1;
 	}
 	
+	// 잔여좌석 조회
 	public int getAvailableSeats(String eventId, String scheduleId) {
 		String availableSeatsKey = String.format("EVENT:%s:SCHEDULE:%s:AVAILABLE_SEAT", eventId, scheduleId);
 		String value = redisTemplate.opsForValue().get(availableSeatsKey);
@@ -219,7 +212,6 @@ public class ReservationSessionStore {
 		
 		redisTemplate.opsForHash().put(key, "reservationStatus", reservationStatus.name());
 		redisTemplate.opsForHash().delete(key, "paymentToken");
-
 	}
 	
 	// 임의 step 문자열 갱신
