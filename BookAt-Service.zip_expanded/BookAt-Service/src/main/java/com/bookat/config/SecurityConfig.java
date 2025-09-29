@@ -32,10 +32,17 @@ public class SecurityConfig {
         .formLogin(AbstractHttpConfigurer::disable)
 //        .httpBasic(Customizer.withDefaults())
         .authorizeHttpRequests(auth -> auth
+        		// 개발용 임시허용 
+        		.requestMatchers("/reservation/seat/**").permitAll()
         		.requestMatchers("/css/**", "/js/**", "/images/**").permitAll()			// 정적 리소스 접근 가능
-
-        		.requestMatchers("/", "/user/**", "/auth/**", "/books/**", "/events/**", "/infoPage/**","/cart/**").permitAll()	// 비로그인도 접근 가능
-        		.requestMatchers("/api/**", "/queue/**", "/reservation/**", "/myPage/**","/order/**").authenticated()	// 로그인 한 사용자만 접근 가능
+        		.requestMatchers("/", "/user/**", "/auth/**", "/books/**", "/events/**", "/infoPage/**","/cart/**").permitAll()
+				.requestMatchers("/error/**","/payment/frag-test", "/payment/success", "/reservation/*/cancel").permitAll()
+        		.requestMatchers("/api/**", "/queue/**", "/reservation/**", "/myPage/**","/order/**",
+        				"/payment/**",
+        				"/payment/session/start-event",
+        				"/payment/session/start",
+                        "/payment/session/context",
+                        "/payment/api/complete","/reservation/**").authenticated()
                 .anyRequest().denyAll()
        ).addFilterBefore(accessTokenFilter, UsernamePasswordAuthenticationFilter.class)
         .addFilterAfter(refreshTokenFilter, AccessTokenFilter.class);

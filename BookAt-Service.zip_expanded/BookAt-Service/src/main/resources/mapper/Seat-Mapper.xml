@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.bookat.mapper.SeatMapper">
+
+	<insert id="insertSeat" parameterType="com.bookat.dto.EventSeatDto">
+		INSERT INTO SEAT_TYPE 
+		VALUES(SEQ_SEAT_TYPE.NEXTVAL, #{seatName}, #{seatStatus},
+			   #{seatGradeType}, #{eventId}, #{scheduleId})
+	</insert>
+	
+	<select id="selectOneBySeatName" resultType="com.bookat.dto.EventSeatDto">
+		SELECT * FROM SEAT_TYPE
+		WHERE SEAT_NAME = #{seatName}
+		  AND EVENT_ID = #{eventId}
+		  AND SCHEDULE_ID = #{scheduleId}
+	</select>
+	
+	<update id="updateSeatStatus" parameterType="com.bookat.dto.EventSeatDto">
+		UPDATE SEAT_TYPE 
+		SET SEAT_STATUS = #{seatStatus}
+		WHERE SEAT_NAME = #{seatName}
+		  AND EVENT_ID = #{eventId}
+		  AND SCHEDULE_ID = #{scheduleId}
+	</update>
+	
+</mapper>

@@ -3,7 +3,6 @@
   <head>
     <meta charset="UTF-8" />
     <title th:text="'BookAt - '+${book.title}">BookAt</title>
-
     <!-- 기존 공통 CSS -->
     <link rel="stylesheet" th:href="@{/css/header.css}" />
     <link rel="stylesheet" th:href="@{/css/footer.css}" />
@@ -141,7 +140,6 @@
 
       <!-- 리뷰 없을 때 -->
       <div th:if="${#lists.isEmpty(reviews)}" style="color: #6b7280">작성된 리뷰가 없습니다.</div>
-
       <!-- 리뷰 리스트 -->
       <div th:each="rv : ${reviews}" style="padding: 30px 0; border-bottom: 2px solid #eee">
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px">
@@ -250,7 +248,6 @@
               <li>고객센터 문의: support@bookat.com 또는 02-1234-5678</li>
             </ul>
           </li>
-
           <li>
             <b>유의 사항</b>
             <ul class="policy-sub">

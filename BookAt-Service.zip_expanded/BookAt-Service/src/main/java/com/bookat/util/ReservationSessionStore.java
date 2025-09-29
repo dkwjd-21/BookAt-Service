@@ -1,0 +1,253 @@
+package com.bookat.util;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.stereotype.Component;
+
+import com.bookat.domain.PaymentStatus;
+import com.bookat.domain.ReservationStatus;
+import com.bookat.enums.PersonType;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Component
+@RequiredArgsConstructor
+public class ReservationSessionStore {
+	
+	// redis 예약 세션 CRUD
+	
+	private final StringRedisTemplate redisTemplate;
+	private static final String KEY_PREFIX = "RESERVATION:";			// 데이터 본문
+	private static final String META_PREFIX = "RESERVATION_META:";		// TTL 만료 시 좌석 복구용
+	private static final long TTL_SECONDS = 900;						// 만료 15분
+	private static final ObjectMapper OM = new ObjectMapper();
+	private final PaymentSessionStore paymentSessionStore;
+
+	// 예약 세션 생성 (예매 진입 초기값 세팅)
+	public String createInit(int eventId, String eventName, String userId, String eventDate) {
+		try {
+			String token = UUID.randomUUID().toString();
+			String key = KEY_PREFIX + token;
+			
+			Map<String, String> initData = new LinkedHashMap<>();
+			initData.put("eventId", String.valueOf(eventId));
+			initData.put("eventName", eventName);
+			initData.put("userId", userId);
+			initData.put("eventDate", eventDate);
+			initData.put("status", "STEP1");
+			
+			redisTemplate.opsForHash().putAll(key, initData);
+			redisTemplate.expire(key, TTL_SECONDS, TimeUnit.SECONDS);
+			
+			return token;
+		} catch(Exception e) {
+			throw new RuntimeException("예약 세션 생성 실패", e);
+		}
+	}
+	
+	// 예약 세션 전체 조회
+	public Map<Object, Object> getDataAll(String token) {
+		String key = KEY_PREFIX + token;
+		
+		Map<Object, Object> redisData = redisTemplate.opsForHash().entries(key);
+		return (redisData == null || redisData.isEmpty()) ? null : redisData;
+	}
+	
+	// 예약 세션 필드 조회
+	public String getDataField(String token, String field) {
+		String key = KEY_PREFIX + token;
+		
+		Object value = redisTemplate.opsForHash().get(key, field);
+		return value == null ? null : value.toString();
+	}
+	
+	// step1 update
+	public void updateStep1(String token, int scheduleId) {
+		String key = KEY_PREFIX + token;
+		
+		redisTemplate.opsForHash().put(key, "scheduleId", String.valueOf(scheduleId));
+		redisTemplate.opsForHash().put(key, "status", "STEP2");
+	}
+	
+	// 회차를 변경할 경우 관련 값 제거
+	public void clearStep2(String token) {
+		String key = KEY_PREFIX + token;
+		
+		// personType
+		redisTemplate.opsForHash().delete(key, "reservedCount", "groupCounts", "totalPrice");
+	}
+	
+	// step2 update
+	// personType
+	public void updateStep2PersonType(String token, int reservedCount, int totalPrice, Map<PersonType, Integer> groupCounts) {
+		String key = KEY_PREFIX + token;
+		
+		redisTemplate.opsForHash().put(key, "reservedCount", String.valueOf(reservedCount));
+		redisTemplate.opsForHash().put(key, "totalPrice", String.valueOf(totalPrice));
+		
+		Map<String, Integer> groupCountsToString = (groupCounts == null) ? Map.of()
+				: groupCounts.entrySet().stream()
+					.collect(Collectors.toMap(e -> e.getKey().name(), Map.Entry::getValue, (a, b) -> a, LinkedHashMap::new));
+
+		try {
+			redisTemplate.opsForHash().put(key, "groupCounts", OM.writeValueAsString(groupCountsToString));
+		} catch(Exception e) {
+			throw new RuntimeException("groupCounts 저장 실패", e);
+		}
+		
+		redisTemplate.opsForHash().put(key, "status", "STEP3");
+	}
+	
+	// seatType
+	public void updateStep2SeatType(String token, String seatNamesCsv, int totalPrice) {
+		String key = KEY_PREFIX + token;
+
+		redisTemplate.opsForHash().put(key, "seatNames", seatNamesCsv);
+		redisTemplate.opsForHash().put(key, "totalPrice", String.valueOf(totalPrice));
+		redisTemplate.opsForHash().put(key, "status", "STEP3");
+	}
+	
+	// step3 update
+	public void updateStep3(String token, String userName, String phone, String email) {
+		String key = KEY_PREFIX + token;
+		
+		redisTemplate.opsForHash().put(key, "userName", userName);
+		redisTemplate.opsForHash().put(key, "phone", phone);
+		redisTemplate.opsForHash().put(key, "email", email);
+		redisTemplate.opsForHash().put(key, "status", "STEP4");
+	}
+	
+	// 결제창 진입시 생성되는 결제세션토큰값 업데이트
+	public boolean updatePaymentSessionToken(String reservationToken, String paymentToken) {
+		String key = KEY_PREFIX + reservationToken;
+		
+		Object existing = redisTemplate.opsForHash().get(key, "paymentToken");
+		
+		if(existing != null) {
+			if(paymentToken.equals(existing.toString())) {
+				// 이미 같은 값이면 그대로 두기 (멱등 처리)
+				log.debug("Reservation [{}] already mapped to paymentToken [{}], skip update.", reservationToken, paymentToken);
+				return true;
+			} else {
+				// 다른 paymentToken이 이미 매핑되어 있음, 정책적으로 덮어쓰지 않음
+				log.warn("Reservation [{}] already mapped to different paymentToken [{}] (new [{}]). Keeping existing.", 
+                        reservationToken, existing, paymentToken);
+				return false;
+			}
+		}
+		
+		redisTemplate.opsForHash().put(key, "paymentToken", paymentToken);
+		
+		return true;
+	}
+	
+	// 결제 완료 후 예약 상태
+	public void updateReservationStatus(String token, ReservationStatus reservationStatus) {
+		String key = KEY_PREFIX + token;
+		
+		redisTemplate.opsForHash().put(key, "reservationStatus", reservationStatus.name());
+		redisTemplate.opsForHash().delete(key, "paymentToken");
+
+	}
+	
+	// 임의 step 문자열 갱신
+	public void updateStepStatus(String token, String status) {
+		String key = KEY_PREFIX + token;
+		
+		redisTemplate.opsForHash().put(key, "status", status);
+	}
+	
+	// TTL 만료 시 좌석 복구용 메타데이터 (인원유형)
+	public void createPersonMetaDataForSessionExpired(String token, int eventId, int scheduleId, int reservedCount) {
+		String metaKey = META_PREFIX + token;
+		
+		Map<String, String> mataData = new LinkedHashMap<>();
+		mataData.put("eventId", String.valueOf(eventId));
+		mataData.put("scheduleId", String.valueOf(scheduleId));
+		mataData.put("reservedCount", String.valueOf(reservedCount));
+		
+		redisTemplate.opsForHash().putAll(metaKey, mataData);
+	}
+	
+	// TTL 만료 시 좌석 복구용 메타데이터 (좌석유형)
+	public void createSeatMetaDataForSessionExpired(String token, int eventId, int scheduleId, String seatNamesCsv) {
+		String metaKey = META_PREFIX + token;
+		
+		Map<String, String> mataData = new LinkedHashMap<>();
+		mataData.put("eventId", String.valueOf(eventId));
+		mataData.put("scheduleId", String.valueOf(scheduleId));
+		mataData.put("reservedSeats", seatNamesCsv);
+		
+		redisTemplate.opsForHash().putAll(metaKey, mataData);
+	}
+	
+	// 메타 데이터 조회
+	public Map<Object, Object> getMetaData(String token) {
+		return redisTemplate.opsForHash().entries(META_PREFIX + token);
+	}
+	
+	// 메타 데이터 삭제
+	public void deleteMetaData(String token) {
+		redisTemplate.delete(META_PREFIX + token);
+	}
+	
+	// 예약 세션 검증
+	public boolean validateReservationSession(String token) {
+		
+		// 예약 세션 만료 (다시 예약 필요)
+		if(!Boolean.TRUE.equals(redisTemplate.hasKey(KEY_PREFIX + token))) {
+			return false;
+		}
+		
+		// 예약 세션 유효
+		return true;
+	}
+	
+	// 예약 관련 세션 삭제
+	public void deleteDataAll(String token) {
+		redisTemplate.delete(KEY_PREFIX + token);
+		redisTemplate.delete(META_PREFIX + token);
+	}
+	
+	// 결제 진행 전 결제 세션 삭제 (STEP4에서 브라우저 종료 or 뒤로가기)
+	public void deletePaymentData(String token) {
+		String key = KEY_PREFIX + token;
+		
+		Object paymentTokenObj = redisTemplate.opsForHash().get(key, "paymentToken");
+		String paymentToken = (paymentTokenObj != null) ? paymentTokenObj.toString() : null;
+		
+		if(paymentToken != null) {
+			String paymentTokenKey = "payment:" + paymentToken;
+			Object paymentStatusObj = redisTemplate.opsForHash().get(paymentTokenKey, "status");
+			String paymentStatus = (paymentStatusObj.toString() != null) ? paymentStatusObj.toString() : null;
+			
+			if(!PaymentStatus.PAID.name().equals(paymentStatus)) {
+				paymentSessionStore.consumeEventPay(paymentToken);
+				redisTemplate.opsForHash().delete(key, "paymentToken");
+				log.info("STEP4, 결제세션 {} 삭제, status={})", token, paymentToken, paymentStatus);
+			}
+		}
+	}
+	
+	// 인원 유형 json 문자열 파싱
+	public Optional<Map<String, Integer>> parseGroupCounts(String json) {
+		try {
+			if(json == null || json.isBlank()) return Optional.empty();
+			Map<String, Integer> data = OM.readValue(json, new TypeReference<Map<String, Integer>>() {});
+			return Optional.of(data);
+		} catch(Exception e) {
+			log.info("groupCounts parse failed: {}", json, e);
+			return Optional.empty();
+		}
+	}
+}

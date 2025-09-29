@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -143,8 +144,18 @@ public class BookController{
 	
 	//구매하기
 	@PostMapping("/{bookId}/order")
-	public String order(@PathVariable String bookId) {
-		return  "redirect:/books/" + bookId;
+	public String order(@PathVariable String bookId,
+			            @RequestParam("qty") Integer qty,
+			            @RequestParam(name = "method", defaultValue = "CARD") String method,
+                        @AuthenticationPrincipal(expression = "userId") String userId) {
+		
+		  // 로그인 후 돌아올 위치
+		  if (userId == null || userId.isBlank()) {
+		    return "redirect:/user/Login?next=/books/" + bookId;
+		  }
+
+		  // 주문 나중에 넣고 일단 결제 페이지로 이동(method도 일단 카드 고정)
+		  return "redirect:/payment/frag-test?bookId=" + bookId + "&qty=" + qty + "&method=CARD";
 	}
 	
 	// 바로구매 API

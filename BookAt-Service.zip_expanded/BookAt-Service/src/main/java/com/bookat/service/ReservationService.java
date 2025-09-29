@@ -1,9 +1,30 @@
 package com.bookat.service;
 
-import com.bookat.entity.Event;
+import java.util.List;
+
+import com.bookat.dto.reservation.PaymentInfoResDto;
+import com.bookat.dto.reservation.PersonTypeReqDto;
+import com.bookat.dto.reservation.ReservationStartDto;
+import com.bookat.dto.reservation.SeatTypeReqDto;
+import com.bookat.dto.reservation.UserInfoReqDto;
+import com.bookat.entity.reservation.EventPart;
 
 public interface ReservationService {
 
-	Event startReservation(int eventId);
+	ReservationStartDto startReservation(int eventId, String userId);
+	void selectSchedule(String reservationToken, int scheduleId);
+	void selectPersonType(String reservationToken, PersonTypeReqDto personTypeReqDto);
+	boolean inputUserInfo(String reservationToken, String userId, UserInfoReqDto userInfoReqDto);
+	void cancelReservation(String reservationToken, boolean isPaymentStep, String reason);
+	void validateReservation(String reservationToken);
+	PaymentInfoResDto getPaymentInfo(String reservationToken);
+	void createReservation(String reservationToken, Long paymentId);
+	// 예매 완료
+	void completeReservation(String reservationToken, String userId);
 	
+	// eventId로 회차 리스트 조회 
+	List<EventPart> selectPartsByEventId(int eventId);	
+	
+	void selectSeatType(String reservationToken, SeatTypeReqDto reqDto);
+	void confirmBooking(String reservationToken, SeatTypeReqDto reqDto);
 }
