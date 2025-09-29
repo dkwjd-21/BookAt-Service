@@ -108,7 +108,7 @@ public class ReservationServiceImpl implements ReservationService {
 
 		// 회차를 변경할 경우 기존 좌석의 복구처리
 		if(prevEventId != null && prevScheduleId != null) {
-			int result = sessionStore.restoreSeatsAndClearStep2DataOnScheduleChange(reservationToken, prevEventId, prevScheduleId);
+			int result = sessionStore.rollbackOnScheduleChange(reservationToken, prevEventId, prevScheduleId);
 			log.info("회차 변경으로 좌석 복구: eventId={}, scheduleId={}, 복구좌석={}", prevEventId, prevScheduleId, result);
 		}
 
@@ -141,7 +141,7 @@ public class ReservationServiceImpl implements ReservationService {
 		int diff = totalPersonCount - prevTotal;
 		
 		if(diff != 0) {
-			int result = sessionStore.updateAvailableSeatsOnStep2PersonType(eventId, scheduleId, diff);
+			int result = sessionStore.adjustSeatsOnStep2(eventId, scheduleId, diff);
 			if(result == -1) {
 				throw new IllegalArgumentException(
 						String.format("잔여 좌석 부족\n요청 %d석, 기존 인원 %d, 새로 추가된 인원 %d, 현재 잔여좌석 %d", totalPersonCount, prevTotal, diff, sessionStore.getAvailableSeats(eventId, scheduleId)));
@@ -345,7 +345,7 @@ public class ReservationServiceImpl implements ReservationService {
 			
 		} else {
 			// 좌석 정보가 없으면 PERSON_TYPE 처리 
-			int restored = sessionStore.restoreSeatsAndClearSessionOnCancel(reservationToken, eventId, scheduleId);
+			int restored = sessionStore.rollbackOnCancel(reservationToken, eventId, scheduleId);
 			log.info("예약 취소 완료: eventId={}, scheduleId={}, 복구좌석={}", eventId, scheduleId, restored);
 		}
 	}

@@ -82,7 +82,7 @@ public class ReservationSessionStore {
 	}
 	
 	// 회차 변경 시 이전 회차 좌석 복구 + Step2 필드/메타 삭제
-	public int restoreSeatsAndClearStep2DataOnScheduleChange(String token, String prevEventId, String prevScheduleId) {
+	public int rollbackOnScheduleChange(String token, String prevEventId, String prevScheduleId) {
 		String key = KEY_PREFIX + token;
 		String metaKey = META_PREFIX + token;
 		String availableSeatsKey = String.format("EVENT:%s:SCHEDULE:%s:AVAILABLE_SEAT", prevEventId, prevScheduleId);
@@ -131,7 +131,7 @@ public class ReservationSessionStore {
 
 	// step2 update : 인원 증가 시 LuaScript 로 잔여좌석 차감을 원자적으로 처리하고, 인원 감소 시 INCRBY로 복구
 	// 인원 변경 시 좌석 수량 증감 (세션 건드리지 않음)
-	public int updateAvailableSeatsOnStep2PersonType(String eventId, String scheduleId, int diff) {
+	public int adjustSeatsOnStep2(String eventId, String scheduleId, int diff) {
 		String availableSeatsKey = String.format("EVENT:%s:SCHEDULE:%s:AVAILABLE_SEAT", eventId, scheduleId);
 		
 	    String luaScript =
@@ -295,7 +295,7 @@ public class ReservationSessionStore {
 	
 	// 예약 프로세스 취소 시 좌석 복구와 세션삭제의 원자적 처리
 	// 예약 취소 시 좌석 복구 + 세션/메타 삭제
-	public int restoreSeatsAndClearSessionOnCancel(String token, String eventId, String scheduleId) {
+	public int rollbackOnCancel(String token, String eventId, String scheduleId) {
 		String key = KEY_PREFIX + token;
 		String metaKey = META_PREFIX + token;
 		String availableSeatsKey = String.format("EVENT:%s:SCHEDULE:%s:AVAILABLE_SEAT", eventId, scheduleId);
