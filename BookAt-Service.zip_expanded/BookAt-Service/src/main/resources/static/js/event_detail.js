@@ -131,7 +131,6 @@ function initializeReserveButton() {
   if (!eventDateStr) {
     reserveBtn.textContent = "날짜 정보 없음";
     reserveBtn.disabled = true;
-    // [수정] 비활성화 시 버튼 색상 변경
     reserveBtn.style.backgroundColor = "#F0F0F0";
     return;
   }
@@ -144,104 +143,127 @@ function initializeReserveButton() {
 
   const ticketingOpenDate = new Date(eventDate);
   ticketingOpenDate.setDate(ticketingOpenDate.getDate() - 30);
-  ticketingOpenDate.setHours(18, 0, 0, 0); //예매일 당일 오픈 시간 설정
+  ticketingOpenDate.setHours(18, 0, 0, 0);
 
   let countdownInterval;
 
   function updateButtonState() {
-    const currentTime = new Date(); // 1. 예매가 종료된 경우
+    const currentTime = new Date();
 
+    // 1. 예매가 종료된 경우
     if (now.getTime() >= eventDate.getTime()) {
       reserveBtn.textContent = "예매가 종료되었습니다";
       reserveBtn.disabled = true;
-      // [수정] 비활성화 시 버튼 색상 변경
       reserveBtn.style.backgroundColor = "#F0F0F0";
       if (countdownInterval) clearInterval(countdownInterval);
       return;
-    } // 2. 예매가 가능한 경우
+    }
 
+    // 2. 예매가 가능한 경우
     if (currentTime.getTime() >= ticketingOpenDate.getTime()) {
       reserveBtn.textContent = "예매하기";
       reserveBtn.disabled = false;
-      // [수정] 활성화 시 버튼 색상 변경
       reserveBtn.style.backgroundColor = "#f9d849";
 
+      // =================================================================
+      // ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼ 수정된 최종 코드 적용 ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
+      // =================================================================
       reserveBtn.onclick = async function () {
-        // window.location.href = `/reservation/?eventId=${eventId}`;
-
         const popupWidth = 1000;
         const popupHeight = 700;
         const left = (window.innerWidth - popupWidth) / 2;
         const top = (window.innerHeight - popupHeight) / 2;
         const popupName = `ReservationPopup_${Date.now()}`;
-
-        const popup = window.open("about:blank", popupName, `width=${popupWidth},height=${popupHeight},left=${left},top=${top},resizable=yes,scrollbars=yes`);
-
-        if (!popup) {
-          alert("팝업이 차단되었습니다. 팝업 허용 후 다시 시도해주세요.");
-          return;
-        }
-
-        // 팝업을 띄우자마자 로딩 문구를 먼저 그려 두고,
-        // 내부에서 ensureAuthenticated()로 AccessToken 검증/재발급(필요 시)을 마친 뒤
-        // axiosInstance로 /reservation/start를 받아오면 그 페이지를 팝업에 덮어씌우도록 만듦
-        popup.document.open();
-        popup.document.write(`
-          <html>
-            <head>
-              <meta charset="UTF-8" />
-              <title>예매 페이지 로딩 중...</title>
-            </head>
-            <body style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;">
-              <p>예매 페이지를 불러오는 중입니다...</p>
-            </body>
-          </html>
-        `);
-        popup.document.close();
-
-        let authChecked = false;
+        let popup = null;
 
         const ensureAuthenticated = async () => {
-          if (authChecked) return;
           try {
             await validateUser();
-            authChecked = true;
+            return false;
           } catch (authError) {
-            authChecked = true;
-            throw { ...authError, status: authError?.response?.status ?? 401 };
+            const status = authError?.response?.status ?? authError?.status ?? authError?.code;
+            if (status && status !== 401) {
+              throw authError;
+            }
+
+            const refreshResponse = await axiosInstance.post("/auth/refresh", {});
+            const newToken = refreshResponse?.data?.accessToken;
+
+            if (!newToken) {
+              throw new Error("새 access token을 받을 수 없습니다.");
+            }
+
+            localStorage.setItem("accessToken", newToken);
+
+            await validateUser();
+
+            return true;
           }
         };
 
         try {
-          await ensureAuthenticated();
+          const refreshedBeforeOpen = await ensureAuthenticated();
 
-          const requestReservationPage = async () =>
+          popup = window.open("about:blank", popupName, `width=${popupWidth},height=${popupHeight},left=${left},top=${top},resizable=yes,scrollbars=yes`);
+          if (!popup) {
+            alert("팝업이 차단되었습니다. 팝업 허용 후 다시 시도해주세요.");
+            return;
+          }
+
+          popup.document.open();
+          popup.document.write(`
+            <html>
+              <head>
+                <meta charset="UTF-8" />
+                <title>예매 페이지 로딩 중...</title>
+              </head>
+              <body style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;margin:0;">
+                <p>예매 페이지를 불러오는 중입니다...</p>
+              </body>
+            </html>
+          `);
+          popup.document.close();
+
+          const requestReservationPage = () =>
             axiosInstance.get(`/reservation/start?eventId=${eventId}`, {
               responseType: "text",
             });
 
-          let response;
-
-          try {
-            response = await requestReservationPage();
-          } catch (requestError) {
-            const status = requestError?.response?.status;
-            if (status === 401) {
-              await ensureAuthenticated();
-              response = await requestReservationPage();
-            } else {
-              throw requestError;
+          const fetchReservationPage = async () => {
+            try {
+              return await requestReservationPage();
+            } catch (error) {
+              const status = error?.response?.status;
+              if (status === 401) {
+                console.log("Access token expired. Refreshing token...");
+                const refreshed = await ensureAuthenticated();
+                if (!refreshed) {
+                  // 이미 유효하다면 바로 종료
+                  throw error;
+                }
+                return await requestReservationPage();
+              }
+              throw error;
             }
+          };
+
+          let response = await fetchReservationPage();
+
+          if (refreshedBeforeOpen) {
+            console.log("Access token was refreshed before popup open. 재확인을 위해 재요청");
+            response = await fetchReservationPage();
           }
 
           popup.document.open();
           popup.document.write(response.data);
           popup.document.close();
         } catch (error) {
-          popup.close();
+          console.error("예매 처리 중 오류:", error);
+          if (popup && !popup.closed) {
+            popup.close();
+          }
 
           const status = error?.response?.status ?? error?.status ?? error?.code;
-
           if (status === 401) {
             alert("로그인한 회원만 예매가 가능합니다.");
             window.location.href = "/user/login";
@@ -254,10 +276,12 @@ function initializeReserveButton() {
             return;
           }
 
-          console.error("예매 페이지 로드 중 오류", error);
-          alert("예매 페이지를 여는 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+          alert("예매 페이지를 여는 중 오류가 발생했습니다.");
         }
       };
+      // =================================================================
+      // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ 수정된 최종 코드 적용 ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+      // =================================================================
 
       if (countdownInterval) clearInterval(countdownInterval);
       return;
@@ -269,7 +293,6 @@ function initializeReserveButton() {
     // 3. 카운트다운이 필요한 경우
     if (currentTime.getTime() >= countdownStartDate.getTime()) {
       reserveBtn.disabled = true;
-      // [수정] 비활성화 시 버튼 색상 변경
       reserveBtn.style.backgroundColor = "#F0F0F0";
       countdownInterval = setInterval(() => {
         const timeLeft = ticketingOpenDate.getTime() - new Date().getTime();
@@ -288,11 +311,11 @@ function initializeReserveButton() {
       const openDate = ticketingOpenDate.toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" });
       reserveBtn.textContent = `${openDate} 18:00 오픈예정`;
       reserveBtn.disabled = true;
-      // [수정] 비활성화 시 버튼 색상 변경
       reserveBtn.style.backgroundColor = "#F0F0F0";
     }
-  } // 함수 최초 실행
+  }
 
+  // 함수 최초 실행
   updateButtonState();
 }
 
