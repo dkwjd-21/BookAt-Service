@@ -304,17 +304,18 @@ public class ReservationServiceImpl implements ReservationService {
 		String seatNamesStr = (String) data.get("seatNames");
 		String reservationStatus = (String) data.get("reservationStatus");
 
+		// ACTIVE SET에서 제거 (예매 중인 인원 set) 
+		removeFromActiveSet(eventId, userId);
+		
 		if (eventId == null || scheduleId == null) {
 			log.warn("STEP1 취소 or eventId 또는 scheduleId 없음 [{}]", reservationToken);
 			sessionStore.deleteDataAll(reservationToken);
-			removeFromActiveSet(eventId, userId);
 			return;
 		}
 
 		if (reservationStatus != null && reservationStatus.toString().equals(ReservationStatus.RESERVED.name())) {
 			log.info("이미 결제 완료된 예약, 좌석 복구 스킵");
 			sessionStore.deleteDataAll(reservationToken);
-			removeFromActiveSet(eventId, userId);
 			return;
 		}
 
@@ -322,11 +323,9 @@ public class ReservationServiceImpl implements ReservationService {
 		if (isPaymentStep) {
 			if (reason != null && reason.equals("from stage 4 to the previous step")) {
 				sessionStore.deletePaymentData(reservationToken);
-				removeFromActiveSet(eventId, userId);
 				return;
 			} else if (reason != null && reason.equals("popup close")) {
 				sessionStore.deletePaymentData(reservationToken);
-				removeFromActiveSet(eventId, userId);
 			}
 		}
 
