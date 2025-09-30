@@ -7,12 +7,12 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Component;
+
 import com.bookat.domain.PaymentStatus;
 import com.bookat.domain.ReservationStatus;
 import com.bookat.enums.PersonType;
@@ -25,9 +25,10 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class ReservationSessionStore {
-	
+public class ReservationRedisUtil {
+
 	// redis 예약 세션 CRUD
+	// ReservationSessionStore 삭제하고 이 클래스로 바꾸기 작업 시작
 	
 	private final StringRedisTemplate redisTemplate;
 	private static final String KEY_PREFIX = "RESERVATION:";			// 데이터 본문
