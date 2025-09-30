@@ -20,7 +20,7 @@ public class JwtRedisUtil {
 	private static final String SID_KEY = "user:%s:current_sid";
 	
 	// SID (session id) 저장
-	public void saveSid(String userId, String sid, long ttlMs) {
+	public void saveSid(String userId, String sid) {
 		String sidKey = String.format(SID_KEY, userId);
 		
 		String luaScript = 
@@ -32,7 +32,7 @@ public class JwtRedisUtil {
 		redisScript.setScriptText(luaScript);
 		redisScript.setResultType(String.class);
 		
-		redisTemplate.execute(redisScript, List.of(sidKey), sid, String.valueOf(ttlMs), TimeUnit.MILLISECONDS);
+		redisTemplate.execute(redisScript, List.of(sidKey), sid, String.valueOf(JwtTokenProvider.EXPIRATION_30M));
 	}
 	
 	// 현재 session id 조회
@@ -48,13 +48,13 @@ public class JwtRedisUtil {
 	}
 	
 	// refresh token + loginTime 저장
-	public void storeRefreshToken(String userId, String refreshToken, String loginTime, long ttlMs) {
+	public void storeRefreshToken(String userId, String refreshToken, String loginTime) {
 		Map<String, String> values = new HashMap<>();
 		values.put("refreshToken", refreshToken);
 		values.put("loginTime", loginTime);
 		
 		redisTemplate.opsForHash().putAll(userId, values);
-		redisTemplate.expire(userId, ttlMs, TimeUnit.MILLISECONDS);
+		redisTemplate.expire(userId, JwtTokenProvider.EXPIRATION_1D, TimeUnit.MILLISECONDS);
 	}
 	
 	// refresh token + loginTime 조회

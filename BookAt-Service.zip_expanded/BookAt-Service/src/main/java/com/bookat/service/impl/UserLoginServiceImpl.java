@@ -43,7 +43,7 @@ public class UserLoginServiceImpl implements UserLoginService {
 		}
 		
 		String sid = UUID.randomUUID().toString();
-		jwtRedisUtil.saveSid(user.getUserId(), sid, JwtTokenProvider.EXPIRATION_30M);
+		jwtRedisUtil.saveSid(user.getUserId(), sid);
 
 		String accessToken = jwtTokenProvider.generateAccessToken(user.getUserId(), sid);
 		String refreshToken = jwtTokenProvider.generateRefreshToken(user.getUserId());
@@ -57,6 +57,13 @@ public class UserLoginServiceImpl implements UserLoginService {
 //		userMapper.updateUserRefreshToken(values);
 		
 		return new UserLoginResponse(accessToken, refreshToken);
+	}
+	
+	// 로그아웃 시 레디스 세션 정보 삭제
+	@Override
+	public void deleteSessionInfo(String userId) {
+		jwtRedisUtil.deleteSid(userId);
+		jwtRedisUtil.deleteRefreshToken(userId);
 	}
 	
 	// userId 로 사용자 조회

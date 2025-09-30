@@ -65,7 +65,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 
 	@Override
 	public void storeRefreshToken(String userId, String refreshToken, String loginTime) {
-		jwtRedisUtil.storeRefreshToken(userId, refreshToken, loginTime, JwtTokenProvider.EXPIRATION_1D);
+		jwtRedisUtil.storeRefreshToken(userId, refreshToken, loginTime);
 	}
 
 }
