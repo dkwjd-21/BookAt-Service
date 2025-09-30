@@ -265,11 +265,16 @@ body {
   flex-wrap: wrap; /* 화면이 작아지면 다음 줄로 넘김 */
 }
 
+.related-book-list a {
+  text-decoration: none;
+  color: inherit;
+}
+
 .related-book-item {
-  width: 180px; /* 카드의 너비 */
+  width: 180px;
   background-color: #ffffff;
-  border-radius: 12px; /* 모서리 둥글게 */
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* 그림자 효과 */
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   padding: 16px;
   text-align: left;
   transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; /* 부드러운 전환 효과 */
@@ -304,9 +309,9 @@ body {
 /* 도서 제목 */
 .book-title {
   font-size: 16px;
-  font-weight: 600; /* 약간 굵게 */
+  font-weight: 600;
   color: #374151;
-  line-height: 1.5; /* 줄 간격 */
+  line-height: 1.5;
 
   /* 두 줄 이상 넘어갈 경우 말줄임표(...) 처리 */
   overflow: hidden;
