@@ -1,52 +1,31 @@
 $(document).ready(function() {
 
+	$("#verify-btn").hide();
     $("#find-pw-section").show();
 	$("#change-pw-section, #result-section").hide();
-
-    // 전화번호 숫자만 입력 체크
-    $("#phone").on("input", function() {
-        const cleaned = this.value.replace(/[^0-9]/g, '');
-        if (this.value !== cleaned) {
-            this.value = cleaned;
-            $("#find-phone-error").show();
-        } else {
-            $("#find-phone-error").hide();
-        }
-    });
 
     // 비밀번호 찾기 제출
     $("#find-pw-section").submit(function(e) {
         e.preventDefault();
 
 		const userId = $("#userId").val().trim();
-        const phone = $("#phone").val().trim();
 		
 		if(userId === "") {
             $("#find-id-error").text("아이디를 입력해주세요.").show();
-            $("#find-phone-error").hide();
             $("#userId").focus();
             return;
         } else {
             $("#find-id-error").hide();
         }
 
-		if(phone === "" || !/^[0-9]+$/.test(phone)) {
-            $("#find-phone-error").text("전화번호를 제대로 입력해주세요.").show();
-            $("#phone").focus();
-            return;
-        } else {
-            $("#find-phone-error").hide();
-        }
-
         $.ajax({
 			url: "/user/findPw",
             type: "POST",
-            data: { userId: userId, phone: phone },
+            data: { userId: userId},
             success: function(data) {
-				$("#find-id-error").hide();
 				$("#hidden-user-id").val(data);
-				$("#find-pw-section").hide();
-				$("#change-pw-section").show();
+				$("#id-check-container").hide();
+				$("#verify-btn").show();
             },
             error: function(xhr) {
 				const errMsg = xhr.responseText;
@@ -55,11 +34,6 @@ $(document).ready(function() {
 				if (errMsg.includes("아이디")) {
 				    $("#find-id-error").text(errMsg).show();
 				    $("#userId").focus().addClass("input-error");
-				}
-				// 비밀번호 관련 에러
-				else if (errMsg.includes("전화번호")) {
-				    $("#find-phone-error").text(errMsg).show();
-				    $("#phone").focus().addClass("input-error");
 				}
 				// 그 외 (공통 에러)
 				else {

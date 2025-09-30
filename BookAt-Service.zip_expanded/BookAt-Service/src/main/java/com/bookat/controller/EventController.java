@@ -1,10 +1,9 @@
 package com.bookat.controller;
 
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.ZoneId;
-import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.bookat.dto.EventPartDto;
 import com.bookat.dto.EventResDto;
 import com.bookat.entity.Book;
 import com.bookat.entity.Review;
@@ -93,6 +93,20 @@ public class EventController {
 
 	    model.addAttribute("currentLocalCode", local_code);
 
+	    Map<String, String> localNames = Map.of(
+	            "SEOUL", "서울",
+	            "GYEONGGI_INCHEON", "경기/인천",
+	            "JEOLLA", "전라",
+	            "GYEONGSANG", "경상",
+	            "GANGWON", "강원",
+	            "CHUNGCHEONG", "충청",
+	            "JEJU", "제주"
+	    );
+
+	    String categoryName = localNames.getOrDefault(local_code, local_code);
+	    model.addAttribute("categoryName", categoryName);
+	    model.addAttribute("eventCount", res.size());
+
 	    return "mainpage/event_categorypage";
 	};
 	
@@ -114,7 +128,19 @@ public class EventController {
         
         model.addAttribute("kakaoMapsAppkey", kakaoMapsAppkey);
 
-        // 상세 페이지 뷰를 반환 
+        List<EventPartDto> parts = eventService.selectPartByEventId(event.getEventId());
+        model.addAttribute("eventParts", parts == null ? java.util.List.of() : parts);
+
+        if ("SEAT_TYPE".equals(event.getTicketType())) {
+            Map<String, Integer> seatPrices = Map.of(
+                "STANDARD", event.getEventPrice(),
+                "PREMIUM", (int) Math.round(event.getEventPrice() * 1.2),
+                "VIP", (int) Math.round(event.getEventPrice() * 1.5)		// 좌석 등급별 가격 정해지면 이 부분에 추가하시면 됩니다. 예시로 3등급으로 나눠놨습니다.
+            );
+            model.addAttribute("seatPrices", seatPrices);
+        }
+
+        // 상세 페이지 뷰를 반환
         return "mainpage/event_detail";
     }
 	
@@ -127,7 +153,7 @@ public class EventController {
 	    // 이벤트가 존재하지 않을 경우의 예외 처리
 	    if (event == null) {
 	        redirectAttributes.addFlashAttribute("errorMessage", "존재하지 않는 이벤트입니다.");
-	        return "redirect:/event";
+	        return "redirect:/events";
 	    }
 
 	    // [권장] DTO의 eventDate 필드를 Date -> LocalDateTime으로 변경하면 아래 변환 과정이 필요 없어집니다.
@@ -148,7 +174,7 @@ public class EventController {
 	    // 3. [수정] 현재 시간이 예매 기간을 벗어났는지 검증 (시작 전 OR 마감 후)
 	    if (now.isBefore(ticketingOpenTime) || now.isAfter(ticketingCloseTime)) {
 	        redirectAttributes.addFlashAttribute("errorMessage", "예매 가능한 시간이 아닙니다.");
-	        return "redirect:/event/detail?event_id="+eventId;
+	        return "redirect:/events/detail?event_id="+eventId;
 	    }
 
 	    // 예매 가능 시간일 경우, 정상적으로 예매 페이지로 이동
