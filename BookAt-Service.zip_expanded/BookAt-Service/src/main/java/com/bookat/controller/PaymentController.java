@@ -1,6 +1,9 @@
 package com.bookat.controller;
 
 import java.math.BigDecimal;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.stereotype.Controller;
@@ -15,9 +18,11 @@ import com.bookat.dto.reservation.PaymentReservationSession;
 import com.bookat.entity.User;
 import com.bookat.service.BookService;
 import com.bookat.service.EventService;
+import com.bookat.service.OrderService;
 import com.bookat.service.PaymentService;
 import com.bookat.util.PaymentSessionStore;
 import com.bookat.util.PortOneClient;
+import com.bookat.dto.BookDto;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +38,7 @@ public class PaymentController {
   private final BookService bookService;
   private final PaymentSessionStore sessionStore;
   private final EventService eventService;
+  private final OrderService orderService;
   
   //도서 세션
   @PostMapping("/session/start")
@@ -156,22 +162,33 @@ public class PaymentController {
   
   @GetMapping("/success")
   public String success(@RequestParam("m") String merchantUid,
-                        @RequestParam(value = "i", required = false) String impUid,
+                        @RequestParam(value="i", required = false) String impUid,
+                        @RequestParam(value="t", required = false) String token,
                         Model model) {
-    var pay = paymentService.findByMerchantUid(merchantUid);
+
+    // 1) 결제 기본 정보
+    PaymentDto pay = paymentService.findByMerchantUid(merchantUid);
     if (pay == null) return "error/404";
 
     model.addAttribute("merchantUid", merchantUid);
     model.addAttribute("impUid", impUid);
     model.addAttribute("amount", pay.getPaymentPrice());
     model.addAttribute("method", pay.getPaymentMethod());
-    model.addAttribute("status", pay.getPaymentStatus());
+    model.addAttribute("status", pay.getPaymentStatus() == 1 ? "paid" : "ready");
     model.addAttribute("receiptUrl", pay.getReceiptUrl());
     model.addAttribute("pgTid", pay.getPgTid());
 
-    return "payment/success"; 
-  }
+    // 2) 화면 렌더에 필요한 기본값(나중에 주문 조회 메서드 보고 가져오기)
+    model.addAttribute("items", java.util.Collections.emptyList()); 
+    model.addAttribute("productTotal", 0);
+    model.addAttribute("shippingFee", 0);
+    model.addAttribute("usedPoint", 0);
+    model.addAttribute("earnPoint", 0);
+    model.addAttribute("orderDate", java.time.LocalDate.now());
 
+    return "payment/success";
+  }
+  
   /* 포트원 웹훅 */
   @PostMapping("/webhook")
   @ResponseBody
