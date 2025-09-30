@@ -12,6 +12,7 @@
     <link rel="stylesheet" th:href="@{/css/header.css}" />
     <link rel="stylesheet" th:href="@{/css/footer.css}" />
     <link rel="stylesheet" type="text/css" th:href="@{/css/event_detail.css}" />
+    <link rel="stylesheet" th:href="@{/css/queueModal.css}" />
   </head>
   <body>
     <div th:replace="~{fragments/header :: main-header}"></div>
@@ -210,6 +211,7 @@
       /*]]>*/
     </script>
 
+    <script th:src="@{/js/queue/QueueModal.js}"></script>
     <script th:src="@{/js/event_detail.js}"></script>
     <script th:inline="javascript">
       /*<![CDATA[*/
@@ -222,6 +224,24 @@
       }
       /*]]>*/
     </script>
+    <div class="queueModal-overlay" style="display: none">
+      <div class="modal-content">
+        <h1 class="modal-title">
+          티켓 예매를 위해<br />
+          <span class="modal-highlight">접속 대기중</span>입니다
+        </h1>
+        <div class="modal-circle">
+          <p class="modal-label">대기순서</p>
+          <span class="modal-waitingNum">-</span>
+        </div>
+        <p class="modal-notice">
+          페이지를 새로고침 하시면<br />
+          대기 순서에 변동이 생길 수 있으니,<br />
+          잠시만 기다려주세요.
+        </p>
+        <p class="modal-totalWaiting">현재 대기 인원 : <span class="modal-watingCount">0</span>명</p>
+      </div>
+    </div>
   </body>
   <!-- 리뷰 작성 모달창 -->
   <div id="reviewModal" class="modal-overlay">

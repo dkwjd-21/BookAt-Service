@@ -77,7 +77,8 @@ public class QueueController {
 
 		try {
 			String userId = user.getUserId();
-			boolean removed = queueService.leaveQueue(eventId, userId);
+            boolean removed = queueService.leaveQueue(eventId, userId);
+            queueService.leaveActive(eventId, userId);
 
 			if (removed) {
 				response.put("status", "success");
