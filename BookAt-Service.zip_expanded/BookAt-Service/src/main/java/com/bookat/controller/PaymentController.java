@@ -22,7 +22,6 @@ import com.bookat.service.OrderService;
 import com.bookat.service.PaymentService;
 import com.bookat.util.PaymentSessionStore;
 import com.bookat.util.PortOneClient;
-import com.bookat.dto.BookDto;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,7 +37,6 @@ public class PaymentController {
   private final BookService bookService;
   private final PaymentSessionStore sessionStore;
   private final EventService eventService;
-  private final OrderService orderService;
   
   //도서 세션
   @PostMapping("/session/start")
