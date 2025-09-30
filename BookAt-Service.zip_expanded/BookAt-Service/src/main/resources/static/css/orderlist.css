@@ -324,6 +324,15 @@ body {
   background: #ffffff;
   color: var(--orderlist-text);
   cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.btn-secondary:hover,
+.btn-secondary:focus-visible {
+  background: #f5f6fa;
+  color: var(--orderlist-heading);
+  transform: translateY(-1px);
+  outline: none;
 }
 
 .order-empty,

@@ -104,6 +104,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const statusCode = Number(order.orderStatus);
         const trackingButton = statusCode === 4 && order.trackingNumber ? `<button type="button" class="btn-secondary btn-tracking" data-tracking="${order.trackingNumber}">배송조회</button>` : "";
         const reviewButton = statusCode === 3 ? '<button type="button" class="btn-review">리뷰작성</button>' : "";
+        const secondaryButtons = createSecondaryButtons(statusCode);
 
         return `
         <article class="order-card" data-status="${order.orderStatus ?? ""}">
@@ -139,12 +140,7 @@ document.addEventListener("DOMContentLoaded", async () => {
               <span class="meta-label">배송비</span>
               <span class="meta-value">${formatPrice(order.shippingFee)}</span>
             </div>
-            <div class="order-actions-secondary">
-              <button type="button" class="btn-secondary">환불신청</button>
-              <button type="button" class="btn-secondary">교환신청</button>
-              <button type="button" class="btn-secondary">취소신청</button>
-              <button type="button" class="btn-secondary">배송지 변경</button>
-            </div>
+            <div class="order-actions-secondary">${secondaryButtons}</div>
           </footer>
         </article>
       `;
@@ -173,6 +169,24 @@ document.addEventListener("DOMContentLoaded", async () => {
   function formatPrice(price) {
     if (price === null || price === undefined) return "0원";
     return `${Number(price).toLocaleString()}원`;
+  }
+
+  function createSecondaryButtons(statusCode) {
+    if (statusCode === 1) {
+      return `
+        <button type="button" class="btn-secondary">취소신청</button>
+        <button type="button" class="btn-secondary">배송지 변경</button>
+      `;
+    }
+
+    if (statusCode === 3 || statusCode === 4) {
+      return `
+        <button type="button" class="btn-secondary">환불신청</button>
+        <button type="button" class="btn-secondary">교환신청</button>
+      `;
+    }
+
+    return "";
   }
 
   function handleTrackingButtonClick(event) {
