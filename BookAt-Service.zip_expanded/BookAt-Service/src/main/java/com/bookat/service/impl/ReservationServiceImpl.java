@@ -339,6 +339,7 @@ public class ReservationServiceImpl implements ReservationService {
 					int evtId = Integer.parseInt(eventId);
 					int schId = Integer.parseInt(scheduleId);
 					seatService.releaseSeats(evtId, schId, seatNames);
+					redisUtil.deleteDataAll(reservationToken);	// 예약 세션 삭제 
 					log.info("예약 취소 시 좌석 초기화 완료");
 				} catch (Exception e) {
 					log.error("좌석 초기화 중 오류 발생", e);
@@ -350,7 +351,6 @@ public class ReservationServiceImpl implements ReservationService {
 			int restored = redisUtil.rollbackOnCancel(reservationToken, eventId, scheduleId);
 			log.info("예약 취소 완료: eventId={}, scheduleId={}, 복구좌석={}", eventId, scheduleId, restored);
 		}
-
 	}
 
 	@Override
