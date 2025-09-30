@@ -16,8 +16,8 @@ async function onModal() {
     if (!modal) return;
     if (modal.style.display === "none") {
         modal.style.display = "flex";
-        //const eventId = "115";
-		const eventId = "100";
+        const eventId = "115";
+		// const eventId = "100";
         sessionStorage.setItem("eventId", eventId);
 
         try {

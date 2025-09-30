@@ -301,6 +301,9 @@ public class ReservationServiceImpl implements ReservationService {
 		String seatNamesStr = (String) data.get("seatNames");
 		String reservationStatus = (String) data.get("reservationStatus");
 
+		// ACTIVE SET에서 제거 (예매 중인 인원 set) 
+		removeFromActiveSet(eventId, userId);
+		
 		if (eventId == null || scheduleId == null) {
 			log.warn("STEP1 취소 or eventId 또는 scheduleId 없음 [{}]", reservationToken);
 			redisUtil.deleteDataAll(reservationToken);
