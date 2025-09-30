@@ -1,11 +1,8 @@
 package com.bookat.service.impl;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +12,7 @@ import com.bookat.entity.User;
 import com.bookat.exception.LoginException;
 import com.bookat.mapper.UserLoginMapper;
 import com.bookat.service.UserLoginService;
+import com.bookat.util.JwtRedisUtil;
 import com.bookat.util.JwtTokenProvider;
 
 import lombok.RequiredArgsConstructor;
@@ -28,7 +26,7 @@ public class UserLoginServiceImpl implements UserLoginService {
 	private final UserLoginMapper userMapper;
 	private final PasswordEncoder passwordEncoder;
 	private final JwtTokenProvider jwtTokenProvider;
-	private final StringRedisTemplate redisTemplate;
+	private final JwtRedisUtil jwtRedisUtil;
 	
 	// 로그인
 	@Override
@@ -45,20 +43,8 @@ public class UserLoginServiceImpl implements UserLoginService {
 		}
 		
 		String sid = UUID.randomUUID().toString();
-		long ttlMs = jwtTokenProvider.getAccessTokenValidityMillis();
-		String sidRedisKey = "user:" + user.getUserId() + ":current_sid";
-		
-		String luaScript = 
-					"local old = redis.call('GET', KEYS[1]) " +
-					"redis.call('SET', KEYS[1], ARGV[1], 'PX', ARGV[2]) " +
-					"return old";
-		
-		DefaultRedisScript<String> redisScript = new DefaultRedisScript<>();
-		redisScript.setScriptText(luaScript);
-		redisScript.setResultType(String.class);
-		
-		redisTemplate.execute(redisScript, List.of(sidRedisKey), sid, String.valueOf(ttlMs));
-		
+		jwtRedisUtil.saveSid(user.getUserId(), sid, JwtTokenProvider.EXPIRATION_30M);
+
 		String accessToken = jwtTokenProvider.generateAccessToken(user.getUserId(), sid);
 		String refreshToken = jwtTokenProvider.generateRefreshToken(user.getUserId());
 		

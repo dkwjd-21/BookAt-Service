@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -30,6 +29,7 @@ import com.bookat.exception.LoginException;
 import com.bookat.service.RefreshTokenService;
 import com.bookat.service.impl.UserLoginServiceImpl;
 import com.bookat.util.CookieUtil;
+import com.bookat.util.JwtRedisUtil;
 import com.bookat.util.JwtTokenProvider;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -49,7 +49,7 @@ public class UserLoginController {
     private final CookieUtil cookieUtil;
 	private final UserLoginServiceImpl loginService;
 	private final RefreshTokenService refreshTokenService;
-	private final RedisTemplate<String, String> redisTemplate;
+	private final JwtRedisUtil jwtRedisUtil;
 	
 	// 아이디 찾기 간편인증 정보
     @Value("${portone.public.store-id}")
@@ -110,7 +110,8 @@ public class UserLoginController {
 
 		// redis 세션 삭제 (loginTime 비교 없이 바로 삭제)
 		if(userId != null) {
-			redisTemplate.delete(userId);
+			jwtRedisUtil.deleteRefreshToken(userId);
+			jwtRedisUtil.deleteSid(userId);
 		}
 	    
 		// 관련 쿠키 삭제

@@ -28,10 +28,6 @@ public class JwtTokenProvider {
     public void init() {
         key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
-    
-    public long getAccessTokenValidityMillis() {
-    	return EXPIRATION_30M;
-    }
 
     // access token 생성
 	public String generateAccessToken(String userId, String sid) {
