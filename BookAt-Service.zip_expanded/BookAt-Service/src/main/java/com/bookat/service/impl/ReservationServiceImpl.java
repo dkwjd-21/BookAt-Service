@@ -406,8 +406,8 @@ public class ReservationServiceImpl implements ReservationService {
 		redisUtil.updateReservationStatus(reservationToken, ReservationStatus.RESERVED);
 
 		// 티켓 N건 디비 저장
-		String groupCountsJson = (String) reservationData.get("groupCounts");
-		var parsed = redisUtil.parseGroupCounts(groupCountsJson)
+		String presonCountsJson = (String) reservationData.get("presonCounts");
+		var parsed = redisUtil.parsePersonCounts(presonCountsJson)
 				.orElseThrow(() -> new IllegalArgumentException("예매 인원 정보 파싱 오류"));
 		Long reservationId = reservation.getReservationId();
 

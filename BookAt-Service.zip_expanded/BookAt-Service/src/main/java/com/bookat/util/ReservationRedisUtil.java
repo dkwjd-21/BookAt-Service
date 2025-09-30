@@ -96,7 +96,7 @@ public class ReservationRedisUtil {
 	    			"   if count > 0 then " +
 	    			"       redis.call('INCRBY', KEYS[2], count) " +									// [잔여좌석] 좌석 복구
 	    			"   end " +
-	    			"   redis.call('HDEL', KEYS[1], 'reservedCount', 'groupCounts', 'totalPrice') " +	// [예약세션] STEP2 관련 필드 삭제
+	    			"   redis.call('HDEL', KEYS[1], 'reservedCount', 'personCounts', 'totalPrice') " +	// [예약세션] STEP2 관련 필드 삭제
 	    			"end " +
 	    			"redis.call('DEL', KEYS[3]) " +														// 메타 삭제
 	    			"return reservedCount or 0";
@@ -112,23 +112,23 @@ public class ReservationRedisUtil {
 	
 	// STEP2 personType 세션 정보 업데이트 및 좌석차감/복구 원자적 처리
 	// 하나의 LuaScript 에서 좌석 증감 + 세션 hash 업데이트 처리
-	public int adjustSeatsAndUpdateStep2PT(String token, String eventId, String scheduleId, int diff, int reservedCount, int totalPrice, Map<PersonType, Integer> groupCounts) {
+	public int adjustSeatsAndUpdateStep2PT(String token, String eventId, String scheduleId, int diff, int reservedCount, int totalPrice, Map<PersonType, Integer> personCounts) {
 		try {
 			String key = KEY_PREFIX + token;
 			String availableSeatsKey = getAvailableSeatsKey(eventId, scheduleId);
 			
-			Map<String, Integer> groupCountsToStr = (groupCounts == null) ? Map.of()
-					: groupCounts.entrySet().stream()
+			Map<String, Integer> personCountsToStr = (personCounts == null) ? Map.of()
+					: personCounts.entrySet().stream()
 						.collect(Collectors.toMap(e -> e.getKey().name(), Map.Entry::getValue, (a, b) -> a, LinkedHashMap::new));
 			
-			String groupCountsJson = OM.writeValueAsString(groupCountsToStr);
+			String personCountsJson = OM.writeValueAsString(personCountsToStr);
 			
 			String luaScript = 
 						"local available = tonumber(redis.call('GET', KEYS[1]) or '0') " +
 						"local diff = tonumber(ARGV[1]) " +
 						"local reservedCount = ARGV[2] " +
 						"local totalPrice = ARGV[3] " +
-						"local groupCounts = ARGV[4] " +
+						"local personCounts = ARGV[4] " +
 						"if diff > 0 then " +
 						"  if available < diff then " +
 						"    return -1 " +													// [잔여좌석] 잔여좌석 수보다 많으면 -1 반환
@@ -139,7 +139,7 @@ public class ReservationRedisUtil {
 						"end " +
 						"redis.call('HSET', KEYS[2], 'reservedCount', reservedCount) " +	// [예약세션] 총 선택인원 추가
 						"redis.call('HSET', KEYS[2], 'totalPrice', totalPrice) " +			// [예약세션] 총 금액 추가
-						"redis.call('HSET', KEYS[2], 'groupCounts', groupCounts) " +		// [예약세션] 인원 등급 별 인원 수 추가
+						"redis.call('HSET', KEYS[2], 'personCounts', personCounts) " +		// [예약세션] 인원 등급 별 인원 수 추가
 						"redis.call('HSET', KEYS[2], 'status', 'STEP3') " +					// [예약세션] 단계 상태 업데이트
 						"return tonumber(redis.call('GET', KEYS[1]))";
 			
@@ -153,11 +153,11 @@ public class ReservationRedisUtil {
 					String.valueOf(diff),
 					String.valueOf(reservedCount),
 					String.valueOf(totalPrice),
-					groupCountsJson);
+					personCountsJson);
 			
 			return result != null ? result.intValue() : -1;
 		} catch(Exception e) {
-			throw new RuntimeException("adjustSeatsAndUpdateSession 실행 실패", e);
+			throw new RuntimeException("STEP2 업데이트 실패", e);
 		}
 	}
 	
@@ -327,13 +327,13 @@ public class ReservationRedisUtil {
 	}
 	
 	// 인원 유형 json 문자열 파싱
-	public Optional<Map<String, Integer>> parseGroupCounts(String json) {
+	public Optional<Map<String, Integer>> parsePersonCounts(String json) {
 		try {
 			if(json == null || json.isBlank()) return Optional.empty();
 			Map<String, Integer> data = OM.readValue(json, new TypeReference<Map<String, Integer>>() {});
 			return Optional.of(data);
 		} catch(Exception e) {
-			log.info("groupCounts parse failed: {}", json, e);
+			log.info("personCounts parse failed: {}", json, e);
 			return Optional.empty();
 		}
 	}

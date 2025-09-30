@@ -18,7 +18,7 @@ import com.bookat.service.EventService;
 import com.bookat.service.PaymentService;
 import com.bookat.util.PaymentSessionStore;
 import com.bookat.util.PortOneClient;
-import com.bookat.util.ReservationSessionStore;
+import com.bookat.util.ReservationRedisUtil;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +33,7 @@ public class PaymentController {
   private final PortOneClient portOneClient;
   private final BookService bookService;
   private final PaymentSessionStore sessionStore;
-  private final ReservationSessionStore reservationSessionStore;
+  private final ReservationRedisUtil reservationRedisUtil;
   private final EventService eventService;
 
   /* 이벤트 결제 시작 (팝업 우측 요약에서 eventId/amount만 넘김)   */
@@ -283,7 +283,7 @@ public String devNew(@RequestParam Integer amount,
 
 		// 예약 세션 토큰 값
 		if (reservationToken != null && !reservationToken.isBlank()) {
-			boolean updatePaymentToken = reservationSessionStore.updatePaymentSessionToken(reservationToken, paymentToken);
+			boolean updatePaymentToken = reservationRedisUtil.updatePaymentSessionToken(reservationToken, paymentToken);
 			if(!updatePaymentToken) {
 				log.warn("예약토큰 {} 에 이미 다른 결제세션이 매핑", reservationToken);
 			}
