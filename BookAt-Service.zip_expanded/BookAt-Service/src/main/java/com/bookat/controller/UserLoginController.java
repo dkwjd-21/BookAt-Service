@@ -128,7 +128,6 @@ public class UserLoginController {
 	// 아이디 찾기 페이지로 이동
 	@GetMapping("/findId")
 	public String findIdForm(Model model) {
-		
         model.addAttribute("portoneStoreId", portoneStoreId);
         model.addAttribute("portoneChannelKey", portoneChannelKey);
         model.addAttribute("portoneApiSecret", portoneApiSecret);
@@ -206,16 +205,20 @@ public class UserLoginController {
 	
 	// 비밀번호 찾기 페이지로 이동
 	@GetMapping("/findPw")
-	public String findPwCheckForm() {
+	public String findPwCheckForm(Model model) {
+        model.addAttribute("portoneStoreId", portoneStoreId);
+        model.addAttribute("portoneChannelKey", portoneChannelKey);
+        model.addAttribute("portoneApiSecret", portoneApiSecret);
+        
 		return "user/findPasswordForm";
 	}
 	
 	@PostMapping("/findPw")
 	@ResponseBody
-    public ResponseEntity<?> findPwCheck(@RequestParam String userId, @RequestParam String phone) {
+    public ResponseEntity<?> findPwCheck(@RequestParam String userId) {
         
         try {
-        	User user = loginService.findPwByIdPhone(userId, phone);
+        	User user = loginService.findPwById(userId);
         	
         	return ResponseEntity.ok(user.getUserId());
         } catch (LoginException le) {
