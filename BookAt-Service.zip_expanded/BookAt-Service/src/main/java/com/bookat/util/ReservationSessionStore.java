@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -81,20 +82,20 @@ public class ReservationSessionStore {
 		redisTemplate.opsForHash().put(key, "status", "STEP2");
 	}
 	
-	// 회차 변경 시 이전 회차 좌석 복구 + Step2 필드/메타 삭제
+	// 회차 변경 시 이전 회차 좌석 복구 + Step2 필드/메타 삭제 원자적 처리
 	public int rollbackOnScheduleChange(String token, String prevEventId, String prevScheduleId) {
 		String key = KEY_PREFIX + token;
 		String metaKey = META_PREFIX + token;
-		String availableSeatsKey = String.format("EVENT:%s:SCHEDULE:%s:AVAILABLE_SEAT", prevEventId, prevScheduleId);
+		String availableSeatsKey = getAvailableSeatsKey(prevEventId, prevScheduleId);
 		
 	    String luaScript =
 	    			"local reservedCount = redis.call('HGET', KEYS[1], 'reservedCount') " +
 	    			"if reservedCount then " +
 	    			"   local count = tonumber(reservedCount) " +
 	    			"   if count > 0 then " +
-	    			"       redis.call('INCRBY', KEYS[2], count) " +
+	    			"       redis.call('INCRBY', KEYS[2], count) " +									// [잔여좌석] 좌석 복구
 	    			"   end " +
-	    			"   redis.call('HDEL', KEYS[1], 'reservedCount', 'groupCounts', 'totalPrice') " +	// STEP2 관련 필드 삭제
+	    			"   redis.call('HDEL', KEYS[1], 'reservedCount', 'groupCounts', 'totalPrice') " +	// [예약세션] STEP2 관련 필드 삭제
 	    			"end " +
 	    			"redis.call('DEL', KEYS[3]) " +														// 메타 삭제
 	    			"return reservedCount or 0";
@@ -108,57 +109,60 @@ public class ReservationSessionStore {
 	    return result != null ? result.intValue() : 0;
 	}
 	
-	// step2 update
-	// personType
-	public void updateStep2PersonType(String token, int reservedCount, int totalPrice, Map<PersonType, Integer> groupCounts) {
-		String key = KEY_PREFIX + token;
-		
-		redisTemplate.opsForHash().put(key, "reservedCount", String.valueOf(reservedCount));
-		redisTemplate.opsForHash().put(key, "totalPrice", String.valueOf(totalPrice));
-		
-		Map<String, Integer> groupCountsToString = (groupCounts == null) ? Map.of()
-				: groupCounts.entrySet().stream()
-					.collect(Collectors.toMap(e -> e.getKey().name(), Map.Entry::getValue, (a, b) -> a, LinkedHashMap::new));
-
+	// STEP2 personType 세션 정보 업데이트 및 좌석차감/복구 원자적 처리
+	// 하나의 LuaScript 에서 좌석 증감 + 세션 hash 업데이트 처리
+	public int adjustSeatsAndUpdateStep2PT(String token, String eventId, String scheduleId, int diff, int reservedCount, int totalPrice, Map<PersonType, Integer> groupCounts) {
 		try {
-			redisTemplate.opsForHash().put(key, "groupCounts", OM.writeValueAsString(groupCountsToString));
+			String key = KEY_PREFIX + token;
+			String availableSeatsKey = getAvailableSeatsKey(eventId, scheduleId);
+			
+			Map<String, Integer> groupCountsToStr = (groupCounts == null) ? Map.of()
+					: groupCounts.entrySet().stream()
+						.collect(Collectors.toMap(e -> e.getKey().name(), Map.Entry::getValue, (a, b) -> a, LinkedHashMap::new));
+			
+			String groupCountsJson = OM.writeValueAsString(groupCountsToStr);
+			
+			String luaScript = 
+						"local available = tonumber(redis.call('GET', KEYS[1]) or '0') " +
+						"local diff = tonumber(ARGV[1]) " +
+						"local reservedCount = ARGV[2] " +
+						"local totalPrice = ARGV[3] " +
+						"local groupCounts = ARGV[4] " +
+						"if diff > 0 then " +
+						"  if available < diff then " +
+						"    return -1 " +													// [잔여좌석] 잔여좌석 수보다 많으면 -1 반환
+						"  end " +
+						"  redis.call('DECRBY', KEYS[1], diff) " +							// [잔여좌석] 좌석 차감
+						"elseif diff < 0 then " +
+						"  redis.call('INCRBY', KEYS[1], -diff) " +							// [잔여좌석] 좌석 복구
+						"end " +
+						"redis.call('HSET', KEYS[2], 'reservedCount', reservedCount) " +	// [예약세션] 총 선택인원 추가
+						"redis.call('HSET', KEYS[2], 'totalPrice', totalPrice) " +			// [예약세션] 총 금액 추가
+						"redis.call('HSET', KEYS[2], 'groupCounts', groupCounts) " +		// [예약세션] 인원 등급 별 인원 수 추가
+						"redis.call('HSET', KEYS[2], 'status', 'STEP3') " +					// [예약세션] 단계 상태 업데이트
+						"return tonumber(redis.call('GET', KEYS[1]))";
+			
+			DefaultRedisScript<Long> redisScript = new DefaultRedisScript<>();
+			redisScript.setScriptText(luaScript);
+			redisScript.setResultType(Long.class);
+			
+			Long result = redisTemplate.execute(
+					redisScript, 
+					List.of(availableSeatsKey, key), 
+					String.valueOf(diff),
+					String.valueOf(reservedCount),
+					String.valueOf(totalPrice),
+					groupCountsJson);
+			
+			return result != null ? result.intValue() : -1;
 		} catch(Exception e) {
-			throw new RuntimeException("groupCounts 저장 실패", e);
+			throw new RuntimeException("adjustSeatsAndUpdateSession 실행 실패", e);
 		}
-		
-		redisTemplate.opsForHash().put(key, "status", "STEP3");
-	}
-
-	// step2 update : 인원 증가 시 LuaScript 로 잔여좌석 차감을 원자적으로 처리하고, 인원 감소 시 INCRBY로 복구
-	// 인원 변경 시 좌석 수량 증감 (세션 건드리지 않음)
-	public int adjustSeatsOnStep2(String eventId, String scheduleId, int diff) {
-		String availableSeatsKey = String.format("EVENT:%s:SCHEDULE:%s:AVAILABLE_SEAT", eventId, scheduleId);
-		
-	    String luaScript =
-	    			"local available = tonumber(redis.call('GET', KEYS[1]) or '0') " +
-	    			"local diff = tonumber(ARGV[1]) " +
-	    			"if diff > 0 then " +
-	    			"  if available < diff then " +
-	    			"    return -1 " +
-	    			"  end " +
-	    			"  return redis.call('DECRBY', KEYS[1], diff) " +			// 좌석 차감
-	    			"elseif diff < 0 then " +
-	    			"  return redis.call('INCRBY', KEYS[1], -diff) " +			// 좌석 복구
-	    			"end " +
-	    			"return available";
-	    
-	    DefaultRedisScript<Long> redisScript = new DefaultRedisScript<>();
-	    redisScript.setScriptText(luaScript);
-	    redisScript.setResultType(Long.class);
-	    
-	    Long result = redisTemplate.execute(redisScript, List.of(availableSeatsKey), String.valueOf(diff));
-
-	    return result != null ? result.intValue() : -1;
 	}
 	
 	// 잔여좌석 조회
 	public int getAvailableSeats(String eventId, String scheduleId) {
-		String availableSeatsKey = String.format("EVENT:%s:SCHEDULE:%s:AVAILABLE_SEAT", eventId, scheduleId);
+		String availableSeatsKey = getAvailableSeatsKey(eventId, scheduleId);
 		String value = redisTemplate.opsForValue().get(availableSeatsKey);
 		return value != null ? Integer.parseInt(value) : 0;
 	}
@@ -293,23 +297,23 @@ public class ReservationSessionStore {
 		}
 	}
 	
-	// 예약 프로세스 취소 시 좌석 복구와 세션삭제의 원자적 처리
+	// 예약 프로세스 취소 시 좌석 복구와 관련 세션 삭제의 원자적 처리
 	// 예약 취소 시 좌석 복구 + 세션/메타 삭제
 	public int rollbackOnCancel(String token, String eventId, String scheduleId) {
 		String key = KEY_PREFIX + token;
 		String metaKey = META_PREFIX + token;
-		String availableSeatsKey = String.format("EVENT:%s:SCHEDULE:%s:AVAILABLE_SEAT", eventId, scheduleId);
+		String availableSeatsKey = getAvailableSeatsKey(eventId, scheduleId);
 		
 		String luaScript = 
 					"local reservedCount = redis.call('HGET', KEYS[1], ARGV[1]) " +
 					"if reservedCount then " +
 					"   local count = tonumber(reservedCount) " +
 					"   if count > 0 then " +
-					"       redis.call('INCRBY', KEYS[2], count) " +
+					"       redis.call('INCRBY', KEYS[2], count) " +	// 잔여 좌석 복구
 					"   end " +
 					"end " +
-					"redis.call('DEL', KEYS[1]) " +     // 세션 삭제
-					"redis.call('DEL', KEYS[3]) " +     // 메타 키 삭제
+					"redis.call('DEL', KEYS[1]) " +     				// 예약세션 삭제
+					"redis.call('DEL', KEYS[3]) " +     				// 메타 키 삭제
 					"return reservedCount or 0";
 		
 		DefaultRedisScript<Long> redisScript = new DefaultRedisScript<>();
@@ -331,5 +335,10 @@ public class ReservationSessionStore {
 			log.info("groupCounts parse failed: {}", json, e);
 			return Optional.empty();
 		}
+	}
+	
+	// 잔여좌석 키
+	private String getAvailableSeatsKey(String eventId, String scheduleId) {
+		return String.format("EVENT:%s:SCHEDULE:%s:AVAILABLE_SEAT", eventId, scheduleId);
 	}
 }

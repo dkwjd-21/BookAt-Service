@@ -143,17 +143,14 @@ public class ReservationServiceImpl implements ReservationService {
 		int diff = totalPersonCount - prevTotal;
 		
 		if(diff != 0) {
-			int result = sessionStore.adjustSeatsOnStep2(eventId, scheduleId, diff);
+			int result = sessionStore.adjustSeatsAndUpdateStep2PT(reservationToken, eventId, scheduleId, diff, totalPersonCount, personTypeReqDto.getTotalPrice(), personTypeReqDto.getPersonCounts());
 			if(result == -1) {
 				throw new IllegalArgumentException(
 						String.format("잔여 좌석 부족\n요청 %d석, 기존 인원 %d, 새로 추가된 인원 %d, 현재 잔여좌석 %d", totalPersonCount, prevTotal, diff, sessionStore.getAvailableSeats(eventId, scheduleId)));
 			}
+			
 			log.info("인원수 변경 완료: eventId={}, scheduleId={}, diff={}, 현재 잔여좌석={}", eventId, scheduleId, diff, result);
 		}
-
-		// 인원 저장 & STEP3 세팅
-		sessionStore.updateStep2PersonType(reservationToken, totalPersonCount, personTypeReqDto.getTotalPrice(),
-				personTypeReqDto.getPersonCounts());
 
 		// TTL 만료 시 복구용 METADATA 생성
 		sessionStore.createMetaDataForSessionExpired(reservationToken, Integer.parseInt(eventId), Integer.parseInt(scheduleId), totalPersonCount);
