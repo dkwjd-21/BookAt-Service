@@ -358,6 +358,151 @@ body {
   cursor: pointer;
 }
 
+.modal-overlay.review-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-overlay.review-modal .modal-content {
+  background-color: #fff;
+  padding: 30px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  position: relative;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  animation: slide-down 0.3s ease-out;
+}
+
+@keyframes slide-down {
+  from {
+    transform: translateY(-30px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-overlay.review-modal .modal-content .close-btn {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: #f8f9fa;
+  border-radius: 50%;
+  font-size: 18px;
+  font-weight: bold;
+  color: #6c757d;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.modal-overlay.review-modal .modal-content .close-btn:hover,
+.modal-overlay.review-modal .modal-content .close-btn:focus-visible {
+  background: #e9ecef;
+  color: #495057;
+  transform: scale(1.1);
+}
+
+.modal-overlay.review-modal .modal-content .close-btn:active {
+  transform: scale(0.95);
+}
+
+.modal-overlay.review-modal .modal-content h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.modal-overlay.review-modal .modal-content .modal-target {
+  margin: -8px 0 18px;
+  font-size: 14px;
+  color: #6b7280;
+  text-align: center;
+}
+
+.modal-overlay.review-modal .modal-content .form-group {
+  margin-bottom: 20px;
+}
+
+.modal-overlay.review-modal .modal-content label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: bold;
+}
+
+.modal-overlay.review-modal .modal-content .stars-input {
+  display: inline-flex;
+  gap: 6px;
+  font-size: 30px;
+  cursor: pointer;
+}
+
+.modal-overlay.review-modal .modal-content .stars-input .star {
+  color: #ddd;
+  transition: color 0.2s;
+}
+
+.modal-overlay.review-modal .modal-content .stars-input:hover .star {
+  color: #b5d173;
+}
+
+.modal-overlay.review-modal .modal-content .stars-input .star:hover ~ .star {
+  color: #ddd;
+}
+
+.modal-overlay.review-modal .modal-content .stars-input .star.selected {
+  color: #b5d173;
+}
+
+.modal-overlay.review-modal .modal-content .stars-input .star.selected ~ .star {
+  color: #ddd;
+}
+
+.modal-overlay.review-modal .modal-content textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 16px;
+  resize: vertical;
+}
+
+.modal-overlay.review-modal .modal-content .submit-btn {
+  width: 100%;
+  padding: 12px;
+  background-color: #ccc;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.modal-overlay.review-modal .modal-content .submit-btn:hover,
+.modal-overlay.review-modal .modal-content .submit-btn:focus-visible {
+  background-color: #b5d173;
+}
+
 .login-callout p {
   margin-bottom: 12px;
   font-size: 16px;

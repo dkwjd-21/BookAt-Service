@@ -72,6 +72,34 @@
       <input type="hidden" name="t_invoice" />
     </form>
 
+    <div id="reviewModal" class="modal-overlay review-modal" style="display: none">
+      <div class="modal-content">
+        <button type="button" class="close-btn" aria-label="close">&times;</button>
+        <h2>리뷰 작성</h2>
+        <p id="reviewTargetLabel" class="modal-target" style="display: none"></p>
+        <form id="reviewForm">
+          <input type="hidden" id="reviewOrderId" name="orderId" />
+          <input type="hidden" id="reviewBookId" name="bookId" />
+          <div class="form-group">
+            <label for="reviewRating">별점</label>
+            <div class="stars-input" id="reviewStars">
+              <span class="star" data-value="1">★</span>
+              <span class="star" data-value="2">★</span>
+              <span class="star" data-value="3">★</span>
+              <span class="star" data-value="4">★</span>
+              <span class="star" data-value="5">★</span>
+            </div>
+            <input type="hidden" id="reviewRating" name="rating" value="0" required />
+          </div>
+          <div class="form-group">
+            <label for="reviewContent">리뷰 내용</label>
+            <textarea id="reviewContent" name="content" rows="6" placeholder="리뷰 내용을 입력해주세요." required></textarea>
+          </div>
+          <button type="submit" class="submit-btn">등록하기</button>
+        </form>
+      </div>
+    </div>
+
     <script th:src="@{/js/mypage/orderList.js}"></script>
   </body>
 </html>

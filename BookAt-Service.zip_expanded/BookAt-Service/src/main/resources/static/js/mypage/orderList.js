@@ -103,7 +103,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         const statusCode = Number(order.orderStatus);
         const trackingButton = statusCode === 4 && order.trackingNumber ? `<button type="button" class="btn-secondary btn-tracking" data-tracking="${order.trackingNumber}">배송조회</button>` : "";
-        const reviewButton = statusCode === 3 ? '<button type="button" class="btn-review">리뷰작성</button>' : "";
+        const reviewButton = statusCode === 3 ? `<button type="button" class="btn-review" data-order-id="${order.orderId ?? ""}" data-book-id="${order.items?.[0]?.bookId ?? ""}" data-book-title="${order.items?.[0]?.title ?? ""}">리뷰작성</button>` : "";
         const secondaryButtons = createSecondaryButtons(statusCode);
 
         return `
@@ -171,6 +171,101 @@ document.addEventListener("DOMContentLoaded", async () => {
     return `${Number(price).toLocaleString()}원`;
   }
 
+  function openReviewModal(orderId, bookId, bookTitle) {
+    const modal = document.getElementById("reviewModal");
+    const reviewOrderIdInput = document.getElementById("reviewOrderId");
+    const reviewBookIdInput = document.getElementById("reviewBookId");
+    const ratingInput = document.getElementById("reviewRating");
+    const starsWrap = modal.querySelector("#reviewStars");
+    const stars = starsWrap ? Array.from(starsWrap.querySelectorAll(".star")) : [];
+    const reviewContent = document.getElementById("reviewContent");
+    const targetLabel = document.getElementById("reviewTargetLabel");
+
+    if (!modal || !reviewOrderIdInput || !reviewBookIdInput || !ratingInput || !stars.length || !reviewContent) {
+      console.warn("리뷰 모달 요소를 찾을 수 없습니다.");
+      return;
+    }
+
+    reviewOrderIdInput.value = orderId ?? "";
+    reviewBookIdInput.value = bookId ?? "";
+    ratingInput.value = 0;
+    reviewContent.value = "";
+    stars.forEach((star) => {
+      star.classList.remove("selected");
+      star.style.removeProperty("color");
+    });
+
+    if (targetLabel) {
+      targetLabel.textContent = bookTitle ? `상품: ${bookTitle}` : "";
+      targetLabel.style.display = bookTitle ? "block" : "none";
+    }
+
+    modal.style.display = "flex";
+  }
+
+  function closeReviewModal() {
+    const modal = document.getElementById("reviewModal");
+    if (modal) {
+      modal.style.display = "none";
+    }
+  }
+
+  function setupReviewModalEvents() {
+    const modal = document.getElementById("reviewModal");
+    if (!modal) return;
+
+    const closeBtn = modal.querySelector(".close-btn");
+    const starsWrap = modal.querySelector("#reviewStars");
+    const stars = starsWrap ? Array.from(starsWrap.querySelectorAll(".star")) : [];
+    const ratingInput = document.getElementById("reviewRating");
+    const form = document.getElementById("reviewForm");
+
+    if (closeBtn) {
+      closeBtn.addEventListener("click", () => closeReviewModal());
+    }
+
+    modal.addEventListener("click", (event) => {
+      if (event.target === modal) {
+        closeReviewModal();
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        closeReviewModal();
+      }
+    });
+
+    if (starsWrap) {
+      starsWrap.addEventListener("click", (event) => {
+        const star = event.target.closest(".star");
+        if (!star) return;
+
+        const value = Number(star.dataset.value);
+        ratingInput.value = value;
+        stars.forEach((s) => {
+          const shouldSelect = Number(s.dataset.value) <= value;
+          s.classList.toggle("selected", shouldSelect);
+          s.style.removeProperty("color");
+        });
+      });
+    }
+
+    if (form) {
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+
+        if (Number(ratingInput.value) < 1) {
+          alert("별점을 선택해주세요.");
+          return;
+        }
+
+        alert("리뷰 작성이 준비 중입니다.");
+        closeReviewModal();
+      });
+    }
+  }
+
   function createSecondaryButtons(statusCode) {
     if (statusCode === 1) {
       return `
@@ -211,6 +306,19 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
+  function handleReviewButtonClick(event) {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+
+    if (target.classList.contains("btn-review")) {
+      const orderId = target.dataset.orderId;
+      const bookId = target.dataset.bookId;
+      const bookTitle = target.dataset.bookTitle;
+
+      openReviewModal(orderId, bookId, bookTitle);
+    }
+  }
+
   function openTrackingPopup(event) {
     if (!trackingForm) return;
     const width = 520;
@@ -232,5 +340,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   orderHistory?.addEventListener("click", handleTrackingButtonClick);
+  orderHistory?.addEventListener("click", handleReviewButtonClick);
   trackingForm?.addEventListener("submit", openTrackingPopup);
+  setupReviewModalEvents();
 });
