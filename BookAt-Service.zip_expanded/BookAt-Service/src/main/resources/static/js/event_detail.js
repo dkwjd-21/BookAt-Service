@@ -253,26 +253,36 @@ function initializeKakaoMap() {
   };
   const map = new kakao.maps.Map(mapContainer, mapOption);
   const ps = new kakao.maps.services.Places();
+  const fallbackAddress = "서울특별시 강남구 도곡로 112";
 
-  ps.keywordSearch(eventAddress, function (data, status) {
-    if (status === kakao.maps.services.Status.OK) {
-      const firstResult = data[0];
-      const coords = new kakao.maps.LatLng(firstResult.y, firstResult.x);
+  function searchAndDisplay(address) {
+    ps.keywordSearch(address, function (data, status) {
+      if (status === kakao.maps.services.Status.OK && data.length > 0) {
+        const firstResult = data[0];
+        const coords = new kakao.maps.LatLng(firstResult.y, firstResult.x);
 
-      const marker = new kakao.maps.Marker({
-        map: map,
-        position: coords,
-      });
+        const marker = new kakao.maps.Marker({
+          map: map,
+          position: coords,
+        });
 
-      const infowindow = new kakao.maps.InfoWindow({
-        content: `<div style="padding:5px;font-size:12px;width:max-content;">${firstResult.place_name}</div>`,
-      });
-      infowindow.open(map, marker);
+        const label = address === fallbackAddress ? "테크브루 아카데미" : firstResult.place_name;
+        const infowindow = new kakao.maps.InfoWindow({
+          content: `<div style="padding:5px;font-size:12px;width:max-content;">${label}</div>`,
+        });
+        infowindow.open(map, marker);
 
-      map.setCenter(coords);
-    } else {
-      console.warn(`'${eventAddress}'에 대한 검색 결과가 없습니다.`);
-      mapContainer.innerHTML = '<div style="display:flex; align-items:center; justify-content:center; height:100%;">장소 정보를 찾을 수 없습니다.</div>';
-    }
-  });
+        map.setCenter(coords);
+      } else {
+        console.warn(`'${address}'에 대한 검색 결과가 없습니다.`);
+        if (address !== fallbackAddress) {
+          searchAndDisplay(fallbackAddress);
+        } else {
+          mapContainer.innerHTML = '<div style="display:flex; align-items:center; justify-content:center; height:100%;">장소 정보를 찾을 수 없습니다.</div>';
+        }
+      }
+    });
+  }
+
+  searchAndDisplay(eventAddress);
 }

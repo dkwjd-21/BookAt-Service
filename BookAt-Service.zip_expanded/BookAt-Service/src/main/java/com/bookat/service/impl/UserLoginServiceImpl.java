@@ -62,18 +62,11 @@ public class UserLoginServiceImpl implements UserLoginService {
 	
 	// 비밀번호 변경 : 아이디와 전화번호로 사용자 조회
 	@Override
-	public User findPwByIdPhone(String userId, String phone) {
+	public User findPwById(String userId) {
 		User user = userMapper.findUserById(userId);
 		
 		if(user == null) {
 			throw new LoginException("존재하지 않는 아이디입니다.");
-		}
-		
-		// DB에 저장된 전화번호의 '-' 제거
-		String dbPhone = user.getPhone() != null ? user.getPhone().replaceAll("-", "") : "";
-		
-		if(!phone.equals(dbPhone)) {
-			throw new LoginException("전화번호가 일치하지 않습니다.");
 		}
 		
 		return user;

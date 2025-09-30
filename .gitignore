@@ -5,3 +5,4 @@
 # 애플리케이션 설정 파일
 **/application.properties
 .vscode/settings.json
+BookAt-Service.zip_expanded/BookAt-Service/src/main/resources/docker-compose.yml
