@@ -2,6 +2,7 @@ package com.bookat.controller;
 
 import java.util.Map;
 
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -32,6 +33,7 @@ public class UserAuthController {
     private final JwtTokenProvider jwtTokenProvider;
     private final CookieUtil cookieUtil;
     private final UserLoginServiceImpl service;
+    private final StringRedisTemplate redisTemplate;
 
 	// access token 검증 후 userId 전달 (로그인 상태 파악)
 	@GetMapping("/validate")
@@ -74,21 +76,24 @@ public class UserAuthController {
 	    
 	    // 동시 로그인 검증
 	    boolean valid = refreshTokenService.validateRefreshToken(request, response, userId);
-	    
 	    if(!valid) {
 	    	return ResponseEntity.status(HttpServletResponse.SC_UNAUTHORIZED).body(Map.of("error", "다른 기기에서 로그인"));
 	    }
 	    
 	    User user = service.findUserById(userId);
-	    
 	    if(user == null) {
 	    	return ResponseEntity.status(HttpServletResponse.SC_UNAUTHORIZED).body(Map.of("error", "사용자가 없음"));
 	    }
+	    
+	    String currentSid = redisTemplate.opsForValue().get("user:" + userId + ":current_sid");
+	    if(currentSid == null) {
+	    	return ResponseEntity.status(HttpServletResponse.SC_UNAUTHORIZED).body(Map.of("error", "세션이 만료되었습니다. 다시 로그인해주세요."));
+	    }
 
 	    // refresh token 이 유효하다면 새로운 access token 발급
-	    String newAccessToken = jwtTokenProvider.generateAccessToken(userId);
+	    String newAccessToken = jwtTokenProvider.generateAccessToken(userId, currentSid);
 	    
-	    log.info("엑세스토큰 재발급 완료");
+	    log.info("accessToken 재발급 완료: userId={}", userId);
 		
 	    return ResponseEntity.ok(Map.of("accessToken", newAccessToken));
 	}
