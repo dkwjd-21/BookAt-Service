@@ -6,6 +6,7 @@ import java.time.format.DateTimeFormatter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.bookat.controller.PaymentController;
 import com.bookat.domain.PaymentStatus;
 import com.bookat.dto.PaymentDto;
 import com.bookat.dto.reservation.PaymentReservationSession;
@@ -62,14 +63,18 @@ public class PaymentServiceImpl implements PaymentService {
   }
 
   @Override
-  public void markFailed(String merchantUid, String reason){
-    paymentMapper.markFailedByMerchantUid(merchantUid, reason);
+  public void markFailed(String merchantUid, String failReason){
+	  int updated = paymentMapper.markFailedByMerchantUid(merchantUid, failReason);
+	  log.info("[PAYMENT] markFailed merchantUid={}, updated={}", merchantUid, updated);
   }
   
   @Override
   public void markCanceled(String merchantUid, String reason, String cancelReceiptUrl, boolean partial) {
 	int status = partial ? PaymentStatus.PART_CANCELED.code : PaymentStatus.CANCELED.code;
-    paymentMapper.markCanceledByMerchantUid(merchantUid, reason, cancelReceiptUrl);
+	int updated = paymentMapper.markCanceledByMerchantUid(merchantUid, status, reason, cancelReceiptUrl);
+	
+	//추후 주문 상태도 업데이트 구문 필요
+	
   }
 
   @Override

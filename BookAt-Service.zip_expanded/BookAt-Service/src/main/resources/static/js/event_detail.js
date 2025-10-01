@@ -159,6 +159,7 @@ function initializeReserveButton() {
       return;
     }
 
+
     // 2. 예매가 가능한 경우
     if (currentTime.getTime() >= ticketingOpenDate.getTime()) {
       reserveBtn.textContent = "예매하기";

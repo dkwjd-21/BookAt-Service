@@ -1,6 +1,9 @@
 package com.bookat.controller;
 
 import java.math.BigDecimal;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -21,6 +24,7 @@ import com.bookat.dto.reservation.PaymentReservationSession;
 import com.bookat.entity.User;
 import com.bookat.service.BookService;
 import com.bookat.service.EventService;
+import com.bookat.service.OrderService;
 import com.bookat.service.PaymentService;
 import com.bookat.util.PaymentSessionStore;
 import com.bookat.util.PortOneClient;
@@ -41,66 +45,56 @@ public class PaymentController {
   private final PaymentSessionStore sessionStore;
   private final ReservationRedisUtil reservationRedisUtil;
   private final EventService eventService;
-
-  /* 이벤트 결제 시작 (팝업 우측 요약에서 eventId/amount만 넘김)   */
-  @PostMapping("/session/start-event")
-  @ResponseBody
-  public Map<String, Object> startEvent(@RequestParam Integer eventId,
-                                        @RequestParam Integer amount,
-                                        @RequestParam String title,
-                                        @RequestParam(defaultValue = "CARD") String method,
-                                        @AuthenticationPrincipal(expression = "userId") String userId) {
-      if (userId == null || userId.isBlank()) return Map.of("status","error","message","unauthorized");
-
-      String enforcedMethod = "CARD";
-      var pay = paymentService.createReadyPayment(amount, enforcedMethod, title, userId);
-
-      PaymentSession session = PaymentSessionStore.of(
-          "EVENT:" + eventId, 1, enforcedMethod,
-          java.math.BigDecimal.valueOf(amount),
-          pay.getMerchantUid(), userId, title
-      );
-      String token = sessionStore.create(session);
-      return Map.of("status","success","redirectUrl","/payment/frag-test?token=" + token);
-  }
-  
   
   //도서 세션
   @PostMapping("/session/start")
   @ResponseBody
-  public Map<String, Object> start(@RequestParam String bookId,
-                                   @RequestParam(defaultValue = "1") Integer qty,
-                                   @RequestParam(defaultValue = "CARD") String method,
-                                   @AuthenticationPrincipal(expression = "userId") String userId) {
+  public Map<String,Object> startBook(@RequestParam String bookId,
+                                      @RequestParam(defaultValue="1") int qty,
+                                      @AuthenticationPrincipal com.bookat.entity.User user) {
+      if (user == null) return Map.of("status","error","message","unauthorized");
 
-    if (userId == null || userId.isBlank()) {
-      return Map.of("status","error","message","unauthorized");
-    }
+      var book = bookService.selectOne(bookId);                 // title/price 얻기
+      if (book == null) return Map.of("status","error","message","book_not_found");  // BookService.selectOne 사용
 
-    var book = bookService.selectOne(bookId);
-    if (book == null) {
-      return Map.of("status","error","message","invalid bookId");
-    }
+      int amount = book.getPrice().intValue() * Math.max(qty, 1);
+      String title = book.getTitle();                           // BookDto.title 사용
 
-    int safeQty = (qty == null || qty < 1) ? 1 : qty;
-    BigDecimal amount = book.getPrice().multiply(BigDecimal.valueOf(safeQty));
-    String rawTitle = book.getTitle();
-    String payTitle = safeQty > 1 ? rawTitle + " 외 " + (safeQty - 1) + "권" : rawTitle;
-
-    // 무통장입금 실제 구현 x CARD로 강제
-    String enforcedMethod = "CARD";
-
-    var pay = paymentService.createReadyPayment(
-          amount.intValueExact(), enforcedMethod, payTitle, userId);
-
-    PaymentSession session = PaymentSessionStore.of(
-    		"BOOK:" + bookId, safeQty, enforcedMethod, amount, pay.getMerchantUid(), userId, payTitle);
-
-    String token = sessionStore.create(session);
-
-    return Map.of("status","success","redirectUrl","/payment/frag-test?token=" + token);
+      // READY 생성(merchantUid 발급) → 결제세션 저장(토큰 생성)
+      var pay = paymentService.createReadyPayment(amount, "CARD", title, user.getUserId());
+      var session = new PaymentSession(
+          bookId, qty, "CARD",
+          java.math.BigDecimal.valueOf(amount),
+          pay.getMerchantUid(), user.getUserId(),
+          "READY",
+          java.time.OffsetDateTime.now().toString(),
+          title
+      );
+      String token = sessionStore.create(session);
+      return Map.of("status","success","token", token);
   }
+  
+  @PostMapping("/session/start-cart")
+  @ResponseBody
+  public Map<String,Object> startCart(@RequestParam int amount,
+                                      @RequestParam String title,
+                                      @AuthenticationPrincipal com.bookat.entity.User user) {
+      if (user == null) return Map.of("status","error","message","unauthorized");
 
+      var pay = paymentService.createReadyPayment(amount, "CARD", title, user.getUserId());
+      var session = new PaymentSession(
+          null, 0, "CARD",
+          java.math.BigDecimal.valueOf(amount),
+          pay.getMerchantUid(), user.getUserId(),
+          "READY",
+          java.time.OffsetDateTime.now().toString(),
+          title
+      );
+      String token = sessionStore.create(session);
+      return Map.of("status","success","token", token);
+  }
+  
+  
   @GetMapping("/session/context")
   @ResponseBody
   public Map<String, Object> context(@RequestParam String token,
@@ -126,28 +120,6 @@ public class PaymentController {
       );
   }
   
-  @GetMapping("/frag-test")
-  public String fragTest(@RequestParam String token, Model model) {
-      model.addAttribute("token", token); 
-      return "payment/frag-test";
-  }
-
-
-
-/* 개발용: 페이지 전체 결제 테스트 
-@GetMapping("/dev/new")
-public String devNew(@RequestParam Integer amount,
-                     @RequestParam String method,
-                     Model model,
-                     @AuthenticationPrincipal(expression = "userId") String userId) {
-	  
-
-  PaymentDto pay = paymentService.createReadyPayment(amount, method, "개발용 결제",userId);
-  model.addAttribute("merchantUid", pay.getMerchantUid());
-  model.addAttribute("amount", pay.getPaymentPrice());
-  model.addAttribute("userId", userId);
-  return "payment/pay";
-}*/
   @PostMapping("/api/complete")
   @ResponseBody
   public Map<String, Object> apiComplete(@RequestBody PaymentCompleteRequest req,
@@ -196,22 +168,33 @@ public String devNew(@RequestParam Integer amount,
   
   @GetMapping("/success")
   public String success(@RequestParam("m") String merchantUid,
-                        @RequestParam(value = "i", required = false) String impUid,
+                        @RequestParam(value="i", required = false) String impUid,
+                        @RequestParam(value="t", required = false) String token,
                         Model model) {
-    var pay = paymentService.findByMerchantUid(merchantUid);
+
+    // 1) 결제 기본 정보
+    PaymentDto pay = paymentService.findByMerchantUid(merchantUid);
     if (pay == null) return "error/404";
 
     model.addAttribute("merchantUid", merchantUid);
     model.addAttribute("impUid", impUid);
     model.addAttribute("amount", pay.getPaymentPrice());
     model.addAttribute("method", pay.getPaymentMethod());
-    model.addAttribute("status", pay.getPaymentStatus());
+    model.addAttribute("status", pay.getPaymentStatus() == 1 ? "paid" : "ready");
     model.addAttribute("receiptUrl", pay.getReceiptUrl());
     model.addAttribute("pgTid", pay.getPgTid());
 
-    return "payment/success"; 
-  }
+    // 2) 화면 렌더에 필요한 기본값(나중에 주문 조회 메서드 보고 가져오기)
+    model.addAttribute("items", java.util.Collections.emptyList()); 
+    model.addAttribute("productTotal", 0);
+    model.addAttribute("shippingFee", 0);
+    model.addAttribute("usedPoint", 0);
+    model.addAttribute("earnPoint", 0);
+    model.addAttribute("orderDate", java.time.LocalDate.now());
 
+    return "payment/success";
+  }
+  
   /* 포트원 웹훅 */
   @PostMapping("/webhook")
   @ResponseBody

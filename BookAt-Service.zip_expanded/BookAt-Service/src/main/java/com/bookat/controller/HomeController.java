@@ -21,4 +21,3 @@ public class HomeController {
 		return "reservation/QueueModal";
 	}
 }
-

@@ -62,11 +62,12 @@ public class PaymentSessionStore {
 
   public static PaymentSession of(String bookId, int qty, String method,
           java.math.BigDecimal amount, String merchantUid, String userId,
-          String title) {   // ← title 추가
+          String title) {
           
 	     return new PaymentSession(bookId, qty, method, amount, merchantUid, userId, "READY", OffsetDateTime.now().toString(),title
          );
   }
+ 
   
 	// === 이벤트 결제 세션 토큰 관련 ===
 	public String createEventPay(PaymentReservationSession session) {
