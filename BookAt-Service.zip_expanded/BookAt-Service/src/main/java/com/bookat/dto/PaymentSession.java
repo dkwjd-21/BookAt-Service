@@ -15,8 +15,5 @@ public record PaymentSession(
     String status,
     String createdAt,
     String title
-    
-   // 추후 연동
-   // orderid
-   // eventid
+
 ) {}

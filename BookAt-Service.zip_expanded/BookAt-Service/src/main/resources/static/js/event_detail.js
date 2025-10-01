@@ -191,11 +191,21 @@ function initializeReserveButton() {
         const hours = Math.floor(timeLeft / (1000 * 60 * 60));
         const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
-        reserveBtn.textContent = `예매 오픈 까지 ${String(hours).padStart(2, "0")}시간 ${String(minutes).padStart(2, "0")}분 ${String(seconds).padStart(2, "0")}초`;
+        reserveBtn.textContent = `예매 오픈 까지 ${String(hours).padStart(
+          2,
+          "0"
+        )}시간 ${String(minutes).padStart(2, "0")}분 ${String(seconds).padStart(
+          2,
+          "0"
+        )}초`;
       }, 1000);
     } else {
       // 4. 아직 오픈 일자가 많이 남은 경우
-      const openDate = ticketingOpenDate.toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" });
+      const openDate = ticketingOpenDate.toLocaleDateString("ko-KR", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
       reserveBtn.textContent = `${openDate} 18:00 오픈예정`;
       reserveBtn.disabled = true;
       reserveBtn.style.backgroundColor = "#F0F0F0";
@@ -211,7 +221,9 @@ function initializeReserveButton() {
  */
 function initializeKakaoMap() {
   if (typeof eventAddress === "undefined" || !eventAddress) {
-    console.error("이벤트 주소(eventAddress)를 찾을 수 없습니다. HTML 파일에 inline script가 있는지 확인하세요.");
+    console.error(
+      "이벤트 주소(eventAddress)를 찾을 수 없습니다. HTML 파일에 inline script가 있는지 확인하세요."
+    );
     return;
   }
 
@@ -240,7 +252,10 @@ function initializeKakaoMap() {
           position: coords,
         });
 
-        const label = address === fallbackAddress ? "테크브루 아카데미" : firstResult.place_name;
+        const label =
+          address === fallbackAddress
+            ? "테크브루 아카데미"
+            : firstResult.place_name;
         const infowindow = new kakao.maps.InfoWindow({
           content: `<div style="padding:5px;font-size:12px;width:max-content;">${label}</div>`,
         });
@@ -252,7 +267,8 @@ function initializeKakaoMap() {
         if (address !== fallbackAddress) {
           searchAndDisplay(fallbackAddress);
         } else {
-          mapContainer.innerHTML = '<div style="display:flex; align-items:center; justify-content:center; height:100%;">장소 정보를 찾을 수 없습니다.</div>';
+          mapContainer.innerHTML =
+            '<div style="display:flex; align-items:center; justify-content:center; height:100%;">장소 정보를 찾을 수 없습니다.</div>';
         }
       }
     });

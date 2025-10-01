@@ -63,12 +63,12 @@
     WHERE merchant_uid = #{merchantUid}
   </update>
 
-  <update id="markFailedByMerchantUid" parameterType="map">
-    UPDATE PAYMENT SET
-      payment_status = -1,
-      fail_reason = #{failReason}
-    WHERE merchant_uid = #{merchantUid}
-  </update>
+<update id="markFailedByMerchantUid">
+  UPDATE PAYMENT
+  SET payment_status = -1,
+      fail_reason    = #{failReason}
+  WHERE merchant_uid = #{merchantUid}
+</update>
   
  <update id="markCanceledByMerchantUid">
   UPDATE PAYMENT
