@@ -311,14 +311,14 @@ public class ReservationServiceImpl implements ReservationService {
 		
 		int eventId = Integer.parseInt(redisData.get("eventId").toString());
 		int scheduleId = Integer.parseInt(redisData.get("scheduleId").toString());
-		//String title = (String) redisData.get("title");
+		String eventName = (String) redisData.get("eventName");
 		int totalPrice = Integer.parseInt(redisData.get("totalPrice").toString());
 		//int reservedCount = Integer.parseInt(redisData.get("reservedCount").toString());
 
 		PaymentInfoResDto paymentInfoResDto = new PaymentInfoResDto();
 		paymentInfoResDto.setEventId(eventId);
 		paymentInfoResDto.setScheduleId(scheduleId);
-		//paymentInfoResDto.setTitle(title);
+		paymentInfoResDto.setTitle(eventName);
 		paymentInfoResDto.setTotalPrice(totalPrice);
 		//paymentInfoResDto.setReservedCount(reservedCount);
 
@@ -350,8 +350,8 @@ public class ReservationServiceImpl implements ReservationService {
 		redisUtil.updateReservationStatus(reservationToken, ReservationStatus.RESERVED);
 
 		// 티켓 N건 디비 저장
-		String groupCountsJson = (String) reservationData.get("groupCounts");
-		var parsed = redisUtil.parseGroupCounts(groupCountsJson)
+		String presonCountsJson = (String) reservationData.get("personCounts");
+		var parsed = redisUtil.parsePersonCounts(presonCountsJson)
 				.orElseThrow(() -> new IllegalArgumentException("예매 인원 정보 파싱 오류"));
 		Long reservationId = reservation.getReservationId();
 
