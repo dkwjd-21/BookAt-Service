@@ -1,16 +1,12 @@
 package com.bookat.service.impl;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
-
-import org.springframework.data.redis.core.HashOperations;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import com.bookat.service.RefreshTokenService;
 import com.bookat.util.CookieUtil;
+import com.bookat.util.JwtRedisUtil;
 import com.bookat.util.JwtTokenProvider;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,8 +20,8 @@ import lombok.extern.slf4j.Slf4j;
 public class RefreshTokenServiceImpl implements RefreshTokenService {
 	
 	private final JwtTokenProvider jwtTokenProvider;
-	private final RedisTemplate<String, Object> redisTemplate;
 	private final CookieUtil cookieUtil;
+	private final JwtRedisUtil jwtRedisUtil;
 	
     /**
      * RefreshToken 및 동시 로그인 검증
@@ -42,8 +38,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 		String refreshToken = cookieUtil.getCookieValue(request, "refreshToken");
 		String loginTime = cookieUtil.getCookieValue(request, "loginTime");
 		
-		HashOperations<String, String, String> hashOps = redisTemplate.opsForHash();
-		Map<String, String> redisValue = hashOps.entries(userId);
+		Map<String, String> redisValue = jwtRedisUtil.getRefreshTokenInfo(userId);
 		
 		if(redisValue == null || redisValue.isEmpty()) {
 			log.info("redis 에 저장된 세션이 없음");
@@ -70,11 +65,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 
 	@Override
 	public void storeRefreshToken(String userId, String refreshToken, String loginTime) {
-		Map<String, String> values = new HashMap<>();
-		values.put("refreshToken", refreshToken);
-		values.put("loginTime", loginTime);
-		redisTemplate.opsForHash().putAll(userId, values);
-		redisTemplate.expire(userId, JwtTokenProvider.EXPIRATION_1D, TimeUnit.SECONDS);
+		jwtRedisUtil.storeRefreshToken(userId, refreshToken, loginTime);
 	}
 
 }

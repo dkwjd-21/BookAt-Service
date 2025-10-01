@@ -6,3 +6,4 @@
 **/application.properties
 **/docker-compose.yml
 .vscode/settings.json
+BookAt-Service.zip_expanded/BookAt-Service/src/main/resources/docker-compose.yml
