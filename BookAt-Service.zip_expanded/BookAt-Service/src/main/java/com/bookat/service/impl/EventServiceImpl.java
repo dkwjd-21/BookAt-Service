@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 
 import com.bookat.dto.EventPartDto;
 import com.bookat.dto.EventResDto;
-import com.bookat.dto.EventSeatDto;
 import com.bookat.entity.Book;
 import com.bookat.mapper.EventMapper;
 import com.bookat.service.EventService;
@@ -112,7 +111,7 @@ public class EventServiceImpl implements EventService{
 	}
 
 	@Override
-	public int insertSeat(EventSeatDto dto) {
-		return mapper.insertSeat(dto);
+	public EventPartDto selecetPartByScheduleId(int scheduleId) {
+		return mapper.selectPartByScheduleId(scheduleId);
 	}
 }

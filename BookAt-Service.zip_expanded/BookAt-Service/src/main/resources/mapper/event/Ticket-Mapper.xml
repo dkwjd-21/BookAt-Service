@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.bookat.mapper.TicketMapper">
+	
+	<insert id="insertTicket" parameterType="Ticket">
+		<selectKey keyProperty="ticketId" resultType="long" order="BEFORE">
+			SELECT SEQ_TICKET.NEXTVAL FROM DUAL
+		</selectKey>
+		INSERT INTO TICKET (
+			TICKET_ID,
+			TICKET_CREATED_DATE,
+			TICKET_STATUS,
+			TICKET_TYPE,
+			PERSON_TYPE,
+			RESERVATION_ID,
+			SEAT_ID,
+			PAYMENT_ID
+		) VALUES (
+			#{ticketId},
+			SYSDATE,
+			#{ticketStatus},
+			#{ticketType},
+			#{personType},
+			#{reservationId},
+			#{seatId, jdbcType=NUMERIC},
+			#{paymentId}
+		)
+	</insert>
+	
+</mapper>

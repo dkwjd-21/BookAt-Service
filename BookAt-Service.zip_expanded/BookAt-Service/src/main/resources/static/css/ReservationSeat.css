@@ -1,0 +1,166 @@
+/* 좌석 선택 제목 */
+.seat-title {
+	font-size: 20px;
+	color: #333;
+	display: inline-block;
+	vertical-align: top;
+}
+
+/* 좌석 범례 */
+.seat-legend {
+	display: inline-block;
+	margin-left: 20px;
+	vertical-align: top;
+	font-size: 14px;
+	color: #666;
+}
+
+.seat-legend-item {
+	display: inline-flex;
+	align-items: center;
+	margin-right: 15px;
+}
+
+.seat-legend-item span {
+	width: 15px;
+	height: 15px;
+	border-radius: 4px;
+	margin-right: 5px;
+	display: inline-block;
+}
+
+/* 좌석 상태별 색상 */
+.seat-available {
+	background-color: #B5A8DB;
+}
+
+.seat-selected {
+	background-color: #7ABD7A;
+}
+
+.seat-unavailable {
+	background-color: #D9D9D9;
+}
+
+/* 일반석 가격 정보 */
+p[style*="float: right"] {
+	font-size: 14px;
+	color: #666;
+	margin: 0;
+	float: right;
+	line-height: 20px;
+}
+
+/* 좌석 배치도 컨테이너 */
+.seat-map-container {
+	clear: both;
+	/* float 속성 해제 */
+	border: 1px solid #ddd;
+	border-radius: 8px;
+	padding: 20px;
+	margin-top: 20px;
+	background-color: #f9f9f9;
+	text-align: center;
+
+	/* 스크롤 추가 */
+	max-height: 400px;
+	overflow-y: auto;
+}
+
+/* 무대(STAGE) */
+.stage {
+	background-color: #333;
+	color: #fff;
+	padding: 10px 0;
+	width: 90%;
+	margin: 0 auto 20px;
+	border-radius: 5px;
+	font-weight: bold;
+}
+
+/* JS로 렌더링될 좌석이 들어갈 영역 */
+.stage-seat {
+	display: grid;
+	grid-template-columns: repeat(10, 1fr);
+	gap: 10px;
+	justify-content: center;
+}
+
+/* 새로고침 버튼 컨테이너 */
+.refresh-container {
+	text-align: right;
+	margin-top: 20px;
+}
+
+/* 새로고침 버튼 */
+.refresh-btn {
+	background-color: transparent;
+	border: 1px solid #ccc;
+	color: #666;
+	padding: 8px 15px;
+	border-radius: 5px;
+	cursor: pointer;
+	font-size: 14px;
+	display: inline-block;
+}
+
+.refresh-btn:hover {
+	background-color: #f0f0f0;
+}
+
+/* 좌석 전체 컨테이너 */
+.stage-seat {
+	display: flex;
+	flex-direction: column;
+	gap: 15px;
+	/* 행 간 세로 간격 */
+	align-items: center;
+	/* 전체 좌석 블록을 가운데 정렬 */
+}
+
+/* 각 행을 담는 컨테이너 */
+.seat-row {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	/* 라벨과 좌석, 좌석 간 가로 간격 */
+}
+
+/* 행 라벨 스타일 */
+.row-label {
+	text-align: right;
+	font-weight: bold;
+	color: #333;
+	min-width: 20px;
+	margin-right: 10px;
+	font-size: 16px;
+}
+
+/* 개별 좌석 스타일 */
+.seat {
+	width: 30px;
+	height: 30px;
+	background-color: #B5A8DB;
+	/* 보라색 */
+	border-radius: 5px;
+	cursor: pointer;
+}
+
+/* 좌석 상태별 색상 */
+.seat-available {
+	background-color: #B5A8DB;
+}
+
+.seat-selected {
+	background-color: #7ABD7A;
+}
+
+.seat-unavailable {
+	background-color: #D9D9D9;
+	cursor: not-allowed;
+}
+
+/* 선택 중 상태 효과 */
+.seat:hover:not(.seat-unavailable) {
+	transform: scale(1.1);
+}
