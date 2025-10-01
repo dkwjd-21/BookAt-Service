@@ -32,7 +32,7 @@ public class JwtRedisUtil {
 		redisScript.setScriptText(luaScript);
 		redisScript.setResultType(String.class);
 		
-		redisTemplate.execute(redisScript, List.of(sidKey), sid, String.valueOf(JwtTokenProvider.EXPIRATION_30M));
+		redisTemplate.execute(redisScript, List.of(sidKey), sid, String.valueOf(JwtTokenProvider.EXPIRATION_1D));
 	}
 	
 	// 현재 session id 조회
