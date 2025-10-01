@@ -30,9 +30,10 @@ public class JwtTokenProvider {
     }
 
     // access token 생성
-	public String generateAccessToken(String userId) {
+	public String generateAccessToken(String userId, String sid) {
 		return Jwts.builder()
 				.setSubject(userId)
+				.claim("sid", sid)		// sid : Session Id -> 세션 식별자 값
 				.setIssuedAt(new Date())
 				.setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_30M))
 				.signWith(key, SignatureAlgorithm.HS256)
@@ -73,5 +74,11 @@ public class JwtTokenProvider {
 		} catch (JwtException |  IllegalArgumentException e) {
 			return false;
 		}
+	}
+	
+	public String getSidFromToken(String token) {
+		Object v = Jwts.parserBuilder().setSigningKey(key).build()
+				.parseClaimsJws(token).getBody().get("sid");
+		return v != null ? v.toString() : null;
 	}
 }
