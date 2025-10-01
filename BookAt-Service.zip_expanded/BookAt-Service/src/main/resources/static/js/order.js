@@ -138,68 +138,6 @@ document.addEventListener("DOMContentLoaded", function () {
     showOrderResultModal("주문할 상품이 없습니다.", false);
     return;
   }
-
-  // 결제하기 버튼 클릭 이벤트
-  document.getElementById("paymentBtn").addEventListener("click", function () {
-    const accessToken = localStorage.getItem("accessToken");
-
-    if (!accessToken) {
-      showOrderResultModal("로그인이 필요합니다.", false);
-      return;
-    }
-
-    // 배송지 정보 유효성 검사
-    const recipientName = document.getElementById("display-name").textContent;
-    const recipientPhone = document.getElementById("display-phone").textContent;
-    const address = document.getElementById("display-address").textContent;
-
-    if (recipientName === "배송지를 입력해주세요" || recipientPhone === "배송지를 입력해주세요" || address === "배송지를 입력해주세요") {
-      showDeliveryInfoModal();
-      return;
-    }
-
-    // 주문 생성 요청
-    const cartIds = orderItems.map((item) => item.cartId || item.bookId); // cartId가 없으면 bookId 사용
-
-    // 배송비 포함 총 금액 계산
-    const subtotal = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    const shippingFee = subtotal > 0 && subtotal < 15000 ? 3000 : 0;
-    const totalAmount = subtotal + shippingFee;
-
-    const orderPayload = {
-      items: orderItems.map((item) => ({
-        cartId: item.cartId || null,
-        bookId: item.bookId,
-        price: item.price,
-        quantity: item.quantity,
-      })),
-      subtotal,
-      shippingFee,
-      totalAmount,
-    };
-
-    axiosInstance
-      .post("/order/create", orderPayload)
-      .then((response) => {
-        if (response.data) {
-          showOrderResultModal(response.data, true);
-        }
-      })
-      .catch((error) => {
-        console.error("=== 주문 처리 중 오류 ===");
-        console.error("error:", error);
-        console.error("error.response:", error.response);
-
-        if (error.response && error.response.status === 401) {
-          localStorage.removeItem("accessToken");
-          localStorage.removeItem("refreshToken");
-          showOrderResultModal("세션이 만료되었습니다. 다시 로그인해주세요.", false);
-        } else {
-          const errorMessage = error.response?.data || "주문 처리 중 오류가 발생했습니다.";
-          showOrderResultModal(errorMessage, false);
-        }
-      });
-  });
 });
 
 // 로그인 상태 확인 함수 (서버에서 이미 검증했으므로 간단히 체크)

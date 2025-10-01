@@ -2,6 +2,8 @@ package com.bookat.entity.reservation;
 
 import java.util.Date;
 
+import com.bookat.enums.PersonType;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,13 +15,13 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Ticket {
 	
-	private int ticketId;
+	private Long ticketId;
 	private Date ticketCreatedDate;
 	private int ticketStatus;
-	private String ticketType;
-	private String personType;
-	private int reservationId;
-	private int seatId;
-	private int paymentId;
+	private String ticketType;		// 'PERSON_TYPE' , 'SEAT_TYPE'
+	private String personType;		// 'ADULT' , 'YOUTH' , 'CHILD' (인원형일 때)
+	private Long reservationId;
+	private Integer seatId;
+	private Long paymentId;
 	
 }

@@ -7,12 +7,14 @@
     <link rel="stylesheet" th:href="@{/css/header.css}" />
     <link rel="stylesheet" th:href="@{/css/footer.css}" />
     <link rel="stylesheet" th:href="@{/css/order.css}" />
+    <script src="https://cdn.iamport.kr/v1/iamport.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script th:src="@{/js/utils/axiosIntercepter.js}"></script>
     <script th:src="@{/js/utils/logout.js}"></script>
     <script th:src="@{/js/utils/userAuth.js}"></script>
     <script th:src="@{/js/utils/header.js}"></script>
     <script th:src="@{/js/order.js}"></script>
+    <script th:src="@{/js/payment.js}"></script>
   </head>
   <body>
     <div th:replace="~{fragments/header :: header}"></div>
@@ -78,7 +80,7 @@
             <div class="order-info">
               <div class="info-item">
                 <span>결제 예정 금액 안내</span>
-                <span id="totalAmount">0원</span>
+                <span id="total">0원</span>
               </div>
               <div class="info-item">
                 <span>배송 예정일 안내</span>
@@ -103,16 +105,17 @@
               </div>
               <div class="summary-item total">
                 <span>결제 예정 금액</span>
-                <span id="total">0원</span>
+                <span id="totalAmount">0원</span>
               </div>
               <div class="summary-item">
                 <span>적립 예정 포인트</span>
                 <span id="points">0P</span>
               </div>
             </div>
-            <button type="button" class="btn-payment" id="paymentBtn">결제하기</button>
+            <div th:replace="~{fragments/payFragment :: payFragment}"></div>
           </div>
         </div>
+       
       </div>
     </div>
 

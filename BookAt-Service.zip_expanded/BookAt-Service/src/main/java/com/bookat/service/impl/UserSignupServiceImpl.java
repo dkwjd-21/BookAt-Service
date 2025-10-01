@@ -46,4 +46,10 @@ public class UserSignupServiceImpl implements UserSignupService {
 		return mapper.insertUser(user);
 	}
 
+	@Override
+	public UserSignup getUserByPhone(String phone) {
+		String formattedPhone = phone.substring(0, 3) + "-" + phone.substring(3, 7) + "-" + phone.substring(7);
+		return mapper.selectUserByPhone(formattedPhone);
+	}
+
 }
