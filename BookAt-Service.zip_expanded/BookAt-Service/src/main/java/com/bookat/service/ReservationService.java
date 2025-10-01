@@ -15,7 +15,7 @@ public interface ReservationService {
 	void selectSchedule(String reservationToken, int scheduleId);
 	void selectPersonType(String reservationToken, PersonTypeReqDto personTypeReqDto);
 	boolean inputUserInfo(String reservationToken, String userId, UserInfoReqDto userInfoReqDto);
-	void cancelReservation(String reservationToken);
+	void cancelReservation(String reservationToken, boolean isPaymentStep, String reason);
 	void validateReservation(String reservationToken);
 	PaymentInfoResDto getPaymentInfo(String reservationToken);
 	void createReservation(String reservationToken, Long paymentId);
