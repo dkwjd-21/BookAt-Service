@@ -84,26 +84,39 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const html = orders
       .map((order) => {
+        const statusCode = Number(order.orderStatus);
+        const canWriteReview = statusCode === 3;
         const itemsHtml = (order.items || [])
-          .map(
-            (item) => `
+          .map((item) => {
+            const bookLink = item.bookId ? `/books/${item.bookId}` : null;
+            const safeTitle = item.title ?? "도서 정보 없음";
+            const coverContent = item.coverImage ? `<img src="${item.coverImage}" alt="${safeTitle}" />` : '<div class="thumb-placeholder"><span>이미지 없음</span></div>';
+            const coverHtml = wrapWithLink(coverContent, bookLink, "book-link book-link--cover");
+            const titleHtml = wrapWithLink(safeTitle, bookLink, "book-link book-link--text");
+            const authorText = item.author ?? "";
+            const metaText = `${item.quantity ?? 0}권 · ${formatPrice(item.price)}`;
+            const metaHtml = wrapWithLink(metaText, bookLink, "book-link book-link--text");
+            const authorRow = authorText ? `<div class="item-meta">${wrapWithLink(authorText, bookLink, "book-link book-link--text")}</div>` : "";
+
+            const reviewButton = canWriteReview ? `<div class="item-actions"><button type="button" class="btn-review" data-order-id="${order.orderId ?? ""}" data-book-id="${item.bookId ?? ""}" data-book-title="${safeTitle}">리뷰작성</button></div>` : "";
+
+            return `
               <li class="order-item">
                 <div class="item-cover">
-                  ${item.coverImage ? `<img src="${item.coverImage}" alt="${item.title}" />` : '<div class="thumb-placeholder"><span>이미지 없음</span></div>'}
+                  ${coverHtml}
                 </div>
                 <div class="item-info">
-                  <div class="item-title">${item.title ?? "도서 정보 없음"}</div>
-                  <div class="item-meta">${item.author ?? ""}</div>
-                  <div class="item-meta">${item.quantity ?? 0}권 · ${formatPrice(item.price)}</div>
+                  <div class="item-title">${titleHtml}</div>
+                  ${authorRow}
+                  <div class="item-meta">${metaHtml}</div>
                 </div>
+                ${reviewButton}
               </li>
-            `
-          )
+            `;
+          })
           .join("");
 
-        const statusCode = Number(order.orderStatus);
         const trackingButton = statusCode === 4 && order.trackingNumber ? `<button type="button" class="btn-secondary btn-tracking" data-tracking="${order.trackingNumber}">배송조회</button>` : "";
-        const reviewButton = statusCode === 3 ? `<button type="button" class="btn-review" data-order-id="${order.orderId ?? ""}" data-book-id="${order.items?.[0]?.bookId ?? ""}" data-book-title="${order.items?.[0]?.title ?? ""}">리뷰작성</button>` : "";
         const secondaryButtons = createSecondaryButtons(statusCode);
 
         return `
@@ -121,7 +134,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             </div>
             <div class="order-actions">
               ${trackingButton}
-              ${reviewButton}
             </div>
           </div>
 
@@ -169,6 +181,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   function formatPrice(price) {
     if (price === null || price === undefined) return "0원";
     return `${Number(price).toLocaleString()}원`;
+  }
+
+  function wrapWithLink(content, link, className) {
+    if (!link) return content;
+    return `<a href="${link}" class="${className}">${content}</a>`;
   }
 
   const reviewModal = (() => {
