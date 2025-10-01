@@ -56,36 +56,51 @@ public class SeatRedisUtil {
 				seatNames.toArray(new String[0]));
 	}
 
+	// 좌석 확정 처리 (BOOKED)
+	// [Set] HOLD -> BOOKED
+	// [Hash] BOOKED로 상태 업데이트
+	public Long bookSeats(int eventId, int scheduleId, List<String> seatNames) {
+		String hashKey = buildSeatsKey(eventId, scheduleId);
+		String holdSetKey = buildHoldSeatsKey(eventId, scheduleId);
+		String bookedSetKey = buildBookedSeatsKey(eventId, scheduleId);
+
+		String luaScript = "local count = 0 " + "for i, seat in ipairs(ARGV) do "
+				+ "  if redis.call('SISMEMBER', KEYS[1], seat) == 1 then " + // HOLD에 있으면
+				"    redis.call('SMOVE', KEYS[1], KEYS[2], seat) " + // HOLD -> BOOKED
+				"    redis.call('HSET', KEYS[3], seat, 'BOOKED') " + // 상태 BOOKED
+				"    count = count + 1 " + "  end " + "end " + "return count";
+
+		DefaultRedisScript<Long> redisScript = new DefaultRedisScript<>();
+		redisScript.setScriptText(luaScript);
+		redisScript.setResultType(Long.class);
+
+		return redisTemplate.execute(redisScript, List.of(holdSetKey, bookedSetKey, hashKey),
+				seatNames.toArray(new String[0]));
+	}
+
 	// 좌석 해제 처리
 	// [Set] HOLD/BOOKED 셋에서 제거 -> AVAILABLE 셋에 추가
 	// [Hash] AVAILABLE로 업데이트
 	// 좌석 해제 처리 (여러 좌석 한꺼번에 원자적 실행)
 	public Long releaseSeats(int eventId, int scheduleId, List<String> seatNames) {
-	    String hashKey = buildSeatsKey(eventId, scheduleId);
-	    String availableSetKey = buildAvailableSeatsKey(eventId, scheduleId);
-	    String holdSetKey = buildHoldSeatsKey(eventId, scheduleId);
-	    String bookedSetKey = buildBookedSeatsKey(eventId, scheduleId);
+		String hashKey = buildSeatsKey(eventId, scheduleId);
+		String availableSetKey = buildAvailableSeatsKey(eventId, scheduleId);
+		String holdSetKey = buildHoldSeatsKey(eventId, scheduleId);
+		String bookedSetKey = buildBookedSeatsKey(eventId, scheduleId);
 
-	    String luaScript =
-	        "local count = 0 " +
-	        "for i, seat in ipairs(ARGV) do " +
-	        "  redis.call('SREM', KEYS[2], seat) " +   // HOLD에서 제거
-	        "  redis.call('SREM', KEYS[3], seat) " +   // BOOKED에서 제거
-	        "  redis.call('SADD', KEYS[1], seat) " +   // AVAILABLE에 추가
-	        "  redis.call('HSET', KEYS[4], seat, 'AVAILABLE') " + // Hash 갱신
-	        "  count = count + 1 " +
-	        "end " +
-	        "return count";
+		String luaScript = "local count = 0 " + "for i, seat in ipairs(ARGV) do "
+				+ "  redis.call('SREM', KEYS[2], seat) " + // HOLD에서 제거
+				"  redis.call('SREM', KEYS[3], seat) " + // BOOKED에서 제거
+				"  redis.call('SADD', KEYS[1], seat) " + // AVAILABLE에 추가
+				"  redis.call('HSET', KEYS[4], seat, 'AVAILABLE') " + // Hash 갱신
+				"  count = count + 1 " + "end " + "return count";
 
-	    DefaultRedisScript<Long> redisScript = new DefaultRedisScript<>();
-	    redisScript.setScriptText(luaScript);
-	    redisScript.setResultType(Long.class);
+		DefaultRedisScript<Long> redisScript = new DefaultRedisScript<>();
+		redisScript.setScriptText(luaScript);
+		redisScript.setResultType(Long.class);
 
-	    return redisTemplate.execute(
-	        redisScript,
-	        List.of(availableSetKey, holdSetKey, bookedSetKey, hashKey),
-	        seatNames.toArray(new String[0])
-	    );
+		return redisTemplate.execute(redisScript, List.of(availableSetKey, holdSetKey, bookedSetKey, hashKey),
+				seatNames.toArray(new String[0]));
 	}
 
 	/* ---------------------- Key Builder ---------------------- */

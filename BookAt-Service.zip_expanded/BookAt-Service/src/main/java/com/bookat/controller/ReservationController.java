@@ -163,23 +163,32 @@ public class ReservationController {
 	public ResponseEntity<Map<String, Object>> inputUserInfo(@PathVariable String reservationToken,
 			@AuthenticationPrincipal User user, @RequestBody UserInfoReqDto userInfoReqDto) {
 
+		log.info("STEP3 start: reservationToken={}, userId={}", reservationToken, user.getUserId());
+		
 		if (user == null) {
 			return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", "로그인이 필요합니다."));
 		}
 		
 		try {
+			 log.info("STEP3: calling reservationService.inputUserInfo()");
 			boolean success = reservationService.inputUserInfo(reservationToken, user.getUserId(), userInfoReqDto);
-			
+			log.info("STEP3: inputUserInfo result={}", success);
 			if(!success) {
+				log.warn("STEP3 abort: 예약 정보 저장 실패");
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "예약 정보 저장 실패"));
 			}
 			
 			// 결제 프레그먼트 연결
+			log.info("STEP3: calling reservationService.getPaymentInfo()");
 			PaymentInfoResDto getPaymentInfo = reservationService.getPaymentInfo(reservationToken);
-
-			String enforcedMethod = "CARD";
-			PaymentDto pay = paymentService.createReadyPayment(getPaymentInfo.getTotalPrice(), enforcedMethod, getPaymentInfo.getTitle(), user.getUserId());
+			log.info("STEP3: payment info retrieved: {}", getPaymentInfo);
 			
+			String enforcedMethod = "CARD";
+			log.info("STEP3: calling paymentService.createReadyPayment()");
+			PaymentDto pay = paymentService.createReadyPayment(getPaymentInfo.getTotalPrice(), enforcedMethod, getPaymentInfo.getTitle(), user.getUserId());
+			log.info("STEP3: payment created: {}", pay);
+			
+			log.info("STEP3: creating PaymentReservationSession");
 			PaymentReservationSession session = PaymentSessionStore.of(
 					reservationToken, 
 					getPaymentInfo.getEventId(),
@@ -190,16 +199,22 @@ public class ReservationController {
 					BigDecimal.valueOf(getPaymentInfo.getTotalPrice()),
 					pay.getMerchantUid(),
 					user.getUserId());
+			log.info("STEP3: session created: {}", session);
 			
+			log.info("STEP3: calling paymentSessionStore.createEventPay()");
 			String paymentToken =  paymentSessionStore.createEventPay(session);
-		      
+			log.info("STEP3: paymentToken={}", paymentToken);  
+			
 			String paymentStepUrl = "/payment/" + paymentToken + "/paymentUI";
+			log.info("STEP3 completed successfully: paymentStepUrl={}", paymentStepUrl);
 			
 			return ResponseEntity.ok(Map.of("message", "사용자 정보 저장 완료", "status", "STEP4", "paymentStepUrl", paymentStepUrl));
 			
 		} catch (IllegalStateException ise) {
+			log.error("STEP3 IllegalStateException: {}", ise.getMessage(), ise);
 			return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("status", "STEP3", "error", ise.getMessage()));
 		} catch (Exception e) {
+			log.error("STEP3 Exception: ", e);
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("status", "STEP3", "error", "서버 오류가 발생했습니다."));
 		}
 	}

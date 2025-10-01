@@ -109,7 +109,7 @@ public class ReservationServiceImpl implements ReservationService {
 		}
 
 		// 회차를 변경할 경우 기존 좌석의 복구처리
-		if(prevEventId != null && prevScheduleId != null) {
+		if (prevEventId != null && prevScheduleId != null) {
 			int result = redisUtil.rollbackOnScheduleChange(reservationToken, prevEventId, prevScheduleId);
 			log.info("회차 변경으로 좌석 복구: eventId={}, scheduleId={}, 복구좌석={}", prevEventId, prevScheduleId, result);
 
@@ -141,19 +141,21 @@ public class ReservationServiceImpl implements ReservationService {
 		int totalPersonCount = personTypeReqDto.getPersonCounts().values().stream().mapToInt(Integer::intValue).sum();
 
 		int diff = totalPersonCount - prevTotal;
-		
-		if(diff != 0) {
-			int result = redisUtil.adjustSeatsAndUpdateStep2PT(reservationToken, eventId, scheduleId, diff, totalPersonCount, personTypeReqDto.getTotalPrice(), personTypeReqDto.getPersonCounts());
-			if(result == -1) {
-				throw new IllegalArgumentException(
-						String.format("잔여 좌석 부족\n요청 %d석, 기존 인원 %d, 새로 추가된 인원 %d, 현재 잔여좌석 %d", totalPersonCount, prevTotal, diff, redisUtil.getAvailableSeats(eventId, scheduleId)));
+
+		if (diff != 0) {
+			int result = redisUtil.adjustSeatsAndUpdateStep2PT(reservationToken, eventId, scheduleId, diff,
+					totalPersonCount, personTypeReqDto.getTotalPrice(), personTypeReqDto.getPersonCounts());
+			if (result == -1) {
+				throw new IllegalArgumentException(String.format("잔여 좌석 부족\n요청 %d석, 기존 인원 %d, 새로 추가된 인원 %d, 현재 잔여좌석 %d",
+						totalPersonCount, prevTotal, diff, redisUtil.getAvailableSeats(eventId, scheduleId)));
 			}
-			
+
 			log.info("인원수 변경 완료: eventId={}, scheduleId={}, diff={}, 현재 잔여좌석={}", eventId, scheduleId, diff, result);
 		}
 
 		// TTL 만료 시 복구용 METADATA 생성
-		redisUtil.createMetaDataForSessionExpired(reservationToken, Integer.parseInt(eventId), Integer.parseInt(scheduleId), totalPersonCount);
+		redisUtil.createMetaDataForSessionExpired(reservationToken, Integer.parseInt(eventId),
+				Integer.parseInt(scheduleId), totalPersonCount);
 	}
 
 	// step2 : 좌석 선택
@@ -180,22 +182,6 @@ public class ReservationServiceImpl implements ReservationService {
 		// TTL 만료시 복구용 메타데이터 생성
 		redisUtil.createSeatMetaDataForSessionExpired(reservationToken, reqDto.getEventId(), reqDto.getScheduleId(),
 				seatsCsv);
-
-		/*
-		 * // 예약 토큰에 좌석 정보 및 총 금액 저장 String reservationKey =
-		 * getReservationTokenKey(reservationToken); Map<String, String> redisData = new
-		 * HashMap<>(); redisData.put("seatNames", String.join(",",
-		 * reqDto.getSeatNames())); redisData.put("totalPrice",
-		 * String.valueOf(reqDto.getTotalPrice())); redisData.put("status", "STEP3");
-		 * redisTemplate.opsForHash().putAll(reservationKey, redisData);
-		 * 
-		 * // TTL 만료 대비 메타 데이터 생성 String metaKey = "RESERVATION_META:" +
-		 * reservationToken; Map<String, String> metaData = new HashMap<>();
-		 * metaData.put("eventId", String.valueOf(reqDto.getEventId()));
-		 * metaData.put("scheduleId", String.valueOf(reqDto.getScheduleId()));
-		 * metaData.put("reservedSeats", String.join(",", reqDto.getSeatNames()));
-		 * redisTemplate.opsForHash().putAll(metaKey, metaData);
-		 */
 	}
 
 	// step3 : 주문자 정보 입력
@@ -224,62 +210,16 @@ public class ReservationServiceImpl implements ReservationService {
 			throw new IllegalStateException("예약 세션이 만료되었습니다. 다시 예약해주세요.");
 		}
 
-		// 좌석 DB 상태 변경
-		for (String seatName : reqDto.getSeatNames()) {
-			EventSeatDto seatDto = new EventSeatDto();
-			seatDto.setEventId(reqDto.getEventId());
-			seatDto.setScheduleId(reqDto.getScheduleId());
-			seatDto.setSeatName(seatName);
-			seatDto.setSeatStatus(0); // 0 = 예약 완료
-			seatService.updateSeatStatus(seatDto);
-		}
+		boolean success = seatService.confirmSeats(reqDto.getEventId(), reqDto.getScheduleId(), reqDto.getSeatNames());
 
-		// Redis 좌석 상태 업데이트
-		String seatsHashKey = String.format("EVENT:%d:SCHEDULE:%d:SEATS", reqDto.getEventId(), reqDto.getScheduleId());
-		String holdSetKey = String.format("EVENT:%d:SCHEDULE:%d:HOLDED_SEATS", reqDto.getEventId(),
-				reqDto.getScheduleId());
-		String bookedSetKey = String.format("EVENT:%d:SCHEDULE:%d:BOOKED_SEATS", reqDto.getEventId(),
-				reqDto.getScheduleId());
-
-		for (String seatName : reqDto.getSeatNames()) {
-			// Hash에서 상태 변경
-			redisTemplate.opsForHash().put(seatsHashKey, seatName, "0"); // 0 = 예약 완료
-
-			// Set 이동: 홀드 -> booked
-			redisTemplate.opsForSet().remove(holdSetKey, seatName);
-			redisTemplate.opsForSet().add(bookedSetKey, seatName);
+		if (!success) {
+			throw new IllegalStateException("좌석 확정 처리 실패");
 		}
 
 		// Redis 예약 정보 업데이트
 		redisUtil.updateStepStatus(reservationToken, "COMPLETED");
 		redisUtil.updateReservationStatus(reservationToken, ReservationStatus.RESERVED);
 		redisUtil.deleteMetaData(reservationToken);
-
-		/*
-		 * // Redis 예약 정보 업데이트 String reservationKey =
-		 * getReservationTokenKey(reservationToken); Map<String, String> redisData = new
-		 * HashMap<>(); redisData.put("status", "COMPLETED"); // 이미 값이 존재할 경우 덮어쓰기가 됨
-		 * redisData.put("seatNames", String.join(",", reqDto.getSeatNames()));
-		 * redisData.put("totalPrice", String.valueOf(reqDto.getTotalPrice()));
-		 * redisTemplate.opsForHash().putAll(reservationKey, redisData);
-		 * 
-		 * // Redis 좌석 상태 업데이트 String seatsHashKey =
-		 * String.format("EVENT:%d:SCHEDULE:%d:SEATS", reqDto.getEventId(),
-		 * reqDto.getScheduleId()); String holdSetKey =
-		 * String.format("EVENT:%d:SCHEDULE:%d:HOLDED_SEATS", reqDto.getEventId(),
-		 * reqDto.getScheduleId()); String bookedSetKey =
-		 * String.format("EVENT:%d:SCHEDULE:%d:BOOKED_SEATS", reqDto.getEventId(),
-		 * reqDto.getScheduleId());
-		 * 
-		 * for (String seatName : reqDto.getSeatNames()) { // Hash에서 상태 변경
-		 * redisTemplate.opsForHash().put(seatsHashKey, seatName, "0"); // 0 = 예약 완료
-		 * 
-		 * // Set 이동: 홀드 -> booked redisTemplate.opsForSet().remove(holdSetKey,
-		 * seatName); redisTemplate.opsForSet().add(bookedSetKey, seatName); }
-		 * 
-		 * // TTL 기반 복구용 메타 삭제 redisTemplate.delete("RESERVATION_META:" +
-		 * reservationToken);
-		 */
 	}
 
 	// 좌석 취소 로직
@@ -301,9 +241,9 @@ public class ReservationServiceImpl implements ReservationService {
 		String seatNamesStr = (String) data.get("seatNames");
 		String reservationStatus = (String) data.get("reservationStatus");
 
-		// ACTIVE SET에서 제거 (예매 중인 인원 set) 
+		// ACTIVE SET에서 제거 (예매 중인 인원 set)
 		removeFromActiveSet(eventId, userId);
-		
+
 		if (eventId == null || scheduleId == null) {
 			log.warn("STEP1 취소 or eventId 또는 scheduleId 없음 [{}]", reservationToken);
 			redisUtil.deleteDataAll(reservationToken);
@@ -339,7 +279,7 @@ public class ReservationServiceImpl implements ReservationService {
 					int evtId = Integer.parseInt(eventId);
 					int schId = Integer.parseInt(scheduleId);
 					seatService.releaseSeats(evtId, schId, seatNames);
-					redisUtil.deleteDataAll(reservationToken);	// 예약 세션 삭제 
+					redisUtil.deleteDataAll(reservationToken); // 예약 세션 삭제
 					log.info("예약 취소 시 좌석 초기화 완료");
 				} catch (Exception e) {
 					log.error("좌석 초기화 중 오류 발생", e);
@@ -347,7 +287,7 @@ public class ReservationServiceImpl implements ReservationService {
 			}
 
 		} else {
-			// 좌석 정보가 없으면 PERSON_TYPE 처리 
+			// 좌석 정보가 없으면 PERSON_TYPE 처리
 			int restored = redisUtil.rollbackOnCancel(reservationToken, eventId, scheduleId);
 			log.info("예약 취소 완료: eventId={}, scheduleId={}, 복구좌석={}", eventId, scheduleId, restored);
 		}
@@ -367,19 +307,20 @@ public class ReservationServiceImpl implements ReservationService {
 		}
 
 		Map<Object, Object> redisData = redisUtil.getDataAll(reservationToken);
-
+		System.out.println("redisData : "+redisData);
+		
 		int eventId = Integer.parseInt(redisData.get("eventId").toString());
 		int scheduleId = Integer.parseInt(redisData.get("scheduleId").toString());
-		String title = (String) redisData.get("title");
+		//String title = (String) redisData.get("title");
 		int totalPrice = Integer.parseInt(redisData.get("totalPrice").toString());
-		int reservedCount = Integer.parseInt(redisData.get("reservedCount").toString());
+		//int reservedCount = Integer.parseInt(redisData.get("reservedCount").toString());
 
 		PaymentInfoResDto paymentInfoResDto = new PaymentInfoResDto();
 		paymentInfoResDto.setEventId(eventId);
 		paymentInfoResDto.setScheduleId(scheduleId);
-		paymentInfoResDto.setTitle(title);
+		//paymentInfoResDto.setTitle(title);
 		paymentInfoResDto.setTotalPrice(totalPrice);
-		paymentInfoResDto.setReservedCount(reservedCount);
+		//paymentInfoResDto.setReservedCount(reservedCount);
 
 		return paymentInfoResDto;
 	}

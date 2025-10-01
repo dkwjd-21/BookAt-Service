@@ -26,6 +26,7 @@ public class SeatServiceImpl implements SeatService {
 	private SeatMapper mapper;
 
 	@Override
+	// 회차별 좌석 리스트 조회 
 	public List<EventSeatInfoDto> getSeatList(int eventId, int scheduleId) {
 		String hashKey = "EVENT:" + eventId + ":SCHEDULE:" + scheduleId + ":SEATS";
 
@@ -46,6 +47,7 @@ public class SeatServiceImpl implements SeatService {
 	}
 
 	@Override
+	// 선택한 모든 좌석이 예약 가능한지 확인 
 	public boolean checkAllSeatsAvailable(int eventId, int scheduleId, List<String> seatNames) {
 		String availableSetKey = "EVENT:" + eventId + ":SCHEDULE:" + scheduleId + ":AVAILABLE_SEATS";
 
@@ -64,6 +66,7 @@ public class SeatServiceImpl implements SeatService {
 	}
 
 	@Override
+	// 선택한 모든 좌석을 HOLD 처리
 	public boolean holdSeats(int eventId, int scheduleId, List<String> seatNames) {
 		log.info("좌석 {} 선점 시도. AVAILABLE_SET: {}, HOLD_SET: {}", seatNames);
 
@@ -74,21 +77,31 @@ public class SeatServiceImpl implements SeatService {
 	}
 
 	@Override
-	public int insertSeat(EventSeatDto dto) {
-		return mapper.insertSeat(dto);
+	// 선택한 모든 좌석을 BOOKED 처리 
+	public boolean confirmSeats(int eventId, int scheduleId, List<String> seatNames) {
+		// Redis 처리 
+		Long successCount = seatRedisUtil.bookSeats(eventId, scheduleId, seatNames);
+		
+		if(successCount == null || successCount != seatNames.size()) {
+			log.warn("일부 좌석 BOOKED 처리 실패. 요청: {}, 성공: {}", seatNames.size(), successCount);
+	        return false;
+		}
+		
+		// DB 동기화 (예약 완료 상태 = 0)
+		for(String seatName : seatNames) {
+			EventSeatDto seat = selectOneBySeatName(seatName, eventId, scheduleId);
+			if(seat != null && seat.getSeatStatus() != 0) {
+				seat.setSeatStatus(0);
+				updateSeatStatus(seat);
+			}
+		}
+		
+		log.info("좌석 BOOKED 처리 완료: eventId={}, scheduleId={}, seats={}", eventId, scheduleId, seatNames);
+	    return true;
 	}
-
+	
 	@Override
-	public EventSeatDto selectOneBySeatName(String seatName, int eventId, int scheduleId) {
-		return mapper.selectOneBySeatName(seatName, eventId, scheduleId);
-	}
-
-	@Override
-	public int updateSeatStatus(EventSeatDto dto) {
-		return mapper.updateSeatStatus(dto);
-	}
-
-	@Override
+	// 선택한 모든 좌석을 HOLD/BOOKED 해제 처리 (예약 가능 상태로 되돌림)
 	public boolean releaseSeats(int eventId, int scheduleId, List<String> seatNames) {
 		Long releasedCount = seatRedisUtil.releaseSeats(eventId, scheduleId, seatNames);
 
@@ -107,5 +120,19 @@ public class SeatServiceImpl implements SeatService {
 	    }
 	    return true;
 	}
+	
+	@Override
+	public int insertSeat(EventSeatDto dto) {
+		return mapper.insertSeat(dto);
+	}
 
+	@Override
+	public EventSeatDto selectOneBySeatName(String seatName, int eventId, int scheduleId) {
+		return mapper.selectOneBySeatName(seatName, eventId, scheduleId);
+	}
+
+	@Override
+	public int updateSeatStatus(EventSeatDto dto) {
+		return mapper.updateSeatStatus(dto);
+	}
 }

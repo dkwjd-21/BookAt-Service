@@ -398,10 +398,15 @@ document.addEventListener("DOMContentLoaded", () => {
 				phone: phoneInput.value.trim(),
 				email: emailInput.value.trim(),
 			};
-
+			
 			try {
 				const token = sessionStorage.getItem("reservationToken");
+				console.log("token: "+token);
 				const res = await axiosInstance.post(`/reservation/${token}/step3`, payload);
+				
+				
+				console.log("res: "+res);
+				
 				if (res.data.status === "STEP4") {
 
 					// 결제 프래그먼트 렌더링
