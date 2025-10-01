@@ -177,7 +177,10 @@ public class ReservationServiceImpl implements ReservationService {
 
 		// 좌석 갱신
 		String seatsCsv = String.join(",", reqDto.getSeatNames());
-		redisUtil.updateStep2SeatType(reservationToken, seatsCsv, reqDto.getTotalPrice());
+
+		// reservedCount 갱신
+		int totalPersonCount = reqDto.getSeatNames().size(); // 좌석 수 = 예약 인원 수
+		redisUtil.updateStep2SeatType(reservationToken, seatsCsv, reqDto.getTotalPrice(), totalPersonCount);
 
 		// TTL 만료시 복구용 메타데이터 생성
 		redisUtil.createSeatMetaDataForSessionExpired(reservationToken, reqDto.getEventId(), reqDto.getScheduleId(),
@@ -307,20 +310,20 @@ public class ReservationServiceImpl implements ReservationService {
 		}
 
 		Map<Object, Object> redisData = redisUtil.getDataAll(reservationToken);
-		System.out.println("redisData : "+redisData);
-		
+		System.out.println("redisData : " + redisData);
+
 		int eventId = Integer.parseInt(redisData.get("eventId").toString());
 		int scheduleId = Integer.parseInt(redisData.get("scheduleId").toString());
 		String eventName = (String) redisData.get("eventName");
 		int totalPrice = Integer.parseInt(redisData.get("totalPrice").toString());
-		//int reservedCount = Integer.parseInt(redisData.get("reservedCount").toString());
+		int reservedCount = Integer.parseInt(redisData.get("reservedCount").toString());
 
 		PaymentInfoResDto paymentInfoResDto = new PaymentInfoResDto();
 		paymentInfoResDto.setEventId(eventId);
 		paymentInfoResDto.setScheduleId(scheduleId);
 		paymentInfoResDto.setTitle(eventName);
 		paymentInfoResDto.setTotalPrice(totalPrice);
-		//paymentInfoResDto.setReservedCount(reservedCount);
+		paymentInfoResDto.setReservedCount(reservedCount);
 
 		return paymentInfoResDto;
 	}
@@ -338,6 +341,9 @@ public class ReservationServiceImpl implements ReservationService {
 		if (reservationData == null || reservationData.isEmpty()) {
 			throw new IllegalArgumentException("예약 세션이 존재하지 않습니다.");
 		}
+		
+		int eventId = Integer.parseInt(reservationData.get("eventId").toString());
+		int scheduleId = Integer.parseInt(reservationData.get("scheduleId").toString());
 
 		// 예매 1건 디비 저장
 		Reservation reservation = new Reservation();
@@ -350,22 +356,43 @@ public class ReservationServiceImpl implements ReservationService {
 		redisUtil.updateReservationStatus(reservationToken, ReservationStatus.RESERVED);
 
 		// 티켓 N건 디비 저장
-		String presonCountsJson = (String) reservationData.get("personCounts");
-		var parsed = redisUtil.parsePersonCounts(presonCountsJson)
-				.orElseThrow(() -> new IllegalArgumentException("예매 인원 정보 파싱 오류"));
+		String seatNamesCsv = (String) reservationData.get("seatNames");
+		String personCountsJson = (String) reservationData.get("personCounts");
 		Long reservationId = reservation.getReservationId();
 
-		for (Map.Entry<String, Integer> entry : parsed.entrySet()) {
-			String personType = entry.getKey();
-			int personTypeCount = entry.getValue();
+		if (personCountsJson != null && !personCountsJson.isEmpty()) {
+			// 인원유형 티켓 저장
+			var parsed = redisUtil.parsePersonCounts(personCountsJson)
+					.orElseThrow(() -> new IllegalArgumentException("예약 인원 정보 파싱 오류"));
 
-			for (int i = 0; i < personTypeCount; i++) {
+			for (Map.Entry<String, Integer> entry : parsed.entrySet()) {
+				String personType = entry.getKey();
+				int personTypeCount = entry.getValue();
+				
+				for (int i = 0; i < personTypeCount; i++) {
+					Ticket ticket = new Ticket();
+					ticket.setTicketStatus(TicketStatus.ACTIVE.code);
+					ticket.setTicketType("PERSON_TYPE");
+					ticket.setPersonType(PersonType.valueOf(personType).name());
+					ticket.setSeatId(null);
+					ticket.setReservationId(reservationId);
+					ticket.setPaymentId(paymentId);
+					ticketMapper.insertTicket(ticket);
+				}
+			}
+		} else if (seatNamesCsv != null && !seatNamesCsv.isEmpty()) {
+			// 좌석 유형 티켓 저장
+			String[] seatNames = seatNamesCsv.split(",");
+			
+			for (String seatName : seatNames) {
+				EventSeatDto seat = seatService.selectOneBySeatName(seatName, eventId, scheduleId);
+				
 				Ticket ticket = new Ticket();
 				ticket.setTicketStatus(TicketStatus.ACTIVE.code);
-				ticket.setTicketType("PERSON_TYPE");
-				ticket.setPersonType(PersonType.valueOf(personType).name());
+				ticket.setTicketType("SEAT_TYPE");
+				ticket.setPersonType(null);
+				ticket.setSeatId(seat.getSeatId());
 				ticket.setReservationId(reservationId);
-				ticket.setSeatId(null);
 				ticket.setPaymentId(paymentId);
 				ticketMapper.insertTicket(ticket);
 			}
@@ -373,8 +400,6 @@ public class ReservationServiceImpl implements ReservationService {
 
 		// 이벤트 회차의 잔여좌석 차감
 		int reservedCount = Integer.parseInt(reservationData.get("reservedCount").toString());
-		int scheduleId = Integer.parseInt(reservationData.get("scheduleId").toString());
-		int eventId = Integer.parseInt(reservationData.get("eventId").toString());
 		int updateResult = eventPartMapper.updateRemainingSeatByReservation(scheduleId, eventId, reservedCount);
 
 		if (updateResult == 0) {

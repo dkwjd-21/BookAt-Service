@@ -169,11 +169,12 @@ public class ReservationRedisUtil {
 	}
 
 	// seatType
-	public void updateStep2SeatType(String token, String seatNamesCsv, int totalPrice) {
+	public void updateStep2SeatType(String token, String seatNamesCsv, int totalPrice, int reservedCount) {
 		String key = KEY_PREFIX + token;
 
 		redisTemplate.opsForHash().put(key, "seatNames", seatNamesCsv);
 		redisTemplate.opsForHash().put(key, "totalPrice", String.valueOf(totalPrice));
+		redisTemplate.opsForHash().put(key, "reservedCount", String.valueOf(reservedCount));
 		redisTemplate.opsForHash().put(key, "status", "STEP3");
 	}
 	
