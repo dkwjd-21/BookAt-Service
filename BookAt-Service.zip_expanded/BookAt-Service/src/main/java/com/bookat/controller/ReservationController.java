@@ -19,21 +19,21 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.bookat.dto.EventSeatInfoDto;
 import com.bookat.dto.PaymentDto;
 import com.bookat.dto.reservation.PaymentInfoResDto;
 import com.bookat.dto.reservation.PaymentReservationSession;
-import com.bookat.dto.EventSeatInfoDto;
 import com.bookat.dto.reservation.PersonTypeReqDto;
 import com.bookat.dto.reservation.ReservationStartDto;
 import com.bookat.dto.reservation.SeatTypeReqDto;
 import com.bookat.dto.reservation.UserInfoReqDto;
 import com.bookat.entity.User;
-import com.bookat.service.PaymentService;
-import com.bookat.service.ReservationService;
-import com.bookat.util.PaymentSessionStore;
-
 import com.bookat.enums.PersonType;
+import com.bookat.service.PaymentService;
+import com.bookat.service.QueueService;
+import com.bookat.service.ReservationService;
 import com.bookat.service.SeatService;
+import com.bookat.util.PaymentSessionStore;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,6 +47,7 @@ public class ReservationController {
 	private final ReservationService reservationService;
 	private final PaymentService paymentService;
 	private final SeatService seatService;
+	private final QueueService queueService;
 	private final PaymentSessionStore paymentSessionStore;
 	
 	// 티켓팅 팝업 오픈
@@ -283,8 +284,7 @@ public class ReservationController {
 		}
 		
 		try {
-			
-			// redis 예매 세션 삭제, 좌석 복구X
+			// redis 예매 세션 삭제, 좌석 복구X, active set에서 user 삭제
 			reservationService.completeReservation(reservationToken, userId);
 			
 			return ResponseEntity.ok(Map.of("message", "예매가 성공적으로 완료되었습니다.", "status", "SUCCESS"));
