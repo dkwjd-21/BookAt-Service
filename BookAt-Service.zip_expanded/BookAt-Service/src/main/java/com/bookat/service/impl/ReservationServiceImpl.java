@@ -413,7 +413,17 @@ public class ReservationServiceImpl implements ReservationService {
 	// 레디스 잔여좌석 유지 (복구X)
 //	@Transactional
 	public void completeReservation(String reservationToken, String userId) {
+		// 레디스에 저장된 예약 세션 조회
+	    Map<Object, Object> data = redisUtil.getDataAll(reservationToken);
 
+	    if(data != null && !data.isEmpty()) {
+	        String eventId = (String) data.get("eventId");
+
+	        // active set에서 제거
+	        removeFromActiveSet(eventId, userId);
+	    }
+
+	    // 예약 세션 삭제
 		redisUtil.deleteDataAll(reservationToken);
 
 		log.info("예매 프로세스 완료");
