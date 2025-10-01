@@ -50,40 +50,44 @@ public class QueueUtil {
 	// 예매팝업창 입장 처리
 	public boolean tryEnterActiveAtomic(String eventId, String userId, int maxActive) {
 		String queueKey = QUEUE_KEY_PREFIX + eventId;
-		String heartbeatKey = HEARTBEAT_PREFIX + eventId;
-		String activeKey = ACTIVE_KEY_PREFIX + eventId;
+	    String heartbeatKey = HEARTBEAT_PREFIX + eventId;
+	    String activeKey = ACTIVE_KEY_PREFIX + eventId;
 
-		String lua = """
-				    local queueKey = KEYS[1]
-				    local heartbeatKey = KEYS[2]
-				    local activeKey = KEYS[3]
-				    local userId = ARGV[1]
-				    local maxActive = tonumber(ARGV[2])
+	    String lua = """
+	        local queueKey = KEYS[1]
+	        local heartbeatKey = KEYS[2]
+	        local activeKey = KEYS[3]
+	        local userId = ARGV[1]
+	        local maxActive = tonumber(ARGV[2])
 
-				    local rank = redis.call('ZRANK', queueKey, userId)
-				    if not rank or rank ~= 0 then
-				        return 0
-				    end
+	        -- 현재 순번(rank) 확인
+	        local rank = redis.call('ZRANK', queueKey, userId)
+	        if not rank or tonumber(rank) ~= 0 then
+	            return 0
+	        end
 
-				    local activeCount = redis.call('SCARD', activeKey)
-				    if activeCount >= maxActive then
-				        return 0
-				    end
+	        -- 현재 active 인원 수 확인
+	        local activeCount = redis.call('SCARD', activeKey)
+	        if activeCount >= maxActive then
+	            return 0
+	        end
 
-				    redis.call('SADD', activeKey, userId)
-				    redis.call('ZREM', queueKey, userId)
-				    redis.call('ZREM', heartbeatKey, userId)
-				    return 1
-				""";
+	        -- 원자적 처리: active 등록 & queue/heartbeat 제거
+	        redis.call('SADD', activeKey, userId)
+	        redis.call('ZREM', queueKey, userId)
+	        redis.call('ZREM', heartbeatKey, userId)
 
-		DefaultRedisScript<Long> script = new DefaultRedisScript<>();
-		script.setScriptText(lua);
-		script.setResultType(Long.class);
+	        return 1
+	    """;
 
-		Long result = redisTemplate.execute(script, java.util.List.of(queueKey, heartbeatKey, activeKey), userId,
-				String.valueOf(maxActive));
+	    DefaultRedisScript<Long> script = new DefaultRedisScript<>();
+	    script.setScriptText(lua);
+	    script.setResultType(Long.class);
 
-		return result != null && result == 1L;
+	    Long result = redisTemplate.execute(script, java.util.List.of(queueKey, heartbeatKey, activeKey), 
+	                                        userId, String.valueOf(maxActive));
+
+	    return result != null && result == 1L;
 	}
 
 	// 예매 팝업창에서 제거
