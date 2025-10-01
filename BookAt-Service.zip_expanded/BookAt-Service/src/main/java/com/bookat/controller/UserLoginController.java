@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -30,6 +29,7 @@ import com.bookat.exception.LoginException;
 import com.bookat.service.RefreshTokenService;
 import com.bookat.service.impl.UserLoginServiceImpl;
 import com.bookat.util.CookieUtil;
+import com.bookat.util.JwtRedisUtil;
 import com.bookat.util.JwtTokenProvider;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -49,7 +49,6 @@ public class UserLoginController {
     private final CookieUtil cookieUtil;
 	private final UserLoginServiceImpl loginService;
 	private final RefreshTokenService refreshTokenService;
-	private final RedisTemplate<String, String> redisTemplate;
 	
 	// 아이디 찾기 간편인증 정보
     @Value("${portone.public.store-id}")
@@ -88,6 +87,7 @@ public class UserLoginController {
 			// 사용자가 없거나 비밀번호 불일치
 		    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", le.getMessage()));
 		} catch (Exception e) {
+			log.error("로그인 처리 중 오류", e);
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "로그인 처리 중 오류가 발생했습니다."));
 		}
 	}
@@ -110,7 +110,7 @@ public class UserLoginController {
 
 		// redis 세션 삭제 (loginTime 비교 없이 바로 삭제)
 		if(userId != null) {
-			redisTemplate.delete(userId);
+			loginService.deleteSessionInfo(userId);
 		}
 	    
 		// 관련 쿠키 삭제
@@ -128,7 +128,6 @@ public class UserLoginController {
 	// 아이디 찾기 페이지로 이동
 	@GetMapping("/findId")
 	public String findIdForm(Model model) {
-		
         model.addAttribute("portoneStoreId", portoneStoreId);
         model.addAttribute("portoneChannelKey", portoneChannelKey);
         model.addAttribute("portoneApiSecret", portoneApiSecret);
@@ -206,16 +205,20 @@ public class UserLoginController {
 	
 	// 비밀번호 찾기 페이지로 이동
 	@GetMapping("/findPw")
-	public String findPwCheckForm() {
+	public String findPwCheckForm(Model model) {
+        model.addAttribute("portoneStoreId", portoneStoreId);
+        model.addAttribute("portoneChannelKey", portoneChannelKey);
+        model.addAttribute("portoneApiSecret", portoneApiSecret);
+        
 		return "user/findPasswordForm";
 	}
 	
 	@PostMapping("/findPw")
 	@ResponseBody
-    public ResponseEntity<?> findPwCheck(@RequestParam String userId, @RequestParam String phone) {
+    public ResponseEntity<?> findPwCheck(@RequestParam String userId) {
         
         try {
-        	User user = loginService.findPwByIdPhone(userId, phone);
+        	User user = loginService.findPwById(userId);
         	
         	return ResponseEntity.ok(user.getUserId());
         } catch (LoginException le) {

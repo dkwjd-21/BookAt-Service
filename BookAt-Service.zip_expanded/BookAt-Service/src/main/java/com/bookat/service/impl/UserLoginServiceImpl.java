@@ -2,7 +2,7 @@ package com.bookat.service.impl;
 
 import java.util.HashMap;
 import java.util.Map;
-
+import java.util.UUID;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -12,19 +12,21 @@ import com.bookat.entity.User;
 import com.bookat.exception.LoginException;
 import com.bookat.mapper.UserLoginMapper;
 import com.bookat.service.UserLoginService;
+import com.bookat.util.JwtRedisUtil;
 import com.bookat.util.JwtTokenProvider;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@RequiredArgsConstructor
 @Service
+@RequiredArgsConstructor
 public class UserLoginServiceImpl implements UserLoginService {
 	
 	private final UserLoginMapper userMapper;
 	private final PasswordEncoder passwordEncoder;
 	private final JwtTokenProvider jwtTokenProvider;
+	private final JwtRedisUtil jwtRedisUtil;
 	
 	// 로그인
 	@Override
@@ -40,7 +42,10 @@ public class UserLoginServiceImpl implements UserLoginService {
 			throw new LoginException("비밀번호가 일치하지 않습니다.");
 		}
 		
-		String accessToken = jwtTokenProvider.generateAccessToken(user.getUserId());
+		String sid = UUID.randomUUID().toString();
+		jwtRedisUtil.saveSid(user.getUserId(), sid);
+
+		String accessToken = jwtTokenProvider.generateAccessToken(user.getUserId(), sid);
 		String refreshToken = jwtTokenProvider.generateRefreshToken(user.getUserId());
 		
 //		user.setRefreshToken(refreshToken);
@@ -54,6 +59,13 @@ public class UserLoginServiceImpl implements UserLoginService {
 		return new UserLoginResponse(accessToken, refreshToken);
 	}
 	
+	// 로그아웃 시 레디스 세션 정보 삭제
+	@Override
+	public void deleteSessionInfo(String userId) {
+		jwtRedisUtil.deleteSid(userId);
+		jwtRedisUtil.deleteRefreshToken(userId);
+	}
+	
 	// userId 로 사용자 조회
 	@Override
 	public User findUserById(String userId) {
@@ -62,18 +74,11 @@ public class UserLoginServiceImpl implements UserLoginService {
 	
 	// 비밀번호 변경 : 아이디와 전화번호로 사용자 조회
 	@Override
-	public User findPwByIdPhone(String userId, String phone) {
+	public User findPwById(String userId) {
 		User user = userMapper.findUserById(userId);
 		
 		if(user == null) {
 			throw new LoginException("존재하지 않는 아이디입니다.");
-		}
-		
-		// DB에 저장된 전화번호의 '-' 제거
-		String dbPhone = user.getPhone() != null ? user.getPhone().replaceAll("-", "") : "";
-		
-		if(!phone.equals(dbPhone)) {
-			throw new LoginException("전화번호가 일치하지 않습니다.");
 		}
 		
 		return user;
