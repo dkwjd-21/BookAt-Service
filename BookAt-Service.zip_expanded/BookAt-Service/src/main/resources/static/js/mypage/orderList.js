@@ -171,72 +171,71 @@ document.addEventListener("DOMContentLoaded", async () => {
     return `${Number(price).toLocaleString()}원`;
   }
 
-  function openReviewModal(orderId, bookId, bookTitle) {
+  const reviewModal = (() => {
     const modal = document.getElementById("reviewModal");
-    const reviewOrderIdInput = document.getElementById("reviewOrderId");
-    const reviewBookIdInput = document.getElementById("reviewBookId");
-    const ratingInput = document.getElementById("reviewRating");
-    const starsWrap = modal.querySelector("#reviewStars");
-    const stars = starsWrap ? Array.from(starsWrap.querySelectorAll(".star")) : [];
-    const reviewContent = document.getElementById("reviewContent");
-    const targetLabel = document.getElementById("reviewTargetLabel");
-
-    if (!modal || !reviewOrderIdInput || !reviewBookIdInput || !ratingInput || !stars.length || !reviewContent) {
-      console.warn("리뷰 모달 요소를 찾을 수 없습니다.");
-      return;
+    if (!modal) {
+      return {
+        open: () => {},
+        close: () => {},
+      };
     }
-
-    reviewOrderIdInput.value = orderId ?? "";
-    reviewBookIdInput.value = bookId ?? "";
-    ratingInput.value = 0;
-    reviewContent.value = "";
-    stars.forEach((star) => {
-      star.classList.remove("selected");
-      star.style.removeProperty("color");
-    });
-
-    if (targetLabel) {
-      targetLabel.textContent = bookTitle ? `상품: ${bookTitle}` : "";
-      targetLabel.style.display = bookTitle ? "block" : "none";
-    }
-
-    modal.style.display = "flex";
-  }
-
-  function closeReviewModal() {
-    const modal = document.getElementById("reviewModal");
-    if (modal) {
-      modal.style.display = "none";
-    }
-  }
-
-  function setupReviewModalEvents() {
-    const modal = document.getElementById("reviewModal");
-    if (!modal) return;
 
     const closeBtn = modal.querySelector(".close-btn");
-    const starsWrap = modal.querySelector("#reviewStars");
+    const starsWrap = document.getElementById("reviewStars");
     const stars = starsWrap ? Array.from(starsWrap.querySelectorAll(".star")) : [];
     const ratingInput = document.getElementById("reviewRating");
+    const orderIdInput = document.getElementById("reviewOrderId");
+    const bookIdInput = document.getElementById("reviewBookId");
+    const reviewContent = document.getElementById("reviewContent");
+    const targetLabel = document.getElementById("reviewTargetLabel");
     const form = document.getElementById("reviewForm");
 
+    const reset = () => {
+      if (ratingInput) {
+        ratingInput.value = 0;
+      }
+      stars.forEach((star) => star.classList.remove("selected"));
+      if (reviewContent) {
+        reviewContent.value = "";
+      }
+    };
+
+    const open = (orderId, bookId, bookTitle) => {
+      if (orderIdInput) {
+        orderIdInput.value = orderId ?? "";
+      }
+      if (bookIdInput) {
+        bookIdInput.value = bookId ?? "";
+      }
+      reset();
+      if (targetLabel) {
+        targetLabel.textContent = bookTitle ? `상품: ${bookTitle}` : "";
+        targetLabel.style.display = bookTitle ? "block" : "none";
+      }
+      modal.style.display = "flex";
+    };
+
+    const close = () => {
+      modal.style.display = "none";
+    };
+
     if (closeBtn) {
-      closeBtn.addEventListener("click", () => closeReviewModal());
+      closeBtn.addEventListener("click", close);
     }
 
     modal.addEventListener("click", (event) => {
       if (event.target === modal) {
-        closeReviewModal();
+        close();
       }
     });
 
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape") {
-        closeReviewModal();
+        close();
       }
     });
 
-    if (starsWrap) {
+    if (starsWrap && ratingInput) {
       starsWrap.addEventListener("click", (event) => {
         const star = event.target.closest(".star");
         if (!star) return;
@@ -246,25 +245,26 @@ document.addEventListener("DOMContentLoaded", async () => {
         stars.forEach((s) => {
           const shouldSelect = Number(s.dataset.value) <= value;
           s.classList.toggle("selected", shouldSelect);
-          s.style.removeProperty("color");
         });
       });
     }
 
-    if (form) {
+    if (form && ratingInput) {
       form.addEventListener("submit", (event) => {
-        event.preventDefault();
-
         if (Number(ratingInput.value) < 1) {
+          event.preventDefault();
           alert("별점을 선택해주세요.");
           return;
         }
 
+        event.preventDefault();
         alert("리뷰 작성이 준비 중입니다.");
-        closeReviewModal();
+        close();
       });
     }
-  }
+
+    return { open, close };
+  })();
 
   function createSecondaryButtons(statusCode) {
     if (statusCode === 1) {
@@ -315,7 +315,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const bookId = target.dataset.bookId;
       const bookTitle = target.dataset.bookTitle;
 
-      openReviewModal(orderId, bookId, bookTitle);
+      reviewModal.open(orderId, bookId, bookTitle);
     }
   }
 
@@ -342,5 +342,4 @@ document.addEventListener("DOMContentLoaded", async () => {
   orderHistory?.addEventListener("click", handleTrackingButtonClick);
   orderHistory?.addEventListener("click", handleReviewButtonClick);
   trackingForm?.addEventListener("submit", openTrackingPopup);
-  setupReviewModalEvents();
 });
