@@ -38,12 +38,62 @@ public class PaymentController {
   private final PaymentSessionStore sessionStore;
   private final EventService eventService;
   
+  @GetMapping("/history")
+  public String historyPage() {
+      return "mypage/payment";
+  }
+
+  @GetMapping("/api/my")
+  @ResponseBody
+  public Map<String, Object> myPayments(@AuthenticationPrincipal User user) {
+      if (user == null) {
+          return Map.of("status","error","message","unauthorized");
+      }
+      return Map.of("status","success","data", paymentService.findAllByUserId(user.getUserId()));
+  }
+
+  @PostMapping("/api/cancel")
+  @ResponseBody
+  public Map<String, Object> cancelPayment(@RequestBody Map<String,String> req,
+                                           @AuthenticationPrincipal User user) {
+      if (user == null) {
+          return Map.of("status","error","message","unauthorized");
+      }
+      String merchantUid = req.get("merchantUid");
+      String reason = req.getOrDefault("reason","고객요청 취소");
+
+      var pay = paymentService.findByMerchantUid(merchantUid);
+      if (pay == null || !user.getUserId().equals(pay.getUserId()))
+          return Map.of("status","error","message","not_found");
+      if (pay.getPaymentStatus() != 1)
+          return Map.of("status","error","message","not_paid_or_already_canceled");
+
+      try {
+          String accessToken = portOneClient.getAccessToken().block();
+          String impUid = pay.getImpUid();
+          if (impUid == null || impUid.isBlank()) {
+              return Map.of("status","error","message","imp_uid_missing");
+          }
+          var cancelResp = portOneClient.cancelPayment(accessToken, impUid, pay.getPaymentPrice(), reason).block();
+          String receiptUrl = null;
+          if (cancelResp != null && cancelResp.get("response") instanceof java.util.Map<?,?> r) {
+              receiptUrl = (String) r.get("receipt_url");
+          }
+          paymentService.markCanceled(merchantUid, reason, receiptUrl, false);
+          return Map.of("status","success");
+      } catch (Exception e) {
+          paymentService.markFailed(merchantUid, "사용자 취소 실패: " + e.getMessage());
+          return Map.of("status","error","message","cancel_failed");
+      }
+  }
+  
   //도서 세션
   @PostMapping("/session/start")
   @ResponseBody
   public Map<String,Object> startBook(@RequestParam String bookId,
                                       @RequestParam(defaultValue="1") int qty,
-                                      @AuthenticationPrincipal com.bookat.entity.User user) {
+                                      @AuthenticationPrincipal com.bookat.entity.User user,
+                                      @RequestParam long orderId) {
       if (user == null) return Map.of("status","error","message","unauthorized");
 
       var book = bookService.selectOne(bookId);                 // title/price 얻기
@@ -53,7 +103,7 @@ public class PaymentController {
       String title = book.getTitle();                           // BookDto.title 사용
 
       // READY 생성(merchantUid 발급) → 결제세션 저장(토큰 생성)
-      var pay = paymentService.createReadyPayment(amount, "CARD", title, user.getUserId());
+      var pay = paymentService.createReadyPayment(amount, "CARD", title, user.getUserId(),orderId);
       var session = new PaymentSession(
           bookId, qty, "CARD",
           java.math.BigDecimal.valueOf(amount),
@@ -70,10 +120,11 @@ public class PaymentController {
   @ResponseBody
   public Map<String,Object> startCart(@RequestParam int amount,
                                       @RequestParam String title,
-                                      @AuthenticationPrincipal com.bookat.entity.User user) {
+                                      @AuthenticationPrincipal com.bookat.entity.User user,
+                                      @RequestParam long orderId) {
       if (user == null) return Map.of("status","error","message","unauthorized");
 
-      var pay = paymentService.createReadyPayment(amount, "CARD", title, user.getUserId());
+      var pay = paymentService.createReadyPayment(amount, "CARD", title, user.getUserId(), orderId);
       var session = new PaymentSession(
           null, 0, "CARD",
           java.math.BigDecimal.valueOf(amount),

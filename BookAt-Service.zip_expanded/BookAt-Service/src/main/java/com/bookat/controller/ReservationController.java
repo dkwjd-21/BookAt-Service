@@ -181,7 +181,7 @@ public class ReservationController {
 			PaymentInfoResDto getPaymentInfo = reservationService.getPaymentInfo(reservationToken);
 
 			String enforcedMethod = "CARD";
-			PaymentDto pay = paymentService.createReadyPayment(getPaymentInfo.getTotalPrice(), enforcedMethod, "pay for event ticket", user.getUserId());
+			PaymentDto pay = paymentService.createReadyPayment(getPaymentInfo.getTotalPrice(), enforcedMethod, "pay for event ticket", user.getUserId(), null);
 			
 			PaymentReservationSession session = PaymentSessionStore.of(
 					reservationToken, 

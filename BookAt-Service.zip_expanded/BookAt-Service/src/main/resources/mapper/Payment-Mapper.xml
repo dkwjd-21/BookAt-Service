@@ -47,7 +47,7 @@
     #{totalPrice,   jdbcType=NUMERIC},
     #{paymentPrice, jdbcType=NUMERIC},
     #{paymentMethod,jdbcType=VARCHAR},
-    #{paymentStatus,jdbcType=VARCHAR},
+    #{paymentStatus,jdbcType=NUMERIC},
     SYSDATE,
     #{paymentInfo,  jdbcType=VARCHAR},
     #{merchantUid,  jdbcType=VARCHAR}
@@ -77,5 +77,12 @@
       receipt_url    = #{receiptUrl}
   WHERE merchant_uid = #{merchantUid}
  </update>
+ 
+ <select id="findAllByUserId" parameterType="string" resultMap="PaymentMap">
+  SELECT *
+  FROM PAYMENT
+  WHERE user_id = #{userId}
+  ORDER BY payment_date DESC
+</select>
   
 </mapper>

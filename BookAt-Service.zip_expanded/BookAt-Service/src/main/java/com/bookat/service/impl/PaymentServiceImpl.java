@@ -2,6 +2,7 @@ package com.bookat.service.impl;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,12 +43,14 @@ public class PaymentServiceImpl implements PaymentService {
   }
 
   @Override
-  public PaymentDto createReadyPayment(Integer amount, String method, String info, String userId){
+  public PaymentDto createReadyPayment(Integer amount, String method, String info, String userId, Long orderId){
 	//서버에서 merchantUid 생성
     String merchantUid = "PAY-" + userId + DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS")
                           .format(LocalDateTime.now());
     
     PaymentDto dto = new PaymentDto();
+    if (orderId != null) dto.setOrderId(orderId);
+    dto.setUserId(userId);
     dto.setTotalPrice(amount);
     dto.setPaymentPrice(amount);
     dto.setPaymentMethod(normalizeMethod(method)); // 정규화
@@ -100,6 +103,12 @@ public class PaymentServiceImpl implements PaymentService {
 	  
 	  // 결제 세션 삭제
 	  sessionStore.consumeEventPay(paymentToken);
+  }
+  
+  // 결제 조회
+  @Override
+  public List<PaymentDto> findAllByUserId(String userId) {
+      return paymentMapper.findAllByUserId(userId);
   }
   
 }

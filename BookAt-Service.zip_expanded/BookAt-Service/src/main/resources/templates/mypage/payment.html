@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <title>결제 내역 | BookAt</title>
+  <link rel="stylesheet" th:href="@{/css/header.css}"/>
+  <link rel="stylesheet" th:href="@{/css/footer.css}"/>
+  <link rel="stylesheet" th:href="@{/css/payment.css}"/>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script th:src="@{/js/utils/axiosIntercepter.js}"></script>
+  <script th:src="@{/js/utils/userAuth.js}"></script>
+  <script th:src="@{/js/utils/header.js}"></script>
+  <script th:src="@{/js/payment-list.js}" defer></script>
+</head>
+<body class="success-body">
+<div th:replace="~{fragments/header :: main-header}"></div>
+
+<main class="container order-complete">
+  <section class="panel">
+    <div class="panel-head">
+      <h2 class="section-title">내 결제 목록</h2>
+      <span class="muted" id="countLabel">0건</span>
+    </div>
+    <ul class="pay-list" id="payList"></ul>
+  </section>
+</main>
+
+<div th:replace="~{fragments/footer :: main-footer}"></div>
+</body>
+</html>
