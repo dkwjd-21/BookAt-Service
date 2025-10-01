@@ -19,21 +19,21 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.bookat.dto.EventSeatInfoDto;
 import com.bookat.dto.PaymentDto;
 import com.bookat.dto.reservation.PaymentInfoResDto;
 import com.bookat.dto.reservation.PaymentReservationSession;
-import com.bookat.dto.EventSeatInfoDto;
 import com.bookat.dto.reservation.PersonTypeReqDto;
 import com.bookat.dto.reservation.ReservationStartDto;
 import com.bookat.dto.reservation.SeatTypeReqDto;
 import com.bookat.dto.reservation.UserInfoReqDto;
 import com.bookat.entity.User;
-import com.bookat.service.PaymentService;
-import com.bookat.service.ReservationService;
-import com.bookat.util.PaymentSessionStore;
-
 import com.bookat.enums.PersonType;
+import com.bookat.service.PaymentService;
+import com.bookat.service.QueueService;
+import com.bookat.service.ReservationService;
 import com.bookat.service.SeatService;
+import com.bookat.util.PaymentSessionStore;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,6 +47,7 @@ public class ReservationController {
 	private final ReservationService reservationService;
 	private final PaymentService paymentService;
 	private final SeatService seatService;
+	private final QueueService queueService;
 	private final PaymentSessionStore paymentSessionStore;
 	
 	// 티켓팅 팝업 오픈
@@ -60,12 +61,9 @@ public class ReservationController {
 		ReservationStartDto reservationStartDto = reservationService.startReservation(eventId, user.getUserId());
 		model.addAttribute("event", reservationStartDto.getEvent());
 		model.addAttribute("eventParts", reservationStartDto.getEventParts());
-		log.info("eventParts 잔여석 : {}", reservationStartDto.getEventParts().get(0).getRemainingSeat());
 		model.addAttribute("reservationToken", reservationStartDto.getReservationToken());
 
-
 		return "reservation/ReservationPopup";
-		//return "reservation/ReservationPopup_Seat2";
 	}
 
 	// step1: 날짜/회차 선택
@@ -166,23 +164,32 @@ public class ReservationController {
 	public ResponseEntity<Map<String, Object>> inputUserInfo(@PathVariable String reservationToken,
 			@AuthenticationPrincipal User user, @RequestBody UserInfoReqDto userInfoReqDto) {
 
+		log.info("STEP3 start: reservationToken={}, userId={}", reservationToken, user.getUserId());
+		
 		if (user == null) {
 			return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", "로그인이 필요합니다."));
 		}
 		
 		try {
+			 log.info("STEP3: calling reservationService.inputUserInfo()");
 			boolean success = reservationService.inputUserInfo(reservationToken, user.getUserId(), userInfoReqDto);
-			
+			log.info("STEP3: inputUserInfo result={}", success);
 			if(!success) {
+				log.warn("STEP3 abort: 예약 정보 저장 실패");
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "예약 정보 저장 실패"));
 			}
 			
 			// 결제 프레그먼트 연결
+			log.info("STEP3: calling reservationService.getPaymentInfo()");
 			PaymentInfoResDto getPaymentInfo = reservationService.getPaymentInfo(reservationToken);
-
-			String enforcedMethod = "CARD";
-			PaymentDto pay = paymentService.createReadyPayment(getPaymentInfo.getTotalPrice(), enforcedMethod, "pay for event ticket", user.getUserId());
+			log.info("STEP3: payment info retrieved: {}", getPaymentInfo);
 			
+			String enforcedMethod = "CARD";
+			log.info("STEP3: calling paymentService.createReadyPayment()");
+			PaymentDto pay = paymentService.createReadyPayment(getPaymentInfo.getTotalPrice(), enforcedMethod, getPaymentInfo.getTitle(), user.getUserId());
+			log.info("STEP3: payment created: {}", pay);
+			
+			log.info("STEP3: creating PaymentReservationSession");
 			PaymentReservationSession session = PaymentSessionStore.of(
 					reservationToken, 
 					getPaymentInfo.getEventId(),
@@ -193,16 +200,22 @@ public class ReservationController {
 					BigDecimal.valueOf(getPaymentInfo.getTotalPrice()),
 					pay.getMerchantUid(),
 					user.getUserId());
+			log.info("STEP3: session created: {}", session);
 			
+			log.info("STEP3: calling paymentSessionStore.createEventPay()");
 			String paymentToken =  paymentSessionStore.createEventPay(session);
-		      
+			log.info("STEP3: paymentToken={}", paymentToken);  
+			
 			String paymentStepUrl = "/payment/" + paymentToken + "/paymentUI";
+			log.info("STEP3 completed successfully: paymentStepUrl={}", paymentStepUrl);
 			
 			return ResponseEntity.ok(Map.of("message", "사용자 정보 저장 완료", "status", "STEP4", "paymentStepUrl", paymentStepUrl));
 			
 		} catch (IllegalStateException ise) {
+			log.error("STEP3 IllegalStateException: {}", ise.getMessage(), ise);
 			return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("status", "STEP3", "error", ise.getMessage()));
 		} catch (Exception e) {
+			log.error("STEP3 Exception: ", e);
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("status", "STEP3", "error", "서버 오류가 발생했습니다."));
 		}
 	}
@@ -220,13 +233,15 @@ public class ReservationController {
 		}
 	}
 	
-	// 좌석 취소 : 팝업닫기, 예약 세션 만료, 결제취소(결제 구현 후에 추가 예정) 등
+	// 좌석 취소 : 팝업닫기, 예약 세션 만료, 결제취소(결제 전 브라우저종료 or step4에서 이전단계로 이동) 등
 	@PostMapping("/{reservationToken}/cancel")
-	public ResponseEntity<Map<String, Object>> cancelReservation(@PathVariable String reservationToken,
-			@RequestBody(required = false) Map<String, Object> body) {
+	public ResponseEntity<Map<String, Object>> cancelReservation(@PathVariable String reservationToken, @RequestBody Map<String, Object> body) {
 
+		boolean isPaymentStep = Boolean.parseBoolean(String.valueOf(body.getOrDefault("isPaymentStep", "false")));
+		String reason = String.valueOf(body.getOrDefault("reason", null));
+		
 		try {
-			reservationService.cancelReservation(reservationToken);
+			reservationService.cancelReservation(reservationToken, isPaymentStep, reason);
 
 			return ResponseEntity.ok(Map.of("message", "예약이 성공적으로 취소되었습니다.", "status", "CANCEL"));
 		} catch (IllegalStateException ie) {
@@ -269,8 +284,7 @@ public class ReservationController {
 		}
 		
 		try {
-			
-			// redis 예매 세션 삭제, 좌석 복구X
+			// redis 예매 세션 삭제, 좌석 복구X, active set에서 user 삭제
 			reservationService.completeReservation(reservationToken, userId);
 			
 			return ResponseEntity.ok(Map.of("message", "예매가 성공적으로 완료되었습니다.", "status", "SUCCESS"));

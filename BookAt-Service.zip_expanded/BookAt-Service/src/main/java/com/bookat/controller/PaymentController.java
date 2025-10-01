@@ -6,10 +6,16 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.bookat.dto.PaymentCompleteRequest;
 import com.bookat.dto.PaymentDto;
@@ -22,6 +28,7 @@ import com.bookat.service.OrderService;
 import com.bookat.service.PaymentService;
 import com.bookat.util.PaymentSessionStore;
 import com.bookat.util.PortOneClient;
+import com.bookat.util.ReservationRedisUtil;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +43,7 @@ public class PaymentController {
   private final PortOneClient portOneClient;
   private final BookService bookService;
   private final PaymentSessionStore sessionStore;
+  private final ReservationRedisUtil reservationRedisUtil;
   private final EventService eventService;
   
   //도서 세션
@@ -245,8 +253,8 @@ public class PaymentController {
   
   	// 이벤트 예약 결제창 진입
 	@GetMapping("/{paymentToken}/paymentUI")
-	public String renderPaymentFrag(@PathVariable String paymentToken, @RequestParam(name = "method", required = false) String requestMethod, @AuthenticationPrincipal User user, Model model) {
-		
+
+	public String renderPaymentFrag(@PathVariable String paymentToken, @RequestParam(name = "method", required = false) String requestMetohd, @RequestParam(name = "token", required = false) String reservationToken, @AuthenticationPrincipal User user, Model model) {
 		String token = paymentToken.startsWith("payment:") ? paymentToken.substring("payment:".length()) : paymentToken;
 		
 		PaymentReservationSession session = sessionStore.getEventPay(token);
@@ -261,25 +269,25 @@ public class PaymentController {
 			// 세션없음 : 권한 없음 -> 현재 페이지가 없어서 여기 진입하면 템플릿에러남
 			return "error/403";
 		}
+
+		// 예약 세션 토큰 값
+		if (reservationToken != null && !reservationToken.isBlank()) {
+			boolean updatePaymentToken = reservationRedisUtil.updatePaymentSessionToken(reservationToken, paymentToken);
+			if(!updatePaymentToken) {
+				log.warn("예약토큰 {} 에 이미 다른 결제세션이 매핑", reservationToken);
+			}
+		}
 	    
 		// 프래그먼트에 필요한 값 모델로 주입 (서버 신뢰값만)
-		String merchantUid = session.merchantUid();
-		int totalPrice = session.amount().intValue();
-		String method = (requestMethod != null && !requestMethod.isBlank()) ? requestMethod : (session.method() == null ? "CARD" : session.method());
-
-		int reservedCount = session.reservedCount();
-		int eventId = session.eventId();
-		int scheduleId = session.scheduleId();
-		String title = session.title();
+		String method = (requestMetohd != null && !requestMetohd.isBlank()) ? requestMetohd : (session.method() == null ? "CARD" : session.method());
 		
-	    model.addAttribute("merchantUid", merchantUid);
-	    model.addAttribute("amount", totalPrice);
-	    model.addAttribute("title", title);
+	    model.addAttribute("merchantUid", session.merchantUid());
+	    model.addAttribute("amount", session.amount().intValue());
+	    model.addAttribute("title", session.title());
 	    model.addAttribute("method", method);
-	    
-	    model.addAttribute("reservedCount", reservedCount);
-	    model.addAttribute("eventId", eventId);
-	    model.addAttribute("scheduleId", scheduleId);
+	    model.addAttribute("reservedCount", session.reservedCount());
+	    model.addAttribute("eventId", session.eventId());
+	    model.addAttribute("scheduleId", session.scheduleId());
 		
 	    return "fragments/payFragment :: payFragment";
 	}
@@ -328,7 +336,7 @@ public class PaymentController {
 		  
 	}
 	 
-	// 결제 완료 후 자동 호출 reservation 1건 + ticket N건을 생성 -> payment.js
+	// 결제 완료 후 자동 호출 reservation 1건 + ticket N건을 생성
 	// 결제 실패나 사용자가 중간에 닫은 경우엔 만료시간 TTL로 자연 삭제
 	@PostMapping("/paid_after")
 	@ResponseBody
