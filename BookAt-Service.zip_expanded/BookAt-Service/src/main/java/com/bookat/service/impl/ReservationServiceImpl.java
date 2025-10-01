@@ -370,14 +370,14 @@ public class ReservationServiceImpl implements ReservationService {
 
 		int eventId = Integer.parseInt(redisData.get("eventId").toString());
 		int scheduleId = Integer.parseInt(redisData.get("scheduleId").toString());
-		String title = (String) redisData.get("title");
+		String eventName = (String) redisData.get("eventName");
 		int totalPrice = Integer.parseInt(redisData.get("totalPrice").toString());
 		int reservedCount = Integer.parseInt(redisData.get("reservedCount").toString());
 
 		PaymentInfoResDto paymentInfoResDto = new PaymentInfoResDto();
 		paymentInfoResDto.setEventId(eventId);
 		paymentInfoResDto.setScheduleId(scheduleId);
-		paymentInfoResDto.setTitle(title);
+		paymentInfoResDto.setTitle(eventName);
 		paymentInfoResDto.setTotalPrice(totalPrice);
 		paymentInfoResDto.setReservedCount(reservedCount);
 
