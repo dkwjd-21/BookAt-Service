@@ -24,7 +24,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public void createOrder(String userId, List<String> cartIds, Long addrId) {
+    public int createOrder(String userId, List<String> cartIds, Long addrId) {
         // 1. 선택된 장바구니 아이템들을 조회
         List<CartResponse> cartItems = cartMapper.getCartItemsByIds(cartIds);
 
@@ -56,5 +56,10 @@ public class OrderServiceImpl implements OrderService {
 
         // 5. 주문 완료된 장바구니 아이템들 삭제
         cartMapper.deleteCartItems(cartIds);
+        
+        // [지나 추가] 생성된 orderId 반환
+        return (orderRequest.getOrderId() instanceof Number)
+                ? ((Number) orderRequest.getOrderId()).intValue()
+                : Integer.parseInt(String.valueOf(orderRequest.getOrderId()));
     }
 }

@@ -23,7 +23,7 @@
 			SYSDATE,
 			#{ticketStatus},
 			#{ticketType},
-			#{personType},
+			#{personType, jdbcType=NUMERIC},
 			#{reservationId},
 			#{seatId, jdbcType=NUMERIC},
 			#{paymentId}

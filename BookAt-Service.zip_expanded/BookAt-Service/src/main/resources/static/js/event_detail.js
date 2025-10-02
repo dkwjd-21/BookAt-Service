@@ -91,7 +91,6 @@ function initializeReviewModal() {
     const formData = new FormData(reviewForm);
     const data = Object.fromEntries(formData.entries());
 
-    // [주의!] URL을  Controller의 주소로 변경해야 합니다.	//미구현
     fetch("event/review", {
       method: "POST",
       headers: {
@@ -132,7 +131,6 @@ function initializeReserveButton() {
   if (!eventDateStr) {
     reserveBtn.textContent = "날짜 정보 없음";
     reserveBtn.disabled = true;
-    // [수정] 비활성화 시 버튼 색상 변경
     reserveBtn.style.backgroundColor = "#F0F0F0";
     return;
   }
@@ -145,54 +143,31 @@ function initializeReserveButton() {
 
   const ticketingOpenDate = new Date(eventDate);
   ticketingOpenDate.setDate(ticketingOpenDate.getDate() - 30);
-  ticketingOpenDate.setHours(18, 0, 0, 0); //예매일 당일 오픈 시간 설정
+  ticketingOpenDate.setHours(18, 0, 0, 0);
 
   let countdownInterval;
 
   function updateButtonState() {
-    const currentTime = new Date(); // 1. 예매가 종료된 경우
+    const currentTime = new Date();
 
+    // 1. 예매가 종료된 경우
     if (now.getTime() >= eventDate.getTime()) {
       reserveBtn.textContent = "예매가 종료되었습니다";
       reserveBtn.disabled = true;
-      // [수정] 비활성화 시 버튼 색상 변경
       reserveBtn.style.backgroundColor = "#F0F0F0";
       if (countdownInterval) clearInterval(countdownInterval);
       return;
-    } // 2. 예매가 가능한 경우
+    }
 
+    // 2. 예매가 가능한 경우
     if (currentTime.getTime() >= ticketingOpenDate.getTime()) {
       reserveBtn.textContent = "예매하기";
       reserveBtn.disabled = false;
-      // [수정] 활성화 시 버튼 색상 변경
       reserveBtn.style.backgroundColor = "#f9d849";
 
-      reserveBtn.onclick = async function () {
-        // window.location.href = `/reservation/?eventId=${eventId}`;
-
-        const popupWidth = 1000;
-        const popupHeight = 700;
-        const left = (window.innerWidth - popupWidth) / 2;
-        const top = (window.innerHeight - popupHeight) / 2;
-
-        window.open(`/reservation/?eventId=${eventId}`, "ReservationPopup", `width=${popupWidth},height=${popupHeight},left=${left},top=${top},resizable=yes,scrollbars=yes`);
-        /*
-				try {
-					// 1. 현재 로그인 상태 확인 
-					const res = await validateUser();	// userAuth.js 전역 함수 
-					if(res.data.valid){
-						// 2. 로그인 상태라면 대기열 진입 -> 팝업창 
-						window.location.href = `/reservation/?eventId=${eventId}`; 
-					} else {
-						alert("로그인한 회원만 예매가 가능합니다.");
-						window.location.href = "/user/login";
-					}
-				} catch (e) {
-					console.error("사용자 인증 에러 : ", e);
-					alert("로그인한 회원만 예매가 가능합니다.");
-					window.location.href = "/user/login";
-				}
-				*/
+      reserveBtn.onclick = function (e) {
+        if (e) e.preventDefault();
+        onModal(eventId);
       };
 
       if (countdownInterval) clearInterval(countdownInterval);
@@ -205,7 +180,6 @@ function initializeReserveButton() {
     // 3. 카운트다운이 필요한 경우
     if (currentTime.getTime() >= countdownStartDate.getTime()) {
       reserveBtn.disabled = true;
-      // [수정] 비활성화 시 버튼 색상 변경
       reserveBtn.style.backgroundColor = "#F0F0F0";
       countdownInterval = setInterval(() => {
         const timeLeft = ticketingOpenDate.getTime() - new Date().getTime();
@@ -217,18 +191,28 @@ function initializeReserveButton() {
         const hours = Math.floor(timeLeft / (1000 * 60 * 60));
         const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
-        reserveBtn.textContent = `예매 오픈 까지 ${String(hours).padStart(2, "0")}시간 ${String(minutes).padStart(2, "0")}분 ${String(seconds).padStart(2, "0")}초`;
+        reserveBtn.textContent = `예매 오픈 까지 ${String(hours).padStart(
+          2,
+          "0"
+        )}시간 ${String(minutes).padStart(2, "0")}분 ${String(seconds).padStart(
+          2,
+          "0"
+        )}초`;
       }, 1000);
     } else {
       // 4. 아직 오픈 일자가 많이 남은 경우
-      const openDate = ticketingOpenDate.toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" });
+      const openDate = ticketingOpenDate.toLocaleDateString("ko-KR", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
       reserveBtn.textContent = `${openDate} 18:00 오픈예정`;
       reserveBtn.disabled = true;
-      // [수정] 비활성화 시 버튼 색상 변경
       reserveBtn.style.backgroundColor = "#F0F0F0";
     }
-  } // 함수 최초 실행
+  }
 
+  // 함수 최초 실행
   updateButtonState();
 }
 
@@ -237,7 +221,9 @@ function initializeReserveButton() {
  */
 function initializeKakaoMap() {
   if (typeof eventAddress === "undefined" || !eventAddress) {
-    console.error("이벤트 주소(eventAddress)를 찾을 수 없습니다. HTML 파일에 inline script가 있는지 확인하세요.");
+    console.error(
+      "이벤트 주소(eventAddress)를 찾을 수 없습니다. HTML 파일에 inline script가 있는지 확인하세요."
+    );
     return;
   }
 
@@ -266,7 +252,10 @@ function initializeKakaoMap() {
           position: coords,
         });
 
-        const label = address === fallbackAddress ? "테크브루 아카데미" : firstResult.place_name;
+        const label =
+          address === fallbackAddress
+            ? "테크브루 아카데미"
+            : firstResult.place_name;
         const infowindow = new kakao.maps.InfoWindow({
           content: `<div style="padding:5px;font-size:12px;width:max-content;">${label}</div>`,
         });
@@ -278,7 +267,8 @@ function initializeKakaoMap() {
         if (address !== fallbackAddress) {
           searchAndDisplay(fallbackAddress);
         } else {
-          mapContainer.innerHTML = '<div style="display:flex; align-items:center; justify-content:center; height:100%;">장소 정보를 찾을 수 없습니다.</div>';
+          mapContainer.innerHTML =
+            '<div style="display:flex; align-items:center; justify-content:center; height:100%;">장소 정보를 찾을 수 없습니다.</div>';
         }
       }
     });
