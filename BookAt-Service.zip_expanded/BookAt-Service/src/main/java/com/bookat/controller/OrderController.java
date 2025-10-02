@@ -18,10 +18,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import jakarta.validation.Valid;
+
 import com.bookat.dto.BookDto;
 import com.bookat.dto.BookOrderItemRequestDto;
 import com.bookat.dto.BookOrderRequestDto;
 import com.bookat.dto.CartResponse;
+import com.bookat.dto.OrderCreateRequest;
 import com.bookat.dto.OrderItemResponse;
 import com.bookat.dto.OrderListItemResponse;
 import com.bookat.dto.OrderStatusSummary;
@@ -97,7 +100,7 @@ public class OrderController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<?> createOrder(@RequestBody Map<String, Object> request, @AuthenticationPrincipal User user) {
+    public ResponseEntity<?> createOrder(@Valid @RequestBody OrderCreateRequest request, @AuthenticationPrincipal User user) {
         if (user == null) {
             return ResponseEntity.badRequest().body("로그인이 필요합니다.");
         }
@@ -108,30 +111,14 @@ public class OrderController {
                 return ResponseEntity.badRequest().body("배송지 정보가 없습니다. 배송지를 먼저 등록해주세요.");
             }
 
-            @SuppressWarnings("unchecked")
-            List<Map<String, Object>> items = (List<Map<String, Object>>) request.get("items");
-
-            if (items == null || items.isEmpty()) {
-                return ResponseEntity.badRequest().body("주문할 상품을 선택해주세요.");
-            }
-
-            List<CartResponse> orderItems = new java.util.ArrayList<>();
-            for (Map<String, Object> item : items) {
-                String cartId = item.get("cartId") != null ? item.get("cartId").toString() : null;
-                String bookId = item.get("bookId") != null ? item.get("bookId").toString() : null;
-
-                Number priceNumber = item.get("price") instanceof Number ? (Number) item.get("price") : 0;
-                Number quantityNumber = item.get("quantity") instanceof Number ? (Number) item.get("quantity") : 0;
-
-                CartResponse cartResponse = CartResponse.builder()
-                        .cartId(cartId)
-                        .bookId(bookId)
-                        .price(priceNumber.intValue())
-                        .cartQuantity(quantityNumber.intValue())
-                        .build();
-
-                orderItems.add(cartResponse);
-            }
+            List<CartResponse> orderItems = request.getItems().stream()
+                    .map(item -> CartResponse.builder()
+                            .cartId(item.getCartId())
+                            .bookId(item.getBookId())
+                            .price(item.getPrice())
+                            .cartQuantity(item.getQuantity())
+                            .build())
+                    .collect(Collectors.toList());
 
             orderService.createOrder(user.getUserId(), orderItems, (long) defaultAddress.getAddrId());
             return ResponseEntity.ok().body("주문 생성 완료되었습니다.");
