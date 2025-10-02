@@ -61,6 +61,7 @@ public class OrderServiceImpl implements OrderService {
                     int shippingFee = calculateShippingFee(items);
 
                     return OrderListItemResponse.builder()
+                            .orderId(summary.getOrderId())
                             .orderDate(summary.getOrderDate() != null ? summary.getOrderDate().format(ORDER_DATE_FORMATTER) : null)
                             .orderStatus(summary.getOrderStatus())
                             .statusLabel(convertStatus(summary.getOrderStatus()))

@@ -136,7 +136,7 @@ body {
   border-radius: 20px;
   border: 1px solid var(--orderlist-primary);
   background: var(--orderlist-primary);
-  color: #111111;
+  color: #ffffff;
   font-weight: 600;
   cursor: pointer;
   transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
@@ -146,7 +146,7 @@ body {
 .order-actions .btn-tracking:hover {
   background-color: #a5c05d;
   border-color: #a5c05d;
-  color: #0b0b0b;
+  color: #ffffff;
   transform: translateY(-1px);
 }
 
@@ -308,7 +308,7 @@ body {
   border-radius: 18px;
   border: 1px solid var(--orderlist-primary);
   background: var(--orderlist-primary);
-  color: #111111;
+  color: #ffffff;
   font-weight: 600;
   cursor: pointer;
   transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
@@ -317,7 +317,7 @@ body {
 .order-item .item-actions .btn-review:hover {
   background-color: #a5c05d;
   border-color: #a5c05d;
-  color: #0b0b0b;
+  color: #ffffff;
   transform: translateY(-1px);
 }
 

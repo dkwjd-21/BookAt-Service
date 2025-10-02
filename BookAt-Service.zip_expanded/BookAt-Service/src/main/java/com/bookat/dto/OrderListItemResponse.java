@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrderListItemResponse {
+    private Long orderId;
     private String orderDate;
     private Integer orderStatus;
     private String statusLabel;
