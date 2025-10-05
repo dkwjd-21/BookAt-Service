@@ -27,4 +27,7 @@ public interface PaymentMapper {
             @Param("reason") String reason,
             @Param("receiptUrl") String receiptUrl);
 
+    int updateOrderIdByMerchantUid(@Param("merchantUid") String merchantUid,
+                                   @Param("orderId") Long orderId);
+
 }

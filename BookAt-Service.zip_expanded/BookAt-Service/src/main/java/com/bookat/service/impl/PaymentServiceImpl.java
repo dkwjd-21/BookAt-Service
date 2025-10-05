@@ -6,11 +6,11 @@ import java.time.format.DateTimeFormatter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.bookat.controller.PaymentController;
 import com.bookat.domain.PaymentStatus;
 import com.bookat.dto.PaymentDto;
 import com.bookat.dto.reservation.PaymentReservationSession;
 import com.bookat.mapper.PaymentMapper;
+import com.bookat.service.OrderService;
 import com.bookat.service.PaymentService;
 import com.bookat.service.ReservationService;
 import com.bookat.util.PaymentSessionStore;
@@ -26,6 +26,7 @@ public class PaymentServiceImpl implements PaymentService {
   private final PaymentMapper paymentMapper;
   private final ReservationService reservationService;
   private final PaymentSessionStore sessionStore;
+  private final OrderService orderService;
 
 
   private String normalizeMethod(String method) {

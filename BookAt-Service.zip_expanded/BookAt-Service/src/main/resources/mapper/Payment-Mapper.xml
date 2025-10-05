@@ -77,5 +77,11 @@
       receipt_url    = #{receiptUrl}
   WHERE merchant_uid = #{merchantUid}
  </update>
+
+  <update id="updateOrderIdByMerchantUid" parameterType="map">
+    UPDATE PAYMENT
+    SET order_id = #{orderId}
+    WHERE merchant_uid = #{merchantUid}
+  </update>
   
 </mapper>

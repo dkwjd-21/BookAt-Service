@@ -68,7 +68,8 @@ public class PaymentController {
           pay.getMerchantUid(), user.getUserId(),
           "READY",
           java.time.OffsetDateTime.now().toString(),
-          title
+          title,
+          true
       );
       String token = sessionStore.create(session);
       return Map.of("status","success","token", token);
@@ -88,7 +89,8 @@ public class PaymentController {
           pay.getMerchantUid(), user.getUserId(),
           "READY",
           java.time.OffsetDateTime.now().toString(),
-          title
+          title,
+          false
       );
       String token = sessionStore.create(session);
       return Map.of("status","success","token", token);
@@ -151,19 +153,45 @@ public class PaymentController {
               return Map.of("status","error","message","verify_failed");
           }
 
-          // 3) 성공 처리
+          // 3) 성공 처리 및 주문 생성
+          Long orderId = null;
+          if (ctx.directOrder()) {
+              orderId = handleDirectOrder(userId, ctx);
+          }
+
           paymentService.markPaid(req.getMerchantUid(), req.getImpUid(), pgTid, receipt);
 
-          // 4) 프런트가 이동할 URL만 내려줌
           return Map.of(
               "status","success",
-              "successRedirect", "/payment/success?m=" + req.getMerchantUid() + "&i=" + req.getImpUid()
+              "successRedirect", "/payment/success?m=" + req.getMerchantUid() + "&i=" + req.getImpUid(),
+              "orderId", orderId
           );
 
       } catch (Exception e) {
           paymentService.markFailed(req.getMerchantUid(), "서버오류: " + e.getMessage());
           return Map.of("status","error","message","server_error");
       }
+  }
+
+  private Long handleDirectOrder(String userId, PaymentSession session) {
+    if (session.bookId() == null) {
+      throw new IllegalStateException("바로구매 정보가 없습니다.");
+    }
+
+    var book = bookService.selectOne(session.bookId());
+    if (book == null) {
+      throw new IllegalStateException("도서를 찾을 수 없습니다.");
+    }
+
+    Address address = addressService.getDefaultAddressByUserId(userId);
+    if (address == null) {
+      throw new IllegalStateException("배송지 정보가 없습니다.");
+    }
+
+    int quantity = Math.max(session.qty(), 1);
+    int price = book.getPrice().intValue();
+
+    return orderService.createDirectOrder(userId, book.getBookId(), quantity, price, (long) address.getAddrId());
   }
   
   @GetMapping("/success")

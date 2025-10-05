@@ -62,7 +62,7 @@ function formatPhoneNumbers() {
 }
 
 // 페이지 로드 시 로그인 검증 및 주문 상품 정보를 가져와서 표시
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", async function () {
   // 데이터 초기화
   initializeOrderData();
 
@@ -92,43 +92,40 @@ document.addEventListener("DOMContentLoaded", function () {
   } else if (directOrderData) {
     // 바로구매에서 온 경우
     try {
-      const directOrder = JSON.parse(directOrderData);
-
       // 세션 스토리지에서 바로구매 데이터 확인
       const directOrderDataFromStorage = sessionStorage.getItem("directOrderData");
-      if (directOrderDataFromStorage) {
-        const orderData = JSON.parse(directOrderDataFromStorage);
-
-        if (orderData.success && orderData.book) {
-          const book = orderData.book;
-          const quantity = orderData.quantity;
-
-          orderItems = [
-            {
-              bookId: book.bookId,
-              title: book.title,
-              author: book.author,
-              price: book.price,
-              quantity: quantity,
-              coverImage: book.imageUrl,
-              isDirectOrder: true,
-            },
-          ];
-
-          renderOrderItems();
-          updateOrderSummary();
-
-          // 사용 후 세션스토리지에서 제거
-          sessionStorage.removeItem("directOrderItem");
-          sessionStorage.removeItem("directOrderData");
-        } else {
-          showOrderResultModal("바로구매 데이터를 불러올 수 없습니다.", false);
-          return;
-        }
-      } else {
+      if (!directOrderDataFromStorage) {
         showOrderResultModal("바로구매 데이터를 불러올 수 없습니다.", false);
         return;
       }
+
+      const orderData = JSON.parse(directOrderDataFromStorage);
+      if (!orderData.success || !orderData.book) {
+        showOrderResultModal("바로구매 데이터를 불러올 수 없습니다.", false);
+        return;
+      }
+
+      const book = orderData.book;
+      const quantity = orderData.quantity;
+
+      orderItems = [
+        {
+          bookId: book.bookId,
+          title: book.title,
+          author: book.author,
+          price: book.price,
+          quantity: quantity,
+          coverImage: book.imageUrl,
+          isDirectOrder: true,
+        },
+      ];
+
+      renderOrderItems();
+      updateOrderSummary();
+
+      // 사용 후 세션스토리지에서 제거
+      sessionStorage.removeItem("directOrderItem");
+      sessionStorage.removeItem("directOrderData");
     } catch (e) {
       console.error("바로구매 상품 정보를 파싱하는 중 오류가 발생했습니다:", e);
       showOrderResultModal("주문 상품 정보를 불러올 수 없습니다.", false);

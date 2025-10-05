@@ -57,4 +57,29 @@ public class OrderServiceImpl implements OrderService {
         // 5. 주문 완료된 장바구니 아이템들 삭제
         cartMapper.deleteCartItems(cartIds);
     }
+
+    @Override
+    @Transactional
+    public Long createDirectOrder(String userId, String bookId, int quantity, int price, Long addrId) {
+        int totalPrice = price * quantity;
+
+        BookOrderRequestDto orderRequest = BookOrderRequestDto.builder()
+                .totalPrice(totalPrice)
+                .userId(userId)
+                .addrId(addrId)
+                .build();
+
+        orderMapper.insertOrder(orderRequest);
+
+        BookOrderItemRequestDto orderItemRequest = BookOrderItemRequestDto.builder()
+                .bookId(bookId)
+                .orderId(orderRequest.getOrderId())
+                .quantity(quantity)
+                .price(price)
+                .build();
+
+        orderMapper.insertOrderItem(orderItemRequest);
+
+        return orderRequest.getOrderId();
+    }
 }

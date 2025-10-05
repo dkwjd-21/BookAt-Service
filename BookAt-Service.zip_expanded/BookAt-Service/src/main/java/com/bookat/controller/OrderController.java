@@ -219,4 +219,10 @@ public class OrderController {
             return ResponseEntity.ok(response);
         }
     }
+
+    @PostMapping("/direct/create")
+    public ResponseEntity<?> createDirectOrder(@RequestBody Map<String, Object> request,
+                                               @AuthenticationPrincipal User user) {
+        return ResponseEntity.notFound().build();
+    }
 }
