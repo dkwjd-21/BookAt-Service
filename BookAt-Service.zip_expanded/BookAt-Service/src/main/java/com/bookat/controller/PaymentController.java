@@ -1,9 +1,5 @@
 package com.bookat.controller;
 
-import java.math.BigDecimal;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -24,7 +20,6 @@ import com.bookat.dto.reservation.PaymentReservationSession;
 import com.bookat.entity.User;
 import com.bookat.service.BookService;
 import com.bookat.service.EventService;
-import com.bookat.service.OrderService;
 import com.bookat.service.PaymentService;
 import com.bookat.util.PaymentSessionStore;
 import com.bookat.util.PortOneClient;
@@ -53,7 +48,7 @@ public class PaymentController {
 
   @GetMapping("/api/my")
   @ResponseBody
-  public Map<String, Object> myPayments(@AuthenticationPrincipal User user) {
+  public Map<String, Object> myPayment(@AuthenticationPrincipal User user) {
       if (user == null) {
           return Map.of("status","error","message","unauthorized");
       }
@@ -186,7 +181,7 @@ public class PaymentController {
       try {
           // 1) 세션 토큰 검증(세션은 소비하지 않음)
           var ctx = sessionStore.get(req.getToken(), false);
-          if (ctx == null || !user.equals(ctx.userId())) {
+          if (ctx == null || !user.getUserId().equals(ctx.userId())) {
               return Map.of("status","error","message","session_invalid");
           }
 

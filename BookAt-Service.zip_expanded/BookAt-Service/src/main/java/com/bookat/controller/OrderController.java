@@ -82,15 +82,16 @@ public class OrderController {
             if (defaultAddress == null) {
                 return ResponseEntity.badRequest().body("배송지 정보가 없습니다. 배송지를 먼저 등록해주세요.");
             }
-
-            // [지나 추가] 주문 생성 → orderId(int) 반환
+            
+            // [지나 수정] 주문 생성 → orderId(int) 반환
             int orderId = orderService.createOrder(user.getUserId(), cartIds, (long) defaultAddress.getAddrId());
+            Object totalAmount = request.get("totalAmount");
 
-            // [지나 추가]
-            Map<String, Object> resp = new HashMap<>();
+            Map<String,Object> resp = new HashMap<>();
             resp.put("status", "ok");
             resp.put("message", "주문 생성 완료되었습니다.");
             resp.put("orderId", orderId);
+            if (totalAmount != null) resp.put("totalAmount", totalAmount);
             return ResponseEntity.ok(resp);
             
         } catch (Exception e) {

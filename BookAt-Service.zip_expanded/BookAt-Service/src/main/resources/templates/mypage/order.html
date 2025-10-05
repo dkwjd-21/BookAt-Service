@@ -17,6 +17,9 @@
     <script th:src="@{/js/payment.js}"></script>
   </head>
   <body>
+    <!-- 아래 1줄 지나 추가 -->
+    <input type="hidden" id="orderId" th:value="${orderId}">
+    
     <div th:replace="~{fragments/header :: header}"></div>
 
     <div class="order-container">

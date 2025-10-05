@@ -11,7 +11,7 @@ public interface PaymentService {
     void markFailed(String merchantUid, String reason);
     
     //취소
-    void markCanceled(String merchantUid, String reason, String cancelReceiptUrl,  boolean partial);
+    void markCanceled(String merchantUid, String reason, String ReceiptUrl,  boolean partial);
     PaymentDto findByMerchantUid(String merchantUid);
     
     // 결제완료 후 처리
