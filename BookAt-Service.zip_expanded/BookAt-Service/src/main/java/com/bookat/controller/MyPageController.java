@@ -3,6 +3,7 @@ package com.bookat.controller;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
@@ -20,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Controller
-@RequestMapping("/mypage")
+@RequestMapping("/myPage")
 @RequiredArgsConstructor
 public class MyPageController {
 	
@@ -30,14 +31,16 @@ public class MyPageController {
 	public ResponseEntity<Map<String, Object>> reservationDetails(@AuthenticationPrincipal User user) {
 		List<Reservation> reservations =  myPageService.getReservations(user.getUserId());
 		
-		return null;
+		log.info("userId : {}", user.getUserId());
+		
+		return ResponseEntity.ok(Map.of("status", HttpStatus.OK, "reservations", reservations));
 	}
 	
 	@GetMapping("/ticketDetails")
 	public ResponseEntity<Map<String, Object>> ticketDetails(@RequestParam int reservationId) {
 		List<Ticket> tickets = myPageService.getTickets(reservationId);
 		
-		return null;
+		return ResponseEntity.ok(Map.of("status", HttpStatus.OK, "tickets", tickets));
 	}
 
 }
