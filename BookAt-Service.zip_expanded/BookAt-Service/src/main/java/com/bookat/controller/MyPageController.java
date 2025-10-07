@@ -28,13 +28,13 @@ public class MyPageController {
 	
 	@GetMapping("/reservationDetails")
 	public ResponseEntity<Map<String, Object>> reservationDetails(@AuthenticationPrincipal User user) {
-		List<Reservation> reservations =  myPageService.getReservation(user.getUserId());
+		List<Reservation> reservations =  myPageService.getReservations(user.getUserId());
 		
 		return null;
 	}
 	
 	@GetMapping("/ticketDetails")
-	public ResponseEntity<Map<String, Object>> ticketDetails(@RequestParam String reservationId) {
+	public ResponseEntity<Map<String, Object>> ticketDetails(@RequestParam int reservationId) {
 		List<Ticket> tickets = myPageService.getTickets(reservationId);
 		
 		return null;

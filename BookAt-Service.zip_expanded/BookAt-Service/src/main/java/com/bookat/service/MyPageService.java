@@ -7,7 +7,7 @@ import com.bookat.entity.reservation.Ticket;
 
 public interface MyPageService {
 	
-	public List<Reservation> getReservation(String userId);
-	public List<Ticket> getTickets(String reservationId);
+	public List<Reservation> getReservations(String userId);
+	public List<Ticket> getTickets(int reservationId);
 
 }

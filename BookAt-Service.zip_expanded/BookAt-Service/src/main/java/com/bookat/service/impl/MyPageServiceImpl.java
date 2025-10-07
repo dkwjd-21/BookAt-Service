@@ -12,13 +12,13 @@ import com.bookat.service.MyPageService;
 public class MyPageServiceImpl implements MyPageService {
 
 	@Override
-	public List<Reservation> getReservation(String userId) {
+	public List<Reservation> getReservations(String userId) {
 		
 		return null;
 	}
 
 	@Override
-	public List<Ticket> getTickets(String reservationId) {
+	public List<Ticket> getTickets(int reservationId) {
 		
 		return null;
 	}
