@@ -27,20 +27,31 @@ public class MyPageController {
 	
 	private final MyPageService myPageService;
 	
+	@GetMapping("/")
+	public String myPage(@AuthenticationPrincipal User user) {
+		
+		return "mypage/myPageMain";
+	}
+	
+	// [예매 내역 관련]
+	// ===========================================================================================
+	// 예매 내역 조회
 	@GetMapping("/reservationDetails")
 	public ResponseEntity<Map<String, Object>> reservationDetails(@AuthenticationPrincipal User user) {
 		List<Reservation> reservations =  myPageService.getReservations(user.getUserId());
 		
-		log.info("userId : {}", user.getUserId());
-		
 		return ResponseEntity.ok(Map.of("status", HttpStatus.OK, "reservations", reservations));
 	}
 	
+	// 예매 내역별 티켓내역 조회
 	@GetMapping("/ticketDetails")
 	public ResponseEntity<Map<String, Object>> ticketDetails(@RequestParam int reservationId) {
 		List<Ticket> tickets = myPageService.getTickets(reservationId);
 		
 		return ResponseEntity.ok(Map.of("status", HttpStatus.OK, "tickets", tickets));
 	}
+	
+	// [개인 정보 수정]
+	// ===========================================================================================
 
 }

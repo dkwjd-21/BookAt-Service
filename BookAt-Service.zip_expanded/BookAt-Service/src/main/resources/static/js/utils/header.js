@@ -49,9 +49,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // 마이페이지로 이동
   if (myPageBtn) {
-    myPageBtn.addEventListener("click", () => {
+    myPageBtn.addEventListener("click", async (e) => {
       e.preventDefault();
-      window.location.href = "/myPage";
+	  try {
+		const res = await axiosInstance.get("/myPage/", {
+			responseType: "text",
+		});
+		document.open();
+		document.write(res.data);
+		document.close();
+		window.history.pushState({}, "", "/myPage/");
+	  } catch (err) {
+		console.log("로그인이 필요함");
+		window.location.href = "/user/login";
+	  }
     });
   }
 
