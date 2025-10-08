@@ -29,7 +29,6 @@ import com.bookat.exception.LoginException;
 import com.bookat.service.RefreshTokenService;
 import com.bookat.service.impl.UserLoginServiceImpl;
 import com.bookat.util.CookieUtil;
-import com.bookat.util.JwtRedisUtil;
 import com.bookat.util.JwtTokenProvider;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
