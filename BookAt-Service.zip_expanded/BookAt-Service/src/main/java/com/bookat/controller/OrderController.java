@@ -16,10 +16,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.bookat.entity.User;
 import com.bookat.entity.Address;
-import com.bookat.service.OrderService;
 import com.bookat.service.AddressService;
 import com.bookat.service.BookService;
-import com.bookat.mapper.UserLoginMapper;
+import com.bookat.service.OrderService;
 import com.bookat.dto.BookDto;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -32,9 +31,6 @@ public class OrderController {
     
     @Autowired
     private AddressService addressService;
-    
-    @Autowired
-    private UserLoginMapper userLoginMapper;
     
     @Autowired
     private BookService bookService;
