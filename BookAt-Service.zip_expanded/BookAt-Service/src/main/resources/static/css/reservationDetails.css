@@ -1,0 +1,83 @@
+@charset "UTF-8";
+html {
+    font-size: 100%;
+}
+body {
+    color: #949087;
+    font-family: sans-serif;
+}
+
+/*
+RESERVATION
+================================================ */
+p {
+    line-height: 1.6;
+}
+#reservation-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 1.5rem;
+    background: #fff;
+    border-radius: 0 0 10px 10px;
+}
+
+#reservation-container.reservation-hidden {
+	display: none;
+}
+
+/*
+RESERVATION_DETAILS
+================================================ */
+main {
+    margin-bottom: 3rem;
+    background: #fff;
+    border-radius: 10px;
+}
+
+.reservation-box {
+    display: flex;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 16px;
+    max-width: 800px;
+    background: #fff;
+    margin: 3rem 0;
+}
+
+.event-post {
+    margin: 2rem;
+    display: flex;
+    flex: 2;
+    background: #f0f0f0;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+}
+
+.reservation-info {
+    flex: 8;
+}
+
+/*
+BUTTONS
+================================================ */
+.reservation-actions button {
+    width: 6rem;
+	height: 2.5rem;
+	margin-left: 0.5rem;
+    padding: 0.5rem 1rem;
+	font-size: 0.825rem;
+    font-weight: bold;
+    background-color: #00007B;
+    color: white;
+    border: none;
+    border-radius: 0.25rem;
+    cursor: pointer;
+	transition: background-color 0.2s, transform 0.2s, box-shadow 0.2s ease-in-out;
+}
+
+.reservation-actions button:hover {
+	transform: scale(1.02);
+	box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+	font-weight: bold;
+}
