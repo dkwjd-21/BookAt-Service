@@ -1,12 +1,10 @@
 <aside
   th:fragment="mypageAside (activeMenu)"
   th:with="currentUser=${user != null ? user : (#authentication != null ? #authentication.principal : null)},
-    currentUserName=${currentUser instanceof T(com.bookat.entity.User) ? currentUser.userName : (currentUser instanceof T(java.util.Map) ? currentUser['userName'] : (currentUser != null ? currentUser.toString() : null))},
-    currentInitial=${currentUserName != null and #strings.length(currentUserName) > 0 ? #strings.substring(currentUserName, 0, 1) : 'B'}"
+    currentUserName=${currentUser instanceof T(com.bookat.entity.User) ? currentUser.userName : (currentUser instanceof T(java.util.Map) ? currentUser['userName'] : (currentUser != null ? currentUser.toString() : null))}"
   class="mypage-aside"
 >
   <section class="mypage-profile">
-    <div class="mypage-profile__avatar" th:text="${currentInitial}">B</div>
     <div class="mypage-profile__info">
       <p class="mypage-profile__name">
         <strong th:text="${currentUserName != null ? currentUserName : '북캣 회원'}">북캣 회원</strong>
