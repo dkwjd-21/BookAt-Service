@@ -18,24 +18,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import jakarta.validation.Valid;
-
 import com.bookat.dto.BookDto;
-import com.bookat.dto.BookOrderItemRequestDto;
-import com.bookat.dto.BookOrderRequestDto;
 import com.bookat.dto.CartResponse;
 import com.bookat.dto.OrderCreateRequest;
-import com.bookat.dto.OrderItemResponse;
 import com.bookat.dto.OrderListItemResponse;
 import com.bookat.dto.OrderStatusSummary;
 import com.bookat.entity.Address;
-
 import com.bookat.entity.User;
 import com.bookat.service.AddressService;
 import com.bookat.service.BookService;
 import com.bookat.service.OrderService;
-import com.bookat.dto.BookDto;
-import org.springframework.web.bind.annotation.RequestParam;
+
+import jakarta.validation.Valid;
 
 
 @Controller
@@ -74,11 +68,22 @@ public class OrderController {
         List<OrderListItemResponse> orders = orderService.getOrderList(user.getUserId());
         OrderStatusSummary statusSummary = orderService.summarizeOrderStatus(orders);
 
-        return ResponseEntity.ok(Map.of(
-                "success", true,
-                "orders", orders,
-                "statusSummary", statusSummary
-        ));
+        Map<String, Object> response = new HashMap<>();
+        String userName = null;
+        if (user != null) {
+            userName = user.getUserName();
+        }
+
+        if (userName == null || userName.isBlank()) {
+            userName = "북캣 회원";
+        }
+
+        response.put("success", true);
+        response.put("userName", userName);
+        response.put("orders", orders);
+        response.put("statusSummary", statusSummary);
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping

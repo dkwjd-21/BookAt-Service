@@ -7,7 +7,7 @@
   <section class="mypage-profile">
     <div class="mypage-profile__info">
       <p class="mypage-profile__name">
-        <strong th:text="${currentUserName != null ? currentUserName : '북캣 회원'}">북캣 회원</strong>
+        <strong th:text="${currentUserName != null and currentUserName != 'anonymousUser' ? currentUserName : '  '}">북캣 회원</strong>
         <span>님</span>
       </p>
       <div class="mypage-profile__points">

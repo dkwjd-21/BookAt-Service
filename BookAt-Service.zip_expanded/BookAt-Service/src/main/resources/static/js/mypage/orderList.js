@@ -44,6 +44,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     renderStatus(data.statusSummary);
     renderOrders(data.orders);
     toggleGuide(data.orders);
+    updateMypageProfileName(data.userName);
   } catch (error) {
     console.error("주문 목록 조회 실패", error);
 
@@ -168,6 +169,14 @@ document.addEventListener("DOMContentLoaded", async () => {
       guideSection.style.display = "block";
     } else {
       guideSection.style.display = "none";
+    }
+  }
+
+  function updateMypageProfileName(userName) {
+    if (!userName) return;
+    const nameElement = document.querySelector(".mypage-profile__name strong");
+    if (nameElement) {
+      nameElement.textContent = userName;
     }
   }
 
