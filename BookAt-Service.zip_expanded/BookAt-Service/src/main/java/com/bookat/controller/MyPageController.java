@@ -11,9 +11,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.bookat.dto.myPage.ReservationDetailDto;
+import com.bookat.dto.myPage.TicketDetailDto;
 import com.bookat.entity.User;
-import com.bookat.entity.reservation.Reservation;
-import com.bookat.entity.reservation.Ticket;
 import com.bookat.service.MyPageService;
 
 import lombok.RequiredArgsConstructor;
@@ -29,7 +29,6 @@ public class MyPageController {
 	
 	@GetMapping("/")
 	public String myPage(@AuthenticationPrincipal User user) {
-		
 		return "mypage/myPageMain";
 	}
 	
@@ -38,17 +37,25 @@ public class MyPageController {
 	// 예매 내역 조회
 	@GetMapping("/reservationDetails")
 	public ResponseEntity<Map<String, Object>> reservationDetails(@AuthenticationPrincipal User user) {
-		List<Reservation> reservations =  myPageService.getReservations(user.getUserId());
+		List<ReservationDetailDto> reservations =  myPageService.getReservationDetails(user.getUserId());
 		
-		return ResponseEntity.ok(Map.of("status", HttpStatus.OK, "reservations", reservations));
+		if(reservations == null) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "예약 내역 조회에 실패하였습니다."));
+		}
+		
+		return ResponseEntity.ok(Map.of("status", HttpStatus.OK.value(), "reservations", reservations));
 	}
 	
 	// 예매 내역별 티켓내역 조회
 	@GetMapping("/ticketDetails")
 	public ResponseEntity<Map<String, Object>> ticketDetails(@RequestParam int reservationId) {
-		List<Ticket> tickets = myPageService.getTickets(reservationId);
+		List<TicketDetailDto> tickets = myPageService.getTicketDetails(reservationId);
 		
-		return ResponseEntity.ok(Map.of("status", HttpStatus.OK, "tickets", tickets));
+		if(tickets == null) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "티켓 정보 조회에 실패하였습니다."));
+		}
+		
+		return ResponseEntity.ok(Map.of("status", HttpStatus.OK, "ticketType", tickets.get(0).getTicketType(), "tickets", tickets));
 	}
 	
 	// [개인 정보 수정]

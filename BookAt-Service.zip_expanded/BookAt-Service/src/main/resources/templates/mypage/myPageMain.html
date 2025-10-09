@@ -65,19 +65,22 @@
 			        </select>
 			    </div>
 		
-			    <main>
-			        <div class="reservation-box">
-			            <div class="event-post">이미지</div>
-			            <div class="reservation-info">
-			                <h3>이벤트 기본 정보</h3>
-			                <p>예약 일자 | 2025.08.13 오후 7시 (2회차)</p>
-			                <p>예약 좌석 | A-12, A-13</p>
-			                <p>인원 수 | 5</p>
-			                <div class="reservation-actions">
-			                    <button class="btn-change">예매 변경</button>
-			                    <button class="btn-ticket">티켓 보기</button>
-			                </div>
-			            </div>
+			    <main id="reservation-main">
+			        <div id="reservation-template">
+			            <div class="event-post"><img /></div>
+						<div class="reservation-box">
+							<div class="reservation-info">
+							    <h3 class="event-name"></h3>
+							    <p><span class="reservation-label">이벤트 일시</span><span class="schedule-info"></span></p>
+							    <p><span class="reservation-label">예약 인원</span><span class="reserved-count"></span></p>
+								<p><span class="reservation-label">예약 상태</span><span class="reservation-status"></span></p>
+								<p><span class="reservation-label">결제 금액</span><span class="total-price"></span></p>
+							</div>
+							<div class="reservation-actions">
+							    <button class="btn-change">예매 변경</button>
+							    <button class="btn-ticket">티켓 보기</button>
+							</div>
+						</div>
 			        </div>
 			    </main>
 			</div>

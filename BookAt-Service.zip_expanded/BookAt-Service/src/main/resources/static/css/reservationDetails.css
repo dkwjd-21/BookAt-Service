@@ -13,6 +13,7 @@ RESERVATION
 p {
     line-height: 1.6;
 }
+
 #reservation-container {
     max-width: 1000px;
     margin: 0 auto;
@@ -34,7 +35,7 @@ main {
     border-radius: 10px;
 }
 
-.reservation-box {
+#reservation-template {
     display: flex;
     border: 1px solid #ddd;
     border-radius: 8px;
@@ -42,6 +43,8 @@ main {
     max-width: 800px;
     background: #fff;
     margin: 3rem 0;
+	
+	align-items: stretch;
 }
 
 .event-post {
@@ -54,19 +57,46 @@ main {
     border-radius: 4px;
 }
 
+.event-post img {
+	max-width: 100%;
+}
+
+.reservation-box {
+	flex: 8;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	padding-left: 0.5rem;
+}
+
 .reservation-info {
-    flex: 8;
+	justify-content: flex-start;
+}
+
+.reservation-info p {
+	display: flex;
+	margin: 0.25rem 0;
+}
+
+.reservation-label {
+	width: 6rem;
+	font-weight: bold;
 }
 
 /*
 BUTTONS
 ================================================ */
+.reservation-actions {
+	margin-top: auto;
+	display: flex;
+	justify-content: flex-end;
+}
+
 .reservation-actions button {
-    width: 6rem;
-	height: 2.5rem;
-	margin-left: 0.5rem;
+    min-width: 6rem;
+	margin: 0 0.2rem;
     padding: 0.5rem 1rem;
-	font-size: 0.825rem;
+	font-size: 0.9rem;
     font-weight: bold;
     background-color: #00007B;
     color: white;
