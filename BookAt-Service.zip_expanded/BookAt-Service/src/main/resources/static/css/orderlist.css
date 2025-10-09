@@ -17,7 +17,7 @@ body {
 
 .orderlist-wrapper {
   max-width: 1080px;
-  margin: 40px auto 80px;
+  margin: 0 auto 80px;
   padding: 0 20px;
   display: flex;
   flex-direction: column;
@@ -133,6 +133,8 @@ body {
 .order-actions .btn-review,
 .order-actions .btn-tracking {
   padding: 10px 18px;
+  min-width: 100px;
+  white-space: nowrap;
   border-radius: 20px;
   border: 1px solid var(--orderlist-primary);
   background: var(--orderlist-primary);
@@ -305,6 +307,8 @@ body {
 
 .order-item .item-actions .btn-review {
   padding: 8px 16px;
+  min-width: 96px;
+  white-space: nowrap;
   border-radius: 18px;
   border: 1px solid var(--orderlist-primary);
   background: var(--orderlist-primary);

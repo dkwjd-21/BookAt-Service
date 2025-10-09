@@ -21,7 +21,7 @@
     <h2 class="mypage-nav__title">마이페이지</h2>
     <ul class="mypage-nav__list">
       <li>
-        <a th:href="@{/order}" class="mypage-nav__link" th:classappend="${activeMenu == 'order'} ? ' is-active' : ''">주문배송조회</a>
+        <a th:href="@{/myPage/orderList}" class="mypage-nav__link" th:classappend="${activeMenu == 'order'} ? ' is-active' : ''">주문배송조회</a>
       </li>
       <li>
         <a th:href="@{/reservation/history}" class="mypage-nav__link" th:classappend="${activeMenu == 'reservation'} ? ' is-active' : ''">예매내역조회</a>
