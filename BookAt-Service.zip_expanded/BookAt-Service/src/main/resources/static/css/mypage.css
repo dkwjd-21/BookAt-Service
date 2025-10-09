@@ -24,6 +24,8 @@
   background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
   box-shadow: 0 20px 40px rgba(0, 27, 79, 0.08);
   overflow: hidden;
+  position: sticky;
+  top: 100px;
 }
 
 .mypage-profile {
@@ -91,6 +93,30 @@
   color: var(--mypage-highlight);
   font-size: 14px;
   letter-spacing: 0.04em;
+}
+
+.mypage-profile__settings {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 12px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--mypage-border);
+  background: #ffffff;
+  color: var(--mypage-primary);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.mypage-profile__settings:hover,
+.mypage-profile__settings:focus-visible {
+  background-color: rgba(0, 50, 116, 0.08);
+  color: var(--mypage-primary);
+  border-color: var(--mypage-primary);
+  outline: none;
 }
 
 .mypage-nav {
