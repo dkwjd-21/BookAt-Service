@@ -51,18 +51,13 @@ document.addEventListener("DOMContentLoaded", () => {
   if (myPageBtn) {
     myPageBtn.addEventListener("click", async (e) => {
       e.preventDefault();
-	  try {
-		const res = await axiosInstance.get("/myPage/", {
-			responseType: "text",
-		});
-		document.open();
-		document.write(res.data);
-		document.close();
-		window.history.pushState({}, "", "/myPage/");
-	  } catch (err) {
-		console.log("로그인이 필요함");
-		window.location.href = "/user/login";
-	  }
+      try {
+        await axiosInstance.get("/order/orderList", { responseType: "text" });
+        window.location.href = "/myPage/orderList";
+      } catch (err) {
+        console.log("로그인이 필요함");
+        window.location.href = "/user/login";
+      }
     });
   }
 
