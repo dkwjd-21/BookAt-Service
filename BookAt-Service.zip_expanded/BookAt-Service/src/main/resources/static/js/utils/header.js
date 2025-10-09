@@ -52,8 +52,13 @@ document.addEventListener("DOMContentLoaded", () => {
     myPageBtn.addEventListener("click", async (e) => {
       e.preventDefault();
       try {
-        await axiosInstance.get("/order/orderList", { responseType: "text" });
-        window.location.href = "/myPage/orderList";
+        const res = await window.axiosInstance.get("/order/orderList", {
+          responseType: "text",
+        });
+        document.open();
+        document.write(res.data);
+        document.close();
+        window.history.pushState({}, "", "/myPage/orderList");
       } catch (err) {
         console.log("로그인이 필요함");
         window.location.href = "/user/login";

@@ -1,4 +1,24 @@
 document.addEventListener("DOMContentLoaded", async () => {
+  const asideOrderLink = document.querySelector(".js-mypage-order-link");
+
+  if (asideOrderLink) {
+    asideOrderLink.addEventListener("click", async (event) => {
+      event.preventDefault();
+      try {
+        const res = await window.axiosInstance.get("/order/orderList", {
+          responseType: "text",
+        });
+        document.open();
+        document.write(res.data);
+        document.close();
+        window.history.pushState({}, "", "/myPage/orderList");
+      } catch (error) {
+        console.error("주문 조회 페이지 로드 중 오류", error);
+        window.location.href = "/user/login";
+      }
+    });
+  }
+
   const statusPanel = document.getElementById("statusPanel");
   const orderSection = document.getElementById("orderSection");
   const orderHistory = document.getElementById("orderHistory");
