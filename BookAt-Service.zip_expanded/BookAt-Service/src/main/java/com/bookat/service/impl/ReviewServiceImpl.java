@@ -53,5 +53,10 @@ public class ReviewServiceImpl implements ReviewService {
 	public Review findByReviewId(int reviewId) {
 		return reviewMapper.findByReviewId(reviewId);
 	}
+	
+	@Override
+	public List<ReviewDto> findByUserId(String userId) {
+		return reviewMapper.findByUserId(userId);
+	}
 
 }

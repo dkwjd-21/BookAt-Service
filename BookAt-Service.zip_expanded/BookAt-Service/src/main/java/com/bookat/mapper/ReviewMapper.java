@@ -33,5 +33,8 @@ public interface ReviewMapper {
     
     // 리뷰 ID로 조회
     Review findByReviewId(@Param("reviewId") int reviewId);
+    
+    // 사용자가 작성한 모든 리뷰 조회 (도서/이벤트 정보 포함)
+    List<ReviewDto> findByUserId(@Param("userId") String userId);
 
 }
