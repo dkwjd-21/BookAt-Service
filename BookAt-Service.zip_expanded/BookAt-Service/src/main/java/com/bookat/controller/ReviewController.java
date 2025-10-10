@@ -24,17 +24,18 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RestController
-@RequestMapping("/books")
 @RequiredArgsConstructor
 public class ReviewController {
 	
 	private final ReviewService reviewService;
 	
+	// ========== 도서 리뷰 관련 API ==========
+	
 	/**
-	 * 리뷰 중복 체크 (해당 사용자가 해당 도서에 리뷰를 이미 작성했는지)
+	 * 도서 리뷰 중복 체크
 	 */
-	@GetMapping("/{bookId}/reviews/check")
-	public ResponseEntity<?> checkReviewExists(
+	@GetMapping("/books/{bookId}/reviews/check")
+	public ResponseEntity<?> checkBookReviewExists(
 			@PathVariable String bookId,
 			Authentication authentication) {
 		
@@ -60,10 +61,10 @@ public class ReviewController {
 	}
 	
 	/**
-	 * 리뷰 작성
+	 * 도서 리뷰 작성
 	 */
-	@PostMapping("/{bookId}/reviews")
-	public ResponseEntity<?> createReview(
+	@PostMapping("/books/{bookId}/reviews")
+	public ResponseEntity<?> createBookReview(
 			@PathVariable String bookId,
 			@RequestParam String title,
 			@RequestParam String content,
@@ -149,10 +150,10 @@ public class ReviewController {
 	}
 	
 	/**
-	 * 리뷰 수정
+	 * 도서 리뷰 수정
 	 */
-	@PutMapping("/{bookId}/reviews/{reviewId}")
-	public ResponseEntity<?> updateReview(
+	@PutMapping("/books/{bookId}/reviews/{reviewId}")
+	public ResponseEntity<?> updateBookReview(
 			@PathVariable String bookId,
 			@PathVariable int reviewId,
 			@RequestParam String title,
@@ -242,10 +243,10 @@ public class ReviewController {
 	}
 	
 	/**
-	 * 리뷰 삭제
+	 * 도서 리뷰 삭제
 	 */
-	@DeleteMapping("/{bookId}/reviews/{reviewId}")
-	public ResponseEntity<?> deleteReview(
+	@DeleteMapping("/books/{bookId}/reviews/{reviewId}")
+	public ResponseEntity<?> deleteBookReview(
 			@PathVariable String bookId,
 			@PathVariable int reviewId,
 			Authentication authentication) {
@@ -291,6 +292,278 @@ public class ReviewController {
 			response.put("success", false);
 			response.put("message", "리뷰 삭제 중 오류가 발생했습니다.");
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+		}
+		
+		return ResponseEntity.ok(response);
+	}
+	
+	// ========== 이벤트 리뷰 관련 API ==========
+	
+	/**
+	 * 이벤트 리뷰 중복 체크
+	 */
+	@GetMapping("/events/{eventId}/reviews/check")
+	public ResponseEntity<?> checkEventReviewExists(
+			@PathVariable int eventId,
+			Authentication authentication) {
+		
+		Map<String, Object> response = new HashMap<>();
+		
+		// 로그인 체크
+		if (authentication == null || !authentication.isAuthenticated()) {
+			response.put("success", false);
+			response.put("message", "로그인이 필요합니다.");
+			response.put("needLogin", true);
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+		}
+		
+		User user = (User) authentication.getPrincipal();
+		String userId = user.getUserId();
+		
+		// 이벤트 리뷰 중복 체크
+		boolean hasReviewed = reviewService.hasUserReviewedEvent(eventId, userId);
+		response.put("success", true);
+		response.put("hasReview", hasReviewed);
+		
+		return ResponseEntity.ok(response);
+	}
+	
+	/**
+	 * 이벤트 리뷰 작성
+	 */
+	@PostMapping("/events/{eventId}/reviews")
+	public ResponseEntity<?> createEventReview(
+			@PathVariable int eventId,
+			@RequestParam String title,
+			@RequestParam String content,
+			@RequestParam int rating,
+			Authentication authentication) {
+		
+		Map<String, Object> response = new HashMap<>();
+		
+		// 로그인 체크
+		if (authentication == null || !authentication.isAuthenticated()) {
+			response.put("success", false);
+			response.put("message", "로그인이 필요합니다.");
+			response.put("needLogin", true);
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+		}
+		
+		User user = (User) authentication.getPrincipal();
+		String userId = user.getUserId();
+		
+		// 입력값 유효성 검사
+		if (title == null || title.trim().isEmpty()) {
+			response.put("success", false);
+			response.put("message", "리뷰 제목을 입력해주세요.");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+		}
+		if (title.length() > 50) {
+			response.put("success", false);
+			response.put("message", "리뷰 제목은 50자 이내로 입력해주세요.");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+		}
+		if (content == null || content.trim().isEmpty()) {
+			response.put("success", false);
+			response.put("message", "리뷰 내용을 입력해주세요.");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+		}
+		if (content.length() > 500) {
+			response.put("success", false);
+			response.put("message", "리뷰 내용은 500자 이내로 입력해주세요.");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+		}
+		if (rating < 1 || rating > 5) {
+			response.put("success", false);
+			response.put("message", "별점은 1~5점 사이로 선택해주세요.");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+		}
+		
+		// 중복 리뷰 체크
+		if (reviewService.hasUserReviewedEvent(eventId, userId)) {
+			response.put("success", false);
+			response.put("message", "이미 해당 이벤트에 리뷰를 작성하셨습니다.");
+			response.put("isDuplicate", true);
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+		}
+		
+		// 리뷰 생성
+		Review review = new Review();
+		review.setUserId(userId);
+		review.setBookId(null); // 이벤트 리뷰는 bookId가 null
+		review.setEventId(eventId);
+		review.setReviewType('E'); // 이벤트 리뷰
+		review.setReviewTitle(title);
+		review.setReviewContent(content);
+		review.setRating(rating);
+		
+		try {
+			int result = reviewService.insertReview(review);
+			if (result > 0) {
+				response.put("success", true);
+				response.put("message", "리뷰가 성공적으로 작성되었습니다.");
+			} else {
+				response.put("success", false);
+				response.put("message", "리뷰 작성에 실패했습니다.");
+			}
+		} catch (Exception e) {
+			log.error("이벤트 리뷰 작성 중 오류 발생", e);
+			response.put("success", false);
+			response.put("message", "서버 오류가 발생했습니다.");
+		}
+		
+		return ResponseEntity.ok(response);
+	}
+	
+	/**
+	 * 이벤트 리뷰 수정
+	 */
+	@PutMapping("/events/{eventId}/reviews/{reviewId}")
+	public ResponseEntity<?> updateEventReview(
+			@PathVariable int eventId,
+			@PathVariable int reviewId,
+			@RequestParam String title,
+			@RequestParam String content,
+			@RequestParam int rating,
+			Authentication authentication) {
+		
+		Map<String, Object> response = new HashMap<>();
+		
+		// 로그인 체크
+		if (authentication == null || !authentication.isAuthenticated()) {
+			response.put("success", false);
+			response.put("message", "로그인이 필요합니다.");
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+		}
+		
+		User user = (User) authentication.getPrincipal();
+		String userId = user.getUserId();
+		
+		// 입력값 유효성 검사
+		if (title == null || title.trim().isEmpty()) {
+			response.put("success", false);
+			response.put("message", "리뷰 제목을 입력해주세요.");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+		}
+		if (title.length() > 50) {
+			response.put("success", false);
+			response.put("message", "리뷰 제목은 50자 이내로 입력해주세요.");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+		}
+		if (content == null || content.trim().isEmpty()) {
+			response.put("success", false);
+			response.put("message", "리뷰 내용을 입력해주세요.");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+		}
+		if (content.length() > 500) {
+			response.put("success", false);
+			response.put("message", "리뷰 내용은 500자 이내로 입력해주세요.");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+		}
+		if (rating < 1 || rating > 5) {
+			response.put("success", false);
+			response.put("message", "별점은 1~5점 사이로 선택해주세요.");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+		}
+		
+		// 리뷰 존재 여부 및 작성자 확인
+		Review existingReview = reviewService.findByReviewId(reviewId);
+		if (existingReview == null) {
+			response.put("success", false);
+			response.put("message", "존재하지 않는 리뷰입니다.");
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+		}
+		
+		if (!existingReview.getUserId().equals(userId)) {
+			response.put("success", false);
+			response.put("message", "수정 권한이 없습니다.");
+			return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+		}
+		
+		if (existingReview.getEventId() == null || !existingReview.getEventId().equals(eventId)) {
+			response.put("success", false);
+			response.put("message", "해당 이벤트의 리뷰가 아닙니다.");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+		}
+		
+		// 리뷰 수정
+		existingReview.setReviewTitle(title);
+		existingReview.setReviewContent(content);
+		existingReview.setRating(rating);
+		
+		try {
+			int result = reviewService.updateReview(existingReview);
+			if (result > 0) {
+				response.put("success", true);
+				response.put("message", "리뷰가 성공적으로 수정되었습니다.");
+			} else {
+				response.put("success", false);
+				response.put("message", "리뷰 수정에 실패했습니다.");
+			}
+		} catch (Exception e) {
+			log.error("이벤트 리뷰 수정 중 오류 발생", e);
+			response.put("success", false);
+			response.put("message", "서버 오류가 발생했습니다.");
+		}
+		
+		return ResponseEntity.ok(response);
+	}
+	
+	/**
+	 * 이벤트 리뷰 삭제
+	 */
+	@DeleteMapping("/events/{eventId}/reviews/{reviewId}")
+	public ResponseEntity<?> deleteEventReview(
+			@PathVariable int eventId,
+			@PathVariable int reviewId,
+			Authentication authentication) {
+		
+		Map<String, Object> response = new HashMap<>();
+		
+		// 로그인 체크
+		if (authentication == null || !authentication.isAuthenticated()) {
+			response.put("success", false);
+			response.put("message", "로그인이 필요합니다.");
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+		}
+		
+		User user = (User) authentication.getPrincipal();
+		String userId = user.getUserId();
+		
+		// 리뷰 존재 여부 및 작성자 확인
+		Review existingReview = reviewService.findByReviewId(reviewId);
+		if (existingReview == null) {
+			response.put("success", false);
+			response.put("message", "존재하지 않는 리뷰입니다.");
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+		}
+		
+		if (!existingReview.getUserId().equals(userId)) {
+			response.put("success", false);
+			response.put("message", "삭제 권한이 없습니다.");
+			return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+		}
+		
+		if (existingReview.getEventId() == null || !existingReview.getEventId().equals(eventId)) {
+			response.put("success", false);
+			response.put("message", "해당 이벤트의 리뷰가 아닙니다.");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+		}
+		
+		// 리뷰 삭제
+		try {
+			int result = reviewService.deleteReview(reviewId, userId);
+			if (result > 0) {
+				response.put("success", true);
+				response.put("message", "리뷰가 성공적으로 삭제되었습니다.");
+			} else {
+				response.put("success", false);
+				response.put("message", "리뷰 삭제에 실패했습니다.");
+			}
+		} catch (Exception e) {
+			log.error("이벤트 리뷰 삭제 중 오류 발생", e);
+			response.put("success", false);
+			response.put("message", "서버 오류가 발생했습니다.");
 		}
 		
 		return ResponseEntity.ok(response);

@@ -24,6 +24,19 @@
   		SELECT * FROM REVIEW WHERE EVENT_ID = #{eventId}
   </select>
   
+  <select id="findReviewDtosByEventId" parameterType="int" resultType="com.bookat.dto.ReviewDto">
+    SELECT
+      r.review_id      AS reviewId,
+      r.rating         AS rating,
+      r.user_id        AS userId,
+      r.review_date    AS createdAt,
+      r.review_title   AS title,
+      r.review_content AS content
+    FROM review r
+    WHERE r.event_id = #{eventId}
+    ORDER BY r.review_date DESC
+  </select>
+  
   <select id="countByEventId" parameterType="int" resultType="int">
   		SELECT COUNT(*) FROM REVIEW WHERE EVENT_ID = #{eventId}
   </select>
@@ -73,9 +86,26 @@
       AND user_id = #{userId}
   </select>
   
+  <!-- 특정 사용자가 특정 이벤트에 작성한 리뷰 조회 (중복 체크용) -->
+  <select id="findByEventIdAndUserId" resultType="com.bookat.entity.Review">
+    SELECT
+      review_id AS reviewId,
+      user_id AS userId,
+      review_type AS reviewType,
+      review_title AS reviewTitle,
+      review_content AS reviewContent,
+      review_date AS reviewDate,
+      book_id AS bookId,
+      event_id AS eventId,
+      rating
+    FROM REVIEW
+    WHERE event_id = #{eventId}
+      AND user_id = #{userId}
+  </select>
+
   <!-- 리뷰 ID로 조회 -->
   <select id="findByReviewId" parameterType="int" resultType="com.bookat.entity.Review">
-    SELECT 
+    SELECT
       review_id AS reviewId,
       user_id AS userId,
       review_type AS reviewType,

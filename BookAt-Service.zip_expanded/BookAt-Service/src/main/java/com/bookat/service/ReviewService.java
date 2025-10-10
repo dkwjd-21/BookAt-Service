@@ -10,6 +10,7 @@ public interface ReviewService {
     int countByBookId(String bookId);
 
     List<Review> findByEventId(int eventId);
+    List<ReviewDto> findReviewDtosByEventId(int eventId);
     int countByEventId(int eventId);
     
     // 리뷰 작성
@@ -23,6 +24,9 @@ public interface ReviewService {
     
     // 중복 체크 (해당 사용자가 해당 도서에 리뷰를 이미 작성했는지)
     boolean hasUserReviewedBook(String bookId, String userId);
+    
+    // 중복 체크 (해당 사용자가 해당 이벤트에 리뷰를 이미 작성했는지)
+    boolean hasUserReviewedEvent(int eventId, String userId);
     
     // 리뷰 ID로 조회
     Review findByReviewId(int reviewId);

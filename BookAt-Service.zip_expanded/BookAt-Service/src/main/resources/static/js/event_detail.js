@@ -1,8 +1,515 @@
 // 페이지의 모든 HTML 요소가 완전히 로드된 후 모든 스크립트를 실행합니다.
 
 document.addEventListener("DOMContentLoaded", function () {
-  // 1. 리뷰 모달 기능 초기화
-  initializeReviewModal();
+  // 현재 로그인한 사용자 정보 가져와서 수정/삭제 버튼 표시
+  (async function () {
+    const accessToken = localStorage.getItem("accessToken");
+    if (!accessToken) {
+      console.log("비로그인 상태 - 토큰 없음");
+      return;
+    }
+    try {
+      const response = await window.axiosInstance.get("/auth/validate");
+      const currentUserId = response.data.userId;
+
+      const reviewContainers = document.querySelectorAll(".review-item-container");
+      reviewContainers.forEach((container) => {
+        const authorId = container.dataset.authorId;
+        const actionsDiv = container.querySelector(".review-actions");
+
+        if (currentUserId === authorId) {
+          actionsDiv.style.display = "flex";
+        }
+      });
+    } catch (error) {
+      console.log("비로그인 상태 또는 인증 실패");
+    }
+  })();
+
+  // 리뷰 모달 기능
+  (function () {
+    const modal = document.getElementById("reviewModal");
+    const openBtn = document.getElementById("openReviewModalBtn");
+    const reviewLoginModal = document.getElementById("reviewLoginRequiredModal");
+    const duplicateModal = document.getElementById("duplicateReviewModal");
+    const createSuccessModal = document.getElementById("reviewCreateSuccessModal");
+
+    if (!modal || !openBtn) return;
+
+    const closeBtn = modal.querySelector(".close-btn");
+    const starsWrap = document.getElementById("starsInput");
+    const stars = Array.from(starsWrap.querySelectorAll(".star"));
+    const ratingInput = document.getElementById("rating");
+    const form = document.getElementById("reviewForm");
+    const titleInput = document.getElementById("reviewTitle");
+    const contentTextarea = document.getElementById("reviewContent");
+    const titleCharCount = document.getElementById("titleCharCount");
+    const contentCharCount = document.getElementById("contentCharCount");
+
+    const closeModal = () => {
+      modal.style.display = "none";
+      form.reset();
+      ratingInput.value = "0";
+      stars.forEach((s) => s.classList.remove("selected"));
+      updateCharCount(titleInput, titleCharCount, 50);
+      updateCharCount(contentTextarea, contentCharCount, 500);
+    };
+
+    const openModal = () => {
+      modal.style.setProperty("display", "flex", "important");
+    };
+
+    // 문자 수 카운트 업데이트 함수
+    const updateCharCount = (inputElement, countElement, maxLength) => {
+      const currentLength = inputElement.value.length;
+      countElement.textContent = currentLength;
+
+      countElement.parentElement.className = "char-count";
+      if (currentLength > maxLength * 0.9) {
+        countElement.parentElement.classList.add("warning");
+      }
+      if (currentLength >= maxLength) {
+        countElement.parentElement.classList.add("error");
+      }
+    };
+
+    // 별점 선택 로직
+    stars.forEach((star) => {
+      star.addEventListener("click", () => {
+        const value = parseInt(star.dataset.value);
+        ratingInput.value = value;
+        stars.forEach((s, idx) => {
+          if (idx < value) {
+            s.classList.add("selected");
+          } else {
+            s.classList.remove("selected");
+          }
+        });
+      });
+    });
+
+    // 문자 수 카운트 이벤트 리스너
+    if (titleInput && titleCharCount) {
+      titleInput.addEventListener("input", () => {
+        updateCharCount(titleInput, titleCharCount, 50);
+      });
+    }
+
+    if (contentTextarea && contentCharCount) {
+      contentTextarea.addEventListener("input", () => {
+        updateCharCount(contentTextarea, contentCharCount, 500);
+      });
+    }
+
+    openBtn.addEventListener("click", async () => {
+      try {
+        const eventId = document.querySelector('input[name="eventId"]').value;
+        const checkRes = await window.axiosInstance.get(`/events/${eventId}/reviews/check`);
+
+        if (checkRes.data.needLogin) {
+          openLoginModal();
+          return;
+        }
+
+        if (checkRes.data.hasReview) {
+          openDuplicateModal();
+          return;
+        }
+
+        openModal();
+      } catch (error) {
+        console.error("리뷰 체크 오류:", error);
+        if (error.response?.status === 401) {
+          openLoginModal();
+        }
+      }
+    });
+
+    closeBtn?.addEventListener("click", closeModal);
+    modal?.addEventListener("click", (e) => {
+      if (e.target === modal) closeModal();
+    });
+
+    // 리뷰 작성 폼 제출
+    if (form) {
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        if (Number(ratingInput.value) < 1) {
+          alert("별점을 선택해주세요.");
+          return;
+        }
+
+        const title = titleInput.value.trim();
+        if (title.length === 0) {
+          alert("리뷰 제목을 입력해주세요.");
+          titleInput.focus();
+          return;
+        }
+        if (title.length > 50) {
+          alert("리뷰 제목은 50자 이내로 입력해주세요.");
+          titleInput.focus();
+          return;
+        }
+
+        const content = contentTextarea.value.trim();
+        if (content.length === 0) {
+          alert("리뷰 내용을 입력해주세요.");
+          contentTextarea.focus();
+          return;
+        }
+        if (content.length > 500) {
+          alert("리뷰 내용은 500자 이내로 입력해주세요.");
+          contentTextarea.focus();
+          return;
+        }
+
+        const eventId = document.querySelector('input[name="eventId"]').value;
+        const formData = new FormData(form);
+
+        try {
+          const response = await window.axiosInstance.post(`/events/${eventId}/reviews`, formData, {
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          });
+
+          if (response.data.success) {
+            closeModal();
+            openCreateSuccessModal();
+          } else if (response.data.isDuplicate) {
+            closeModal();
+            openDuplicateModal();
+          } else {
+            alert(response.data.message || "리뷰 작성에 실패했습니다.");
+          }
+        } catch (error) {
+          console.error("리뷰 작성 오류:", error);
+          if (error.response?.data?.message) {
+            alert(error.response.data.message);
+          } else {
+            alert("리뷰 작성 중 오류가 발생했습니다.");
+          }
+        }
+      });
+    }
+
+    // 로그인 필요 모달
+    const openLoginModal = () => {
+      reviewLoginModal.style.setProperty("display", "flex", "important");
+    };
+    const closeLoginModal = () => {
+      reviewLoginModal.style.display = "none";
+    };
+
+    const openDuplicateModal = () => {
+      duplicateModal.style.setProperty("display", "flex", "important");
+    };
+    const closeDuplicateModal = () => {
+      duplicateModal.style.display = "none";
+    };
+
+    const openCreateSuccessModal = () => {
+      createSuccessModal.style.setProperty("display", "flex", "important");
+    };
+    const closeCreateSuccessModal = () => {
+      createSuccessModal.style.display = "none";
+    };
+
+    if (reviewLoginModal) {
+      const loginCloseBtn = reviewLoginModal.querySelector(".close-btn");
+      const goToLoginBtn = document.getElementById("reviewGoToLoginBtn");
+      const cancelLoginBtn = document.getElementById("reviewCancelLoginBtn");
+
+      loginCloseBtn?.addEventListener("click", closeLoginModal);
+      goToLoginBtn?.addEventListener("click", () => {
+        window.location.href = "/user/login";
+      });
+      cancelLoginBtn?.addEventListener("click", closeLoginModal);
+      reviewLoginModal.addEventListener("click", (e) => {
+        if (e.target === reviewLoginModal) closeLoginModal();
+      });
+    }
+
+    if (duplicateModal) {
+      const dupCloseBtn = duplicateModal.querySelector(".close-btn");
+      const closeDupBtn = document.getElementById("closeDuplicateModalBtn");
+
+      dupCloseBtn?.addEventListener("click", closeDuplicateModal);
+      closeDupBtn?.addEventListener("click", closeDuplicateModal);
+      duplicateModal.addEventListener("click", (e) => {
+        if (e.target === duplicateModal) closeDuplicateModal();
+      });
+    }
+
+    if (createSuccessModal) {
+      const successCloseBtn = createSuccessModal.querySelector(".close-btn");
+      const okBtn = document.getElementById("reviewCreateOkBtn");
+
+      successCloseBtn?.addEventListener("click", () => {
+        closeCreateSuccessModal();
+        window.location.reload();
+      });
+      okBtn?.addEventListener("click", () => {
+        closeCreateSuccessModal();
+        window.location.reload();
+      });
+      createSuccessModal.addEventListener("click", (e) => {
+        if (e.target === createSuccessModal) {
+          closeCreateSuccessModal();
+          window.location.reload();
+        }
+      });
+    }
+  })();
+
+  // 리뷰 수정 모달
+  (function () {
+    const editModal = document.getElementById("editReviewModal");
+    const updateSuccessModal = document.getElementById("reviewUpdateSuccessModal");
+    if (!editModal) return;
+
+    const closeBtn = editModal.querySelector(".close-btn");
+    const form = document.getElementById("editReviewForm");
+    const reviewIdInput = document.getElementById("editReviewId");
+    const starsWrap = editModal.querySelector(".stars-input");
+    const stars = Array.from(starsWrap.querySelectorAll(".star"));
+    const ratingInput = editModal.querySelector('input[name="rating"]');
+    const titleInput = editModal.querySelector('input[name="title"]');
+    const contentInput = editModal.querySelector('textarea[name="content"]');
+    const titleCharCount = document.getElementById("editTitleCharCount");
+    const contentCharCount = document.getElementById("editContentCharCount");
+
+    const updateCharCount = (inputElement, countElement, maxLength) => {
+      const currentLength = inputElement.value.length;
+      countElement.textContent = currentLength;
+      countElement.parentElement.className = "char-count";
+      if (currentLength > maxLength * 0.9) {
+        countElement.parentElement.classList.add("warning");
+      }
+      if (currentLength >= maxLength) {
+        countElement.parentElement.classList.add("error");
+      }
+    };
+
+    const closeModal = () => {
+      editModal.style.display = "none";
+    };
+
+    stars.forEach((star) => {
+      star.addEventListener("click", () => {
+        const value = parseInt(star.dataset.value);
+        ratingInput.value = value;
+        stars.forEach((s, idx) => {
+          if (idx < value) {
+            s.classList.add("selected");
+          } else {
+            s.classList.remove("selected");
+          }
+        });
+      });
+    });
+
+    if (titleInput && titleCharCount) {
+      titleInput.addEventListener("input", () => {
+        updateCharCount(titleInput, titleCharCount, 50);
+      });
+    }
+
+    if (contentInput && contentCharCount) {
+      contentInput.addEventListener("input", () => {
+        updateCharCount(contentInput, contentCharCount, 500);
+      });
+    }
+
+    closeBtn?.addEventListener("click", closeModal);
+    editModal?.addEventListener("click", (e) => {
+      if (e.target === editModal) closeModal();
+    });
+
+    document.querySelectorAll(".edit-btn").forEach((btn) => {
+      btn.addEventListener("click", function () {
+        const container = this.closest(".review-item-container");
+        const reviewId = container.dataset.reviewId;
+        const title = container.dataset.title;
+        const content = container.dataset.content;
+        const rating = container.dataset.rating;
+
+        reviewIdInput.value = reviewId;
+        titleInput.value = title;
+        contentInput.value = content;
+        ratingInput.value = rating;
+
+        stars.forEach((s, idx) => {
+          if (idx < rating) {
+            s.classList.add("selected");
+          } else {
+            s.classList.remove("selected");
+          }
+        });
+
+        updateCharCount(titleInput, titleCharCount, 50);
+        updateCharCount(contentInput, contentCharCount, 500);
+
+        editModal.style.setProperty("display", "flex", "important");
+      });
+    });
+
+    if (form) {
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        if (Number(ratingInput.value) < 1) {
+          alert("별점을 선택해주세요.");
+          return;
+        }
+
+        const title = titleInput.value.trim();
+        if (title.length === 0 || title.length > 50) {
+          alert("리뷰 제목은 1자 이상 50자 이내로 입력해주세요.");
+          return;
+        }
+
+        const content = contentInput.value.trim();
+        if (content.length === 0 || content.length > 500) {
+          alert("리뷰 내용은 1자 이상 500자 이내로 입력해주세요.");
+          return;
+        }
+
+        const eventId = document.querySelector('input[name="eventId"]').value;
+        const reviewId = reviewIdInput.value;
+        const formData = new FormData(form);
+
+        try {
+          const response = await window.axiosInstance.put(`/events/${eventId}/reviews/${reviewId}`, formData, {
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          });
+
+          if (response.data.success) {
+            closeModal();
+            openUpdateSuccessModal();
+          } else {
+            alert(response.data.message || "리뷰 수정에 실패했습니다.");
+          }
+        } catch (error) {
+          console.error("리뷰 수정 오류:", error);
+          alert(error.response?.data?.message || "리뷰 수정 중 오류가 발생했습니다.");
+        }
+      });
+    }
+
+    const openUpdateSuccessModal = () => {
+      updateSuccessModal.style.setProperty("display", "flex", "important");
+    };
+    const closeUpdateSuccessModal = () => {
+      updateSuccessModal.style.display = "none";
+    };
+
+    if (updateSuccessModal) {
+      const successCloseBtn = updateSuccessModal.querySelector(".close-btn");
+      const okBtn = document.getElementById("reviewUpdateOkBtn");
+
+      successCloseBtn?.addEventListener("click", () => {
+        closeUpdateSuccessModal();
+        window.location.reload();
+      });
+      okBtn?.addEventListener("click", () => {
+        closeUpdateSuccessModal();
+        window.location.reload();
+      });
+      updateSuccessModal.addEventListener("click", (e) => {
+        if (e.target === updateSuccessModal) {
+          closeUpdateSuccessModal();
+          window.location.reload();
+        }
+      });
+    }
+  })();
+
+  // 리뷰 삭제 모달
+  (function () {
+    const deleteConfirmModal = document.getElementById("reviewDeleteConfirmModal");
+    const deleteSuccessModal = document.getElementById("reviewDeleteSuccessModal");
+    if (!deleteConfirmModal) return;
+
+    let currentReviewId = null;
+
+    const openDeleteConfirmModal = () => {
+      deleteConfirmModal.style.setProperty("display", "flex", "important");
+    };
+    const closeDeleteConfirmModal = () => {
+      deleteConfirmModal.style.display = "none";
+    };
+
+    const openDeleteSuccessModal = () => {
+      deleteSuccessModal.style.setProperty("display", "flex", "important");
+    };
+    const closeDeleteSuccessModal = () => {
+      deleteSuccessModal.style.display = "none";
+    };
+
+    document.querySelectorAll(".delete-btn").forEach((btn) => {
+      btn.addEventListener("click", function () {
+        const container = this.closest(".review-item-container");
+        currentReviewId = container.dataset.reviewId;
+        openDeleteConfirmModal();
+      });
+    });
+
+    if (deleteConfirmModal) {
+      const confirmCloseBtn = deleteConfirmModal.querySelector(".close-btn");
+      const confirmBtn = document.getElementById("reviewDeleteConfirmBtn");
+      const cancelBtn = document.getElementById("reviewDeleteCancelBtn");
+
+      confirmCloseBtn?.addEventListener("click", closeDeleteConfirmModal);
+      cancelBtn?.addEventListener("click", closeDeleteConfirmModal);
+      deleteConfirmModal.addEventListener("click", (e) => {
+        if (e.target === deleteConfirmModal) closeDeleteConfirmModal();
+      });
+
+      confirmBtn?.addEventListener("click", async () => {
+        if (!currentReviewId) return;
+
+        const eventId = document.querySelector('input[name="eventId"]').value;
+
+        try {
+          const response = await window.axiosInstance.delete(`/events/${eventId}/reviews/${currentReviewId}`);
+
+          if (response.data.success) {
+            closeDeleteConfirmModal();
+            openDeleteSuccessModal();
+          } else {
+            alert(response.data.message || "리뷰 삭제에 실패했습니다.");
+          }
+        } catch (error) {
+          console.error("리뷰 삭제 오류:", error);
+          alert(error.response?.data?.message || "리뷰 삭제 중 오류가 발생했습니다.");
+        }
+      });
+    }
+
+    if (deleteSuccessModal) {
+      const successCloseBtn = deleteSuccessModal.querySelector(".close-btn");
+      const okBtn = document.getElementById("reviewDeleteOkBtn");
+
+      if (successCloseBtn) {
+        successCloseBtn.addEventListener("click", () => {
+          closeDeleteSuccessModal();
+          window.location.reload();
+        });
+      }
+      if (okBtn) {
+        okBtn.addEventListener("click", () => {
+          closeDeleteSuccessModal();
+          window.location.reload();
+        });
+      }
+      deleteSuccessModal.addEventListener("click", (e) => {
+        if (e.target === deleteSuccessModal) {
+          closeDeleteSuccessModal();
+          window.location.reload();
+        }
+      });
+    }
+  })();
 
   // 2. 예약 버튼 기능 초기화
   initializeReserveButton();
@@ -12,118 +519,20 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 /**
- * 리뷰 작성 모달의 이벤트를 처리하는 함수
- */
-function initializeReviewModal() {
-  // 모달 관련 요소 가져오기
-  const openModalBtn = document.getElementById("openReviewModalBtn");
-  const modal = document.getElementById("reviewModal");
-
-  // 요소가 페이지에 없을 경우 오류를 방지하기 위해 존재 여부 확인
-  if (!openModalBtn || !modal) {
-    console.warn("리뷰 모달 관련 요소를 찾을 수 없습니다.");
-    return;
-  }
-
-  const closeModalBtn = modal.querySelector(".close-btn");
-
-  // 리뷰 작성 폼 관련 요소
-  const reviewForm = document.getElementById("reviewForm");
-  const stars = modal.querySelectorAll(".stars-input .star");
-  const ratingInput = document.getElementById("rating");
-
-  // '리뷰 작성' 버튼 클릭 시 모달 열기
-  openModalBtn.addEventListener("click", () => {
-    modal.style.display = "flex";
-  });
-
-  // 'X' 버튼 클릭 시 모달 닫기
-  closeModalBtn.addEventListener("click", () => {
-    modal.style.display = "none";
-  });
-
-  // 모달 바깥 영역 클릭 시 모달 닫기
-  modal.addEventListener("click", (e) => {
-    if (e.target === modal) {
-      modal.style.display = "none";
-    }
-  });
-
-  // --- 별점 로직 ---
-  let currentRating = 0;
-
-  stars.forEach((star) => {
-    // 마우스 올렸을 때 임시로 별 채우기
-    star.addEventListener("mouseover", () => {
-      resetStarsVisual();
-      const value = star.dataset.value;
-      for (let i = 0; i < value; i++) {
-        stars[i].style.color = "#f9d849";
-      }
-    });
-
-    // 마우스 뗐을 때 선택된 별점으로 복원
-    star.addEventListener("mouseout", resetStarsVisual);
-
-    // 별 클릭 시 평점 고정
-    star.addEventListener("click", () => {
-      currentRating = star.dataset.value;
-      ratingInput.value = currentRating; // 숨겨진 input에 값 설정
-      resetStarsVisual();
-    });
-  });
-
-  function resetStarsVisual() {
-    stars.forEach((star, index) => {
-      if (index < currentRating) {
-        star.style.color = "#f9d849"; // 선택된 별점
-      } else {
-        star.style.color = "#ddd"; // 비선택 별점
-      }
-    });
-  }
-
-  // --- 폼 제출 로직 ---
-  reviewForm.addEventListener("submit", function (e) {
-    e.preventDefault(); // 기본 폼 제출 동작 방지
-
-    // 폼 데이터 가져오기
-    const formData = new FormData(reviewForm);
-    const data = Object.fromEntries(formData.entries());
-
-    fetch("event/review", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("리뷰 등록에 실패했습니다.");
-        }
-        return response.json();
-      })
-      .then((result) => {
-        alert("리뷰가 성공적으로 등록되었습니다!");
-        modal.style.display = "none"; // 모달 닫기
-        window.location.reload(); // 페이지 새로고침하여 새 리뷰 확인
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-        alert(error.message);
-      });
-  });
-}
-
-/**
  * 예약 버튼의 상태를 날짜에 따라 동적으로 설정하는 함수
  */
 function initializeReserveButton() {
   const reserveBtn = document.getElementById("reserve-btn");
-  const eventId = reserveBtn.dataset.eventId;
+
   if (!reserveBtn) {
-    console.error("예약 버튼(id='reserve-btn')을 찾을 수 없습니다.");
+    console.log("예매하기 버튼을 찾을 수 없습니다.");
+    return;
+  }
+
+  const eventId = reserveBtn.dataset.eventId;
+
+  if (!eventId) {
+    console.error("예약 버튼에 eventId가 없습니다.");
     return;
   }
 
@@ -167,7 +576,7 @@ function initializeReserveButton() {
 
       reserveBtn.onclick = function (e) {
         if (e) e.preventDefault();
-        onModal(eventId);
+        window.location.href = `/events/${eventId}/reservation`;
       };
 
       if (countdownInterval) clearInterval(countdownInterval);
@@ -191,13 +600,7 @@ function initializeReserveButton() {
         const hours = Math.floor(timeLeft / (1000 * 60 * 60));
         const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
-        reserveBtn.textContent = `예매 오픈 까지 ${String(hours).padStart(
-          2,
-          "0"
-        )}시간 ${String(minutes).padStart(2, "0")}분 ${String(seconds).padStart(
-          2,
-          "0"
-        )}초`;
+        reserveBtn.textContent = `예매 오픈 까지 ${String(hours).padStart(2, "0")}시간 ${String(minutes).padStart(2, "0")}분 ${String(seconds).padStart(2, "0")}초`;
       }, 1000);
     } else {
       // 4. 아직 오픈 일자가 많이 남은 경우
@@ -221,9 +624,7 @@ function initializeReserveButton() {
  */
 function initializeKakaoMap() {
   if (typeof eventAddress === "undefined" || !eventAddress) {
-    console.error(
-      "이벤트 주소(eventAddress)를 찾을 수 없습니다. HTML 파일에 inline script가 있는지 확인하세요."
-    );
+    console.error("이벤트 주소(eventAddress)를 찾을 수 없습니다. HTML 파일에 inline script가 있는지 확인하세요.");
     return;
   }
 
@@ -252,10 +653,7 @@ function initializeKakaoMap() {
           position: coords,
         });
 
-        const label =
-          address === fallbackAddress
-            ? "테크브루 아카데미"
-            : firstResult.place_name;
+        const label = address === fallbackAddress ? "테크브루 아카데미" : firstResult.place_name;
         const infowindow = new kakao.maps.InfoWindow({
           content: `<div style="padding:5px;font-size:12px;width:max-content;">${label}</div>`,
         });
@@ -267,8 +665,7 @@ function initializeKakaoMap() {
         if (address !== fallbackAddress) {
           searchAndDisplay(fallbackAddress);
         } else {
-          mapContainer.innerHTML =
-            '<div style="display:flex; align-items:center; justify-content:center; height:100%;">장소 정보를 찾을 수 없습니다.</div>';
+          mapContainer.innerHTML = '<div style="display:flex; align-items:center; justify-content:center; height:100%;">장소 정보를 찾을 수 없습니다.</div>';
         }
       }
     });

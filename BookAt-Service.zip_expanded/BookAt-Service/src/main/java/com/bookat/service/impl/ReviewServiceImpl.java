@@ -19,6 +19,7 @@ public class ReviewServiceImpl implements ReviewService {
     @Override public int countByBookId(String bookId){ return reviewMapper.countByBookId(bookId); }
 
 	@Override public List<Review> findByEventId(int eventId) {return reviewMapper.findByEventId(eventId);}
+	@Override public List<ReviewDto> findReviewDtosByEventId(int eventId) {return reviewMapper.findReviewDtosByEventId(eventId);}
 	@Override public int countByEventId(int eventId) { return reviewMapper.countByEventId(eventId); }
 	
 	@Override
@@ -39,6 +40,12 @@ public class ReviewServiceImpl implements ReviewService {
 	@Override
 	public boolean hasUserReviewedBook(String bookId, String userId) {
 		Review existingReview = reviewMapper.findByBookIdAndUserId(bookId, userId);
+		return existingReview != null;
+	}
+	
+	@Override
+	public boolean hasUserReviewedEvent(int eventId, String userId) {
+		Review existingReview = reviewMapper.findByEventIdAndUserId(eventId, userId);
 		return existingReview != null;
 	}
 	
