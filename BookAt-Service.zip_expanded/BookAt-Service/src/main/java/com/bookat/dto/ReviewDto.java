@@ -7,8 +7,10 @@ import lombok.*;
 
 @Data @NoArgsConstructor @AllArgsConstructor @Builder
 public class ReviewDto {
+    private int reviewId;        // 리뷰 ID
     private int rating;          // 별점(1~5)
     private String userId;       // USERS.USER_ID
-    private LocalDate createdAt;     // 작성일
+    private LocalDate createdAt; // 작성일
+    private String title;        // 제목
     private String content;      // 내용
 }

@@ -11,6 +11,21 @@ public interface ReviewService {
 
     List<Review> findByEventId(int eventId);
     int countByEventId(int eventId);
+    
+    // 리뷰 작성
+    int insertReview(Review review);
+    
+    // 리뷰 수정
+    int updateReview(Review review);
+    
+    // 리뷰 삭제
+    int deleteReview(int reviewId, String userId);
+    
+    // 중복 체크 (해당 사용자가 해당 도서에 리뷰를 이미 작성했는지)
+    boolean hasUserReviewedBook(String bookId, String userId);
+    
+    // 리뷰 ID로 조회
+    Review findByReviewId(int reviewId);
 }
 
 

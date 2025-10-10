@@ -20,5 +20,31 @@ public class ReviewServiceImpl implements ReviewService {
 
 	@Override public List<Review> findByEventId(int eventId) {return reviewMapper.findByEventId(eventId);}
 	@Override public int countByEventId(int eventId) { return reviewMapper.countByEventId(eventId); }
+	
+	@Override
+	public int insertReview(Review review) {
+		return reviewMapper.insertReview(review);
+	}
+	
+	@Override
+	public int updateReview(Review review) {
+		return reviewMapper.updateReview(review);
+	}
+	
+	@Override
+	public int deleteReview(int reviewId, String userId) {
+		return reviewMapper.deleteReview(reviewId, userId);
+	}
+	
+	@Override
+	public boolean hasUserReviewedBook(String bookId, String userId) {
+		Review existingReview = reviewMapper.findByBookIdAndUserId(bookId, userId);
+		return existingReview != null;
+	}
+	
+	@Override
+	public Review findByReviewId(int reviewId) {
+		return reviewMapper.findByReviewId(reviewId);
+	}
 
 }

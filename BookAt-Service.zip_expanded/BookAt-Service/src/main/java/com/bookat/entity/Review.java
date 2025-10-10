@@ -9,11 +9,14 @@ public class Review {
 	    private LocalDate reviewDate;     
 	    private String reviewContent;      
 	    private String reviewTitle;
+	    private char reviewType;  // 'B': 도서, 'E': 이벤트
+	    private String bookId;
+	    private Integer eventId;
 	    
 	    public Review() {}
 
 		public Review(int reviewId, int rating, String userId, LocalDate reviewDate, String reviewContent,
-				String reviewTitle) {
+				String reviewTitle, char reviewType, String bookId, Integer eventId) {
 			super();
 			this.reviewId = reviewId;
 			this.rating = rating;
@@ -21,6 +24,9 @@ public class Review {
 			this.reviewDate = reviewDate;
 			this.reviewContent = reviewContent;
 			this.reviewTitle = reviewTitle;
+			this.reviewType = reviewType;
+			this.bookId = bookId;
+			this.eventId = eventId;
 		}
 
 		public int getReviewId() {
@@ -67,15 +73,40 @@ public class Review {
 			return reviewTitle;
 		}
 
-		public void setReviewTitle(String reviewTitle) {
-			this.reviewTitle = reviewTitle;
-		}
+	public void setReviewTitle(String reviewTitle) {
+		this.reviewTitle = reviewTitle;
+	}
 
-		@Override
-		public String toString() {
-			return "Review [reviewId=" + reviewId + ", rating=" + rating + ", userId=" + userId + ", reviewDate="
-					+ reviewDate + ", reviewContent=" + reviewContent + ", reviewTitle=" + reviewTitle + "]";
-		};
+	public char getReviewType() {
+		return reviewType;
+	}
+
+	public void setReviewType(char reviewType) {
+		this.reviewType = reviewType;
+	}
+
+	public String getBookId() {
+		return bookId;
+	}
+
+	public void setBookId(String bookId) {
+		this.bookId = bookId;
+	}
+
+	public Integer getEventId() {
+		return eventId;
+	}
+
+	public void setEventId(Integer eventId) {
+		this.eventId = eventId;
+	}
+
+	@Override
+	public String toString() {
+		return "Review [reviewId=" + reviewId + ", rating=" + rating + ", userId=" + userId + ", reviewDate="
+				+ reviewDate + ", reviewContent=" + reviewContent + ", reviewTitle=" + reviewTitle 
+				+ ", reviewType=" + reviewType + ", bookId=" + bookId + ", eventId=" + eventId + "]";
+	};
 	    
 	    
 	    
