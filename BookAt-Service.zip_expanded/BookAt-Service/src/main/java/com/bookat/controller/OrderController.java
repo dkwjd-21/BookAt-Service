@@ -52,7 +52,7 @@ public class OrderController {
     public String orderListPage(Model model, @AuthenticationPrincipal User user) {
         model.addAttribute("user", user);
         model.addAttribute("sweetTrackerApiKey", sweetTrackerApiKey);
-        return "mypage/order_list";
+        return "mypage/orderList";
     }
 
     @GetMapping("/orderList/api")
