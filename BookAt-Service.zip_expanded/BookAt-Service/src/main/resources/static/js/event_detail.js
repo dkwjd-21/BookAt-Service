@@ -523,16 +523,9 @@ document.addEventListener("DOMContentLoaded", function () {
  */
 function initializeReserveButton() {
   const reserveBtn = document.getElementById("reserve-btn");
-
-  if (!reserveBtn) {
-    console.log("예매하기 버튼을 찾을 수 없습니다.");
-    return;
-  }
-
   const eventId = reserveBtn.dataset.eventId;
-
-  if (!eventId) {
-    console.error("예약 버튼에 eventId가 없습니다.");
+  if (!reserveBtn) {
+    console.error("예약 버튼(id='reserve-btn')을 찾을 수 없습니다.");
     return;
   }
 
@@ -576,7 +569,7 @@ function initializeReserveButton() {
 
       reserveBtn.onclick = function (e) {
         if (e) e.preventDefault();
-        window.location.href = `/events/${eventId}/reservation`;
+        onModal(eventId);
       };
 
       if (countdownInterval) clearInterval(countdownInterval);
