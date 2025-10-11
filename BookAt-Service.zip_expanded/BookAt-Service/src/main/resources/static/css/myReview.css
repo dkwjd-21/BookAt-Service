@@ -3,8 +3,8 @@
 :root {
   --myreview-bg: #f7f7f7;
   --myreview-border: #d9d9d9;
-  --myreview-book-primary: #b5d173; /* 도서 연두색 */
-  --myreview-event-primary: #f9d849; /* 이벤트 노란색 */
+  --myreview-book-primary: #b5d173; 
+  --myreview-event-primary: #f9d849; 
   --myreview-heading: #333333;
   --myreview-text: #555555;
   --myreview-muted: #888888;
