@@ -356,7 +356,7 @@ a.event-card:active {
 
 /* 마우스 올렸을 때 별 색상 변경 */
 .stars-input:hover .star {
-  color: #b5d173;
+  color: #a5c05d;
 }
 .stars-input .star:hover ~ .star {
   color: #ddd;

@@ -36,11 +36,11 @@ public class CartController {
 	private BookService bookService;
 	
 	
-	 @GetMapping
-	    public String cartPage(Model model) {
-	        model.addAttribute("recommendations", bookService.getBestSellers(6));
-	        return "mypage/cart";
-	    }
+    @GetMapping
+    public String cartPage(Model model) {
+        model.addAttribute("recommendations", bookService.getBestSellers(6));
+        return "mypage/cart";
+    }
 	 
 	 @GetMapping("/api")
 	 @ResponseBody

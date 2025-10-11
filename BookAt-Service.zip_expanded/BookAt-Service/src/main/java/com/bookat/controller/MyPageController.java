@@ -31,6 +31,11 @@ public class MyPageController {
 	public String myPage(@AuthenticationPrincipal User user) {
 		return "mypage/myPageMain";
 	}
+
+	@GetMapping("/orderList")
+	public String orderListPage() {
+		return "forward:/order/orderList";
+	}
 	
 	// [예매 내역 관련]
 	// ===========================================================================================

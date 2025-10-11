@@ -1,0 +1,50 @@
+<aside
+  th:fragment="mypageAside (activeMenu)"
+  th:with="currentUser=${user != null ? user : (#authentication != null ? #authentication.principal : null)},
+    currentUserName=${currentUser instanceof T(com.bookat.entity.User) ? currentUser.userName : (currentUser instanceof T(java.util.Map) ? currentUser['userName'] : (currentUser instanceof T(java.lang.String) ? currentUser : null))}"
+  class="mypage-aside"
+>
+  <section class="mypage-profile">
+    <div class="mypage-profile__info">
+      <p class="mypage-profile__name">
+        <strong th:text="${currentUserName != null and currentUserName != 'anonymousUser' ? currentUserName : ''}"></strong>
+        <span>님</span>
+      </p>
+      <div class="mypage-profile__points">
+        <span>보유 포인트</span>
+        <strong>1,000P</strong>
+      </div>
+      <a th:href="@{/myPage/profile}" class="mypage-profile__settings">내 정보 수정</a>
+    </div>
+  </section>
+
+  <nav class="mypage-nav">
+    <h2 class="mypage-nav__title">마이페이지</h2>
+    <ul class="mypage-nav__list">
+      <li>
+        <a th:href="@{/myPage/orderList}" class="mypage-nav__link js-mypage-order-link" th:classappend="${activeMenu == 'order'} ? ' is-active' : ''">주문배송조회</a>
+      </li>
+      <li>
+        <a th:href="@{/reservation}" class="mypage-nav__link" th:classappend="${activeMenu == 'reservation'} ? ' is-active' : ''">예매내역조회</a>
+      </li>
+      <li>
+        <a th:href="@{/calendar}" class="mypage-nav__link" th:classappend="${activeMenu == 'calendar'} ? ' is-active' : ''">이벤트캘린더</a>
+      </li>
+      <li>
+        <a th:href="@{/gifts/received}" class="mypage-nav__link" th:classappend="${activeMenu == 'gift'} ? ' is-active' : ''">받은 선물함</a>
+      </li>
+      <li>
+        <a th:href="@{/authors}" class="mypage-nav__link" th:classappend="${activeMenu == 'author'} ? ' is-active' : ''">관심작가리스트</a>
+      </li>
+      <li>
+        <a th:href="@{/wishlist}" class="mypage-nav__link" th:classappend="${activeMenu == 'wishlist'} ? ' is-active' : ''">위시리스트</a>
+      </li>
+      <li>
+        <a th:href="@{/reviews}" class="mypage-nav__link" th:classappend="${activeMenu == 'review'} ? ' is-active' : ''">나의 리뷰</a>
+      </li>
+      <li>
+        <a th:href="@{/support}" class="mypage-nav__link" th:classappend="${activeMenu == 'inquiry'} ? ' is-active' : ''">1:1문의내역</a>
+      </li>
+    </ul>
+  </nav>
+</aside>

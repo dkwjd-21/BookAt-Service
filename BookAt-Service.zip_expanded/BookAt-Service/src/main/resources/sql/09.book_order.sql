@@ -5,7 +5,8 @@ CREATE TABLE BOOK_ORDER (
 	order_status	number(2)	NOT NULL,
 	total_price	number	NOT NULL,
 	user_id	varchar2(50)	NOT NULL,
-	addr_id	number	NOT NULL
+	addr_id	number,
+	tracking_number	varchar2(50)
 );
 
 -- 시퀀스 생성
@@ -13,7 +14,7 @@ CREATE SEQUENCE SEQ_BOOK_ORDER;
 
 -- 제약 조건
 ALTER TABLE BOOK_ORDER ADD CONSTRAINT CHK_ORDER_STATUS 
-CHECK (ORDER_STATUS  IN (0,1,-1,2,-2,3));
+CHECK (ORDER_STATUS  IN (0,1,-1,2,-2,3,4));
 
 -- 테이블 조인
 ALTER TABLE BOOK_ORDER ADD CONSTRAINT FK_PAYMENT_TO_BOOK_ORDER_1 FOREIGN KEY (payment_id) REFERENCES PAYMENT (payment_id);
