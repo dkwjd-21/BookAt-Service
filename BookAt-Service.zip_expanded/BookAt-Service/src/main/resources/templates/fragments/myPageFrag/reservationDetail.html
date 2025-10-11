@@ -1,0 +1,31 @@
+<!-- 예매 내역 조회 활성화 -->
+<div th:fragment="reservationDetail-fragment">
+	<div id="reservation-container" class="reservation-hidden">
+	    <div class="reservation-title">
+	        <h2>예매 내역 조회</h2>
+	        <select>
+	            <option>최신순</option>
+	            <option>오래된순</option>
+	        </select>
+	    </div>
+
+	    <main id="reservation-main">
+	        <div id="reservation-template">
+	            <div class="event-post"><img /></div>
+				<div class="reservation-box">
+					<div class="reservation-info">
+					    <h3 class="event-name"></h3>
+					    <p><span class="reservation-label">이벤트 일시</span><span class="schedule-info"></span></p>
+					    <p><span class="reservation-label">예약 인원</span><span class="reserved-count"></span></p>
+						<p><span class="reservation-label">예약 상태</span><span class="reservation-status"></span></p>
+						<p><span class="reservation-label">결제 금액</span><span class="total-price"></span></p>
+					</div>
+					<div class="reservation-actions">
+					    <button class="btn-change">예매 변경</button>
+					    <button class="btn-ticket">티켓 보기</button>
+					</div>
+				</div>
+	        </div>
+	    </main>
+	</div>
+</div>
