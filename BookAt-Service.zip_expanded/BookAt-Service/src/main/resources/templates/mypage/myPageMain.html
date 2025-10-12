@@ -1,66 +1,47 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head>
-<meta charset="UTF-8">
-<title>마이페이지</title>
-<link rel="stylesheet" th:href="@{/css/header.css}" />
-<link rel="stylesheet" th:href="@{/css/footer.css}">
-<link rel="stylesheet" th:href="@{/css/reservationDetails.css}">
-<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-<script th:src="@{/js/utils/axiosIntercepter.js}"></script>
-<script th:src="@{/js/utils/logout.js}"></script>
-<script th:src="@{/js/utils/userAuth.js}"></script>
-<script th:src="@{/js/utils/header.js}"></script>
-<script th:src="@{/js/myPage.js}"></script>
-<style>
-	.container {
-		display: flex;
-		max-width: 1200px;
-		margin: 0 auto;
-		gap: 2rem;
-	}
-	
-	.aside-nav {
-		flex: 3;
-		height: 100vh;
-		display: flex;
-		flex-direction: column;
-		gap: 1rem;
-		border: 1px solid #ccc;
-	}
-	
-	.aside-nav button {
-		width: 6.25rem;
-		height: 3rem;
-		cursor: pointer;
-		border: 1px solid #ccc;
-	}
-	
-	.right-section {
-		flex: 7;
-		padding: 1.5rem;
-	}
-	
-</style>
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>마이페이지 - BookAt</title>
+    <link rel="stylesheet" th:href="@{/css/header.css}" />
+    <link rel="stylesheet" th:href="@{/css/footer.css}" />
+    <link rel="stylesheet" th:href="@{/css/mypage.css}" />
+    <link rel="stylesheet" th:href="@{/css/reservationDetails.css}" />
+    <link rel="stylesheet" th:href="@{/css/orderlist.css}" />
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script th:src="@{/js/utils/axiosIntercepter.js}"></script>
+    <script th:src="@{/js/utils/logout.js}"></script>
+    <script th:src="@{/js/utils/userAuth.js}"></script>
+    <script th:src="@{/js/utils/header.js}"></script>
+    <script th:src="@{/js/myPage.js}"></script>
+  </head>
+  <body>
+    <div th:replace="~{fragments/header :: main-header}"></div>
 
-	<div th:replace="~{fragments/header :: main-header}"></div>
-	<h1>BookAt MyPage Home</h1>
-	
-	<div class="container">
+    <main class="mypage-wrapper">
+      <!-- Aside 영역 -->
+      <div th:replace="~{fragments/MypageAside :: mypageAside('order')}"></div>
 
-		<div class="aside-nav">
-			<button onclick="goReservationDetails()">예매 내역 조회</button>
-		</div>
-		
-		<div class="right-section">
-			<!-- 예매 내역 조회 활성화 -->
-			<div th:replace="~{fragments/myPageFrag/reservationDetail :: reservationDetail-fragment}"></div>
-		</div>
-	</div>
-	
-	<div th:replace="~{fragments/footer :: main-footer}"></div>
+      <!-- 메인 콘텐츠 영역 -->
+      <section class="mypage-main">
+        <div id="mypage-content">
+          <!-- 예매 내역 fragment -->
+          <div id="fragment-reservation" class="mypage-fragment">
+            <div th:replace="~{fragments/myPageFrag/reservationDetail :: reservationDetail-fragment}"></div>
+          </div>
 
-</body>
+          <!-- 주문배송 조회 fragment -->
+          <div id="fragment-order" class="mypage-fragment active">
+            <div th:replace="~{fragments/myPageFrag/orderList :: orderList-fragment}"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- orderList.js 스크립트 로드 -->
+    <script th:src="@{/js/mypage/orderList.js}"></script>
+
+    <div th:replace="~{fragments/footer :: main-footer}"></div>
+  </body>
 </html>

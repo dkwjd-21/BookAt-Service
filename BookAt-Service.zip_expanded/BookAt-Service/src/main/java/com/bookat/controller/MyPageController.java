@@ -3,10 +3,12 @@ package com.bookat.controller;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -27,8 +29,13 @@ public class MyPageController {
 	
 	private final MyPageService myPageService;
 	
+	@Value("${sweettracker.api.key:}")
+	private String sweetTrackerApiKey;
+	
 	@GetMapping("/")
-	public String myPage(@AuthenticationPrincipal User user) {
+	public String myPage(@AuthenticationPrincipal User user, Model model) {
+		model.addAttribute("user", user);
+		model.addAttribute("sweetTrackerApiKey", sweetTrackerApiKey);
 		return "mypage/myPageMain";
 	}
 

@@ -1,24 +1,5 @@
-document.addEventListener("DOMContentLoaded", async () => {
-  const asideOrderLink = document.querySelector(".js-mypage-order-link");
-
-  if (asideOrderLink) {
-    asideOrderLink.addEventListener("click", async (event) => {
-      event.preventDefault();
-      try {
-        const res = await window.axiosInstance.get("/order/orderList", {
-          responseType: "text",
-        });
-        document.open();
-        document.write(res.data);
-        document.close();
-        window.history.pushState({}, "", "/myPage/orderList");
-      } catch (error) {
-        console.error("주문 조회 페이지 로드 중 오류", error);
-        window.location.href = "/user/login";
-      }
-    });
-  }
-
+// 주문배송조회 초기화 함수
+window.initOrderList = async function () {
   const statusPanel = document.getElementById("statusPanel");
   const orderSection = document.getElementById("orderSection");
   const orderHistory = document.getElementById("orderHistory");
@@ -388,4 +369,39 @@ document.addEventListener("DOMContentLoaded", async () => {
   orderHistory?.addEventListener("click", handleTrackingButtonClick);
   orderHistory?.addEventListener("click", handleReviewButtonClick);
   trackingForm?.addEventListener("submit", openTrackingPopup);
+};
+
+// DOMContentLoaded에서 자동 실행
+document.addEventListener("DOMContentLoaded", async () => {
+  // 현재 페이지 경로 확인
+  const currentPath = window.location.pathname;
+  const isMyPageMain = currentPath === "/myPage" || currentPath === "/myPage/";
+
+  // myPageMain이 아닌 경우에만 aside 링크 이벤트 등록 (myPageMain에서는 myPage.js가 처리)
+  if (!isMyPageMain) {
+    const asideOrderLink = document.querySelector(".js-mypage-order-link");
+
+    if (asideOrderLink) {
+      asideOrderLink.addEventListener("click", async (event) => {
+        event.preventDefault();
+        try {
+          const res = await window.axiosInstance.get("/order/orderList", {
+            responseType: "text",
+          });
+          document.open();
+          document.write(res.data);
+          document.close();
+          window.history.pushState({}, "", "/myPage/orderList");
+        } catch (error) {
+          console.error("주문 조회 페이지 로드 중 오류", error);
+          window.location.href = "/user/login";
+        }
+      });
+    }
+
+    // 기존 orderList.html 페이지에서 자동 실행
+    if (typeof window.initOrderList === "function") {
+      await window.initOrderList();
+    }
+  }
 });
