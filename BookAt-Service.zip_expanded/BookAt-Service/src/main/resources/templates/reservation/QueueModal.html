@@ -18,6 +18,47 @@
 		예매하기
 	</button>
 
+	<hr>
+
+	<div>
+		<h3>좌석유형 예매내역</h3>
+		<table>
+			<thead>
+				<tr>
+					<th>예매번호</th>
+					<th>티켓번호</th>
+					<th>티켓상태</th>
+					<th>좌석번호</th>
+					<th>좌석명</th>
+					<th>이벤트번호</th>
+					<th>회차번호</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td>122</td>
+					<td>163</td>
+					<td>1</td>
+					<td>1</td>
+					<td>A1</td>
+					<td>115</td>
+					<td>9</td>
+				</tr>
+				<tr>
+					<td>122</td>
+					<td>164</td>
+					<td>1</td>
+					<td>10</td>
+					<td>A2</td>
+					<td>115</td>
+					<td>9</td>
+				</tr>
+			</tbody>
+		</table>
+		
+		<button onclick="onModifyModal(115, 122);">예매변경</button>
+	</div>
+	
 	<div class="queueModal-overlay" style="display: none">
 		<div class="modal-content">
 			<h1 class="modal-title">
@@ -36,6 +77,8 @@
 			<p class="modal-totalWaiting">현재 대기 인원 : <span class="modal-watingCount">0</span>명</p>
 		</div>
 	</div>
+
+
 </body>
 
 </html>

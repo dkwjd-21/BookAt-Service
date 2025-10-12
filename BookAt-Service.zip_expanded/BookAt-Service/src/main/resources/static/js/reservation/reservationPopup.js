@@ -81,7 +81,7 @@ document.addEventListener("DOMContentLoaded", () => {
 			const scheduleId = part.getAttribute("data-session-id");
 
 			// 회차 수정시 다음단계 값 초기화
-			if(ticketType === "SEAT_TYPE" && currentScheduleId && currentScheduleId !== scheduleId) {
+			if (ticketType === "SEAT_TYPE" && currentScheduleId && currentScheduleId !== scheduleId) {
 				resetPersonSelection();
 				resetSeatSelection();
 				totalPrice = 0;
@@ -132,6 +132,23 @@ document.addEventListener("DOMContentLoaded", () => {
 		nextBtn.style.display = step === steps.length ? "none" : "block";
 		submitBtn.style.display = step === steps.length ? "block" : "none";
 
+		// STEP3 예약변경 모드일 경우 버튼 표시 처리
+		const isModification = document.getElementById("is-modification")?.value === 'true';
+		if (isModification) {
+			const modifyBtn = document.getElementById("modify-btn");
+			if (step === 3) {
+				nextBtn.style.display = "none";    // 기존 다음 단계 숨김
+				modifyBtn.style.display = "block"; // 변경 완료 버튼 표시
+
+				// 클릭 이벤트 연결
+				if (!modifyBtn.dataset.bound) {
+					modifyBtn.addEventListener("click", submitModification);
+					modifyBtn.dataset.bound = "true";
+				}
+			} else {
+				modifyBtn.style.display = "none";  // STEP3 외에는 숨김
+			}
+		}
 	}
 
 	// ====== 제목 클릭 시 이전 단계로 이동 ======
@@ -156,12 +173,12 @@ document.addEventListener("DOMContentLoaded", () => {
 						}
 					}
 				}
-				
+
 				// 이전단계로 돌아가면 모든값이 초기화되어버려서 일단 조건
 				// 회차를 변경했을 때만 초기화되도록하고싶음
 				// 좌석 타입은 다음단계로 넘어가는 즉시 HOLD처리가 되기 때문에
 				// 이전 단계로 돌아갔을 때 HOLD를 해제하는 과정이 꼭 필요함 
-				if(ticketType !== "PERSON_TYPE") {
+				if (ticketType !== "PERSON_TYPE") {
 					const token = sessionStorage.getItem("reservationToken");
 
 					// STEP별 초기화 및 상태 복원
@@ -188,7 +205,7 @@ document.addEventListener("DOMContentLoaded", () => {
 						resetSeatSelection();
 					}
 				}
-				
+
 				// 뒤로가기 값 유지
 				showStep(targetStep);
 				if (typeof updateSummary === "function") updateSummary();
@@ -279,7 +296,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 					if (currentScheduleId !== scheduleId) {
 						// 인원형은 인원/금액 초기화
-						if(ticketType === "PERSON_TYPE") {
+						if (ticketType === "PERSON_TYPE") {
 							resetPersonSelection();
 							totalPrice = 0;
 						}
@@ -291,7 +308,7 @@ document.addEventListener("DOMContentLoaded", () => {
 							totalPrice = 0;
 						}
 					}
-					
+
 					currentScheduleId = scheduleId;
 					showStep(2);
 				} else {
@@ -398,15 +415,15 @@ document.addEventListener("DOMContentLoaded", () => {
 				phone: phoneInput.value.trim(),
 				email: emailInput.value.trim(),
 			};
-			
+
 			try {
 				const token = sessionStorage.getItem("reservationToken");
-				console.log("token: "+token);
+				console.log("token: " + token);
 				const res = await axiosInstance.post(`/reservation/${token}/step3`, payload);
-				
-				
-				console.log("res: "+res);
-				
+
+
+				console.log("res: " + res);
+
 				if (res.data.status === "STEP4") {
 
 					// 결제 프래그먼트 렌더링
@@ -574,6 +591,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
 	// 초기 요약 한 번 더 갱신
 	updateSummary();
+
+	// 예약 변경 모드 초기화 함수 호출 
+	initModificationMode();
 });
 
 
@@ -847,3 +867,282 @@ function showCaptchaModal() {
 	modal.style.display = "flex";
 	refreshImage();
 }
+
+
+// 세션스토리지 키 
+const RESERVATION_ID_KEY = "reservationIdForModify";
+const EVENT_ID_KEY = "eventId";
+
+// [예약변경] 초기값 세팅
+function initModificationMode() {
+	const isModificationEl = document.getElementById('is-modification');
+	const existingDataJsonEl = document.getElementById('existing-data-json');
+	const ticketType = document.getElementById('ticket-type').value;
+
+	const isModification = isModificationEl && isModificationEl.value === 'true';
+
+	if (!isModification || !existingDataJsonEl) {
+		return;
+	}
+
+	try {
+		// Thymeleaf에서 JSON으로 전달된 문자열을 파싱
+		let jsonString = existingDataJsonEl.value.trim();
+
+		console.log("jsonString : " + jsonString);
+
+		const existingDataList = JSON.parse(jsonString);
+		console.log("existingDataList : " + existingDataList);
+
+		if (existingDataList.length === 0) {
+			console.warn("예약 변경 모드이나, 유효한 기존 티켓 데이터가 없습니다.");
+			return;
+		}
+
+		// 1. Step 1: 회차 선택 (SCHEDULE_ID 반영)
+		const firstTicket = existingDataList[0];
+		const scheduleId = firstTicket['회차번호'];
+
+		selectScheduleOption(scheduleId);
+
+		// 2. Step 2: 좌석/인원 선택 반영
+		if (ticketType === 'SEAT_TYPE') {
+			// 좌석 유형은 회차 변경 불가능. 다른 회차 비활성화 
+			disableOtherScheduleOptions(scheduleId);
+			applyExistingSeats(existingDataList);
+		} else if (ticketType === 'PERSON_TYPE') {
+			// 인원 유형은 인원수 변경 불가능 
+			disablePersonCountInputs();
+			applyExistingPersonCounts(existingDataList);
+		}
+
+		// 3. 요약 정보 업데이트 (변경 전 정보 표시)
+		applyModificationSummary(existingDataList);
+
+		console.log("예약 변경 데이터 화면 적용 완료.");
+	} catch (e) {
+		console.error("예약 변경 데이터 파싱 또는 적용 중 오류 발생:", e);
+	}
+}
+
+// [예약변경] 좌석 유형 - 기존 회차를 제외한 모든 회차 비활성화 
+function disableOtherScheduleOptions(currentScheduleId) {
+	const optionParts = document.querySelectorAll('.option-part');
+
+	optionParts.forEach(part => {
+		const partScheduleId = part.getAttribute('data-session-id');
+
+		if (partScheduleId != currentScheduleId) {
+			part.classList.add('disabled', 'modification-fixed'); // 'modification-fixed' 클래스로 변경 불가 표시
+			part.removeEventListener('click', part.clickHandler); // 클릭 이벤트 제거 (기존 핸들러가 있다면)
+		}
+	});
+}
+
+// [예약변경] 인원 유형 - 인원수 Input 비활성화
+function disablePersonCountInputs() {
+	const selects = document.querySelectorAll(".input-count");
+
+	selects.forEach(sel => {
+		sel.disabled = true;
+	});
+	// 인원 유형은 인원 변경이 불가능하므로, 오직 회차만 변경 가능해야 한다.
+}
+
+// [예약변경] 좌석유형 - 기존 좌석을 Hold 상태로 화면에 표시 
+function applyExistingSeats(existingDataList) {
+	const seatNames = existingDataList.map(data => data['좌석명']);
+
+	// 1. 기존 선택 초기화 및 전역 변수 설정
+	resetSeatSelection();
+	window.selectedSeats = seatNames.slice(); // 기존 좌석명을 전역 변수에 복사
+
+	// 2. 화면에 selected 클래스 적용
+	seatNames.forEach(seatName => {
+		const seatElement = document.querySelector(`.stage-seat div[data-seat-name="${seatName}"]`);
+		if (seatElement) {
+			// 기존 좌석을 선택 상태로 표시
+			seatElement.classList.add('seat-selected');
+			// 예약 변경 모드에서는 unavailable도 클릭 가능하게 처리
+			seatElement.addEventListener('click', () => toggleSeatSelection(seatElement, { seatName }));
+		}
+	});
+
+	// 3. 총 금액 재계산 및 Input 설정
+	const eventPriceEl = document.getElementById("eventPrice");
+	const unitPrice = eventPriceEl ? parseInt(eventPriceEl.value, 10) : 10000;
+	window.totalPrice = window.selectedSeats.length * unitPrice;
+
+	// 4. 요약 정보 업데이트
+	if (typeof updateSummary === 'function') updateSummary();
+}
+
+// [예약변경] 인원유형 - 기존 인원수를 Input에 반영하고 가격 계산 
+function applyExistingPersonCounts(existingDataList) {
+	const counts = { 'ADULT': 0, 'YOUTH': 0, 'CHILD': 0 };
+
+	existingDataList.forEach(data => {
+		const personType = data['PERSON_TYPE'];
+		if (personType && counts.hasOwnProperty(personType)) {
+			counts[personType]++;
+		}
+	});
+
+	// Input 값 설정
+	document.getElementById('adultCount').value = counts['ADULT'];
+	document.getElementById('youthCount').value = counts['YOUTH'];
+	document.getElementById('childCount').value = counts['CHILD'];
+
+	// 가격 재계산 및 요약 업데이트
+	if (typeof updateSummary === 'function') updateSummary();
+}
+
+// [예약변경] 기존 예약 내역(변경전) 표시 
+function applyModificationSummary(existingDataList) {
+	const summaryAside = document.querySelector('aside.summary-content');
+	if (!summaryAside) return;
+
+	// 기존 신규 summary 숨기기
+	const newSummary = summaryAside.querySelector('#new-reservation-summary');
+	if (newSummary) newSummary.style.display = 'none';
+
+	// 변경 summary 표시
+	let modSummary = summaryAside.querySelector('#modification-summary');
+	if (modSummary) modSummary.style.display = 'inline-block';
+
+	// 변경 전 좌석
+	const beforeSeats = existingDataList.map(d => d['좌석명'] || '-').join(', ');
+	const beforeEl = document.getElementById('mod-selected-seats-info');
+	if (beforeEl) beforeEl.textContent = `변경 전 좌석: ${beforeSeats}`;
+
+	// 초기 변경 후 좌석은 미선택
+	const afterEl = document.getElementById('mod-changed-seats-info');
+	if (afterEl) afterEl.textContent = `변경 후 좌석: 미선택`;
+
+
+	// 총 금액 계산
+	const eventPriceEl = document.getElementById("eventPrice");
+	const unitPrice = eventPriceEl ? parseInt(eventPriceEl.value, 10) : 10000;
+	const totalPrice = existingDataList.reduce((sum, d) => sum + (d.가격 || unitPrice), 0);
+	const modTotalEl = modSummary.querySelector('#mod-summaryTotal');
+	if (modTotalEl) modTotalEl.textContent = totalPrice.toLocaleString() + "원";
+
+
+	// 이후 선택 변경 시 갱신되도록 이벤트 연결
+	addAfterSelectionUpdate();
+}
+
+function addAfterSelectionUpdate() {
+	// 좌석 클릭, 회차 선택, 인원 선택 이벤트 시 변경 후 내역 갱신
+	document.addEventListener("click", () => updateAfterSummary());
+	document.addEventListener("change", () => updateAfterSummary());
+}
+
+function updateAfterSummary() {
+	const afterEl = document.getElementById('mod-changed-seats-info');
+	if (!afterEl) return;
+
+	const selectedSeatsEls = document.querySelectorAll('.seat-row .seat-selected');
+	const afterSeats = selectedSeatsEls.length > 0
+		? Array.from(selectedSeatsEls).map(s => s.dataset.seatName || s.innerText).join(', ')
+		: '미선택';
+
+	afterEl.textContent = `변경 후 좌석: ${afterSeats}`;
+}
+
+function selectScheduleOption(scheduleId) {
+	const sessionButtons = document.querySelectorAll('.option-part');
+	if (!sessionButtons || sessionButtons.length === 0) {
+		console.warn('회차 선택 요소를 찾을 수 없음');
+		return;
+	}
+
+	let found = false;
+	sessionButtons.forEach(btn => {
+		if (btn.dataset.sessionId == scheduleId) {
+			btn.classList.add('selected'); // 시각적으로 선택 표시
+			btn.click(); // 기존 클릭 이벤트 실행 (좌석 불러오기 등)
+			found = true;
+		} else {
+			btn.classList.remove('selected');
+		}
+	});
+
+	if (found) {
+		console.log(`회차(${scheduleId}) 자동 선택 완료`);
+	} else {
+		console.warn(`회차 ID(${scheduleId})에 해당하는 버튼을 찾지 못함`);
+	}
+}
+
+// [예약변경] 백엔드로 변경 요청
+async function submitModification() {
+	const token = sessionStorage.getItem("reservationToken");
+	if (!token) return alert("예약 세션이 없습니다.");
+
+	const eventId = document.getElementById("eventId")?.value;
+	const scheduleId = document.querySelector(".option-part.selected")?.dataset.sessionId;
+
+	if (!eventId || !scheduleId) return alert("회차 또는 이벤트 정보가 없습니다.");
+
+	// =========================
+	// STEP3 주문자 정보 유효성 검사
+	// =========================
+	const userNameInput = document.getElementById("user-name");
+	const phoneInput = document.getElementById("phone");
+	const emailInput = document.getElementById("email");
+
+	if (!userNameInput?.value?.trim()) {
+		alert("이름을 입력해주세요.");
+		userNameInput?.focus();
+		return;
+	}
+
+	if (!phoneInput?.value?.trim()) {
+		alert("전화번호를 입력해주세요.");
+		phoneInput?.focus();
+		return;
+	}
+
+	if (!emailInput?.value?.trim() || !emailInput.value.includes("@")) {
+		alert("올바른 이메일을 입력해주세요.");
+		emailInput?.focus();
+		return;
+	}
+
+	// 변경 전/후 정보 확인
+	const beforeSeatsEl = document.getElementById("mod-selected-seats-info");
+	const beforeSeats = beforeSeatsEl?.textContent
+		.replace("변경 전 좌석: ", "")
+		.split(", ")
+		.filter(Boolean);
+
+	const afterSeats = selectedSeats.slice(); // 전역 변수 사용
+
+	if (!afterSeats || afterSeats.length === 0) {
+		return alert("변경할 좌석을 선택해주세요.");
+	}
+
+	try {
+		const res = await axiosInstance.post(`/reservation/${token}/modifySeats`, {
+			eventId: parseInt(eventId),
+			scheduleId: parseInt(scheduleId),
+			beforeSeats: beforeSeats,
+			afterSeats: afterSeats
+		});
+
+		if (res.data.status === "SUCCESS") {
+			alert("좌석 변경이 완료되었습니다.");
+			// UI 반영
+			updateAfterSummary();
+			// 토큰 유지 가능, 결제 단계 스킵
+		} else {
+			alert(res.data.message || "좌석 변경 실패");
+		}
+	} catch (err) {
+		console.error("좌석 변경 오류:", err);
+		alert("좌석 변경 중 오류가 발생했습니다.");
+	}
+}
+
+

@@ -341,7 +341,7 @@ public class ReservationServiceImpl implements ReservationService {
 		if (reservationData == null || reservationData.isEmpty()) {
 			throw new IllegalArgumentException("예약 세션이 존재하지 않습니다.");
 		}
-		
+
 		int eventId = Integer.parseInt(reservationData.get("eventId").toString());
 		int scheduleId = Integer.parseInt(reservationData.get("scheduleId").toString());
 
@@ -368,7 +368,7 @@ public class ReservationServiceImpl implements ReservationService {
 			for (Map.Entry<String, Integer> entry : parsed.entrySet()) {
 				String personType = entry.getKey();
 				int personTypeCount = entry.getValue();
-				
+
 				for (int i = 0; i < personTypeCount; i++) {
 					Ticket ticket = new Ticket();
 					ticket.setTicketStatus(TicketStatus.ACTIVE.code);
@@ -383,10 +383,10 @@ public class ReservationServiceImpl implements ReservationService {
 		} else if (seatNamesCsv != null && !seatNamesCsv.isEmpty()) {
 			// 좌석 유형 티켓 저장
 			String[] seatNames = seatNamesCsv.split(",");
-			
+
 			for (String seatName : seatNames) {
 				EventSeatDto seat = seatService.selectOneBySeatName(seatName, eventId, scheduleId);
-				
+
 				Ticket ticket = new Ticket();
 				ticket.setTicketStatus(TicketStatus.ACTIVE.code);
 				ticket.setTicketType("SEAT_TYPE");
@@ -414,16 +414,16 @@ public class ReservationServiceImpl implements ReservationService {
 //	@Transactional
 	public void completeReservation(String reservationToken, String userId) {
 		// 레디스에 저장된 예약 세션 조회
-	    Map<Object, Object> data = redisUtil.getDataAll(reservationToken);
+		Map<Object, Object> data = redisUtil.getDataAll(reservationToken);
 
-	    if(data != null && !data.isEmpty()) {
-	        String eventId = (String) data.get("eventId");
+		if (data != null && !data.isEmpty()) {
+			String eventId = (String) data.get("eventId");
 
-	        // active set에서 제거
-	        removeFromActiveSet(eventId, userId);
-	    }
+			// active set에서 제거
+			removeFromActiveSet(eventId, userId);
+		}
 
-	    // 예약 세션 삭제
+		// 예약 세션 삭제
 		redisUtil.deleteDataAll(reservationToken);
 
 		log.info("예매 프로세스 완료");
@@ -445,5 +445,59 @@ public class ReservationServiceImpl implements ReservationService {
 				log.error("Active Set 제거 중 오류 발생: eventId={}, userId={}", eventId, userId, e);
 			}
 		}
+	}
+
+	@Override
+	public List<Map<String, Object>> getExistingReservationData(String reservationId) {
+		if (reservationId == null || reservationId.isEmpty()) {
+			throw new IllegalArgumentException("예매 번호가 유효하지 않습니다.");
+		}
+
+		// SQL 쿼리 실행 및 데이터 조회
+		List<Map<String, Object>> existingTickets = ticketMapper.findTicketsByReservationId(reservationId);
+
+		if (existingTickets == null || existingTickets.isEmpty()) {
+			throw new IllegalStateException("해당 예매 번호(" + reservationId + ")에 대한 티켓 정보를 찾을 수 없습니다.");
+		}
+
+		return existingTickets;
+	}
+
+	@Override
+	public void modifySeats(String reservationToken, int eventId, int scheduleId, List<String> beforeSeats,
+			List<String> afterSeats) {
+
+		// 1. 예약 세션 검증
+		if (!redisUtil.validateReservationSession(reservationToken)) {
+			throw new IllegalStateException("예약 세션이 만료되었습니다. 다시 예약해주세요.");
+		}
+
+		// 2. Redis 세션에 새 좌석 정보 업데이트
+		String seatsCsv = String.join(",", afterSeats);
+		redisUtil.updateStep2SeatType(reservationToken, seatsCsv, afterSeats.size(), afterSeats.size()); 
+		
+		// TTL 만료 대비 메타데이터 갱신
+	    redisUtil.createSeatMetaDataForSessionExpired(reservationToken, eventId, scheduleId, seatsCsv);
+		
+	    // 3. 좌석 확정 처리
+	    boolean confirmSuccess = seatService.confirmSeats(eventId, scheduleId, afterSeats);
+	    if (!confirmSuccess) {
+	        throw new IllegalStateException("좌석 확정 처리 실패");
+	    }
+	    
+		// 4. 기존 좌석 반환
+		if (beforeSeats != null && !beforeSeats.isEmpty()) {
+			boolean releaseSuccess = seatService.releaseSeats(eventId, scheduleId, beforeSeats);
+			if (!releaseSuccess) {
+				log.warn("기존 좌석 복구 실패: {}", beforeSeats);
+			}
+		}
+
+		// 4. Redis 상태 업데이트
+	    redisUtil.updateStepStatus(reservationToken, "COMPLETED");
+	    redisUtil.updateReservationStatus(reservationToken, ReservationStatus.RESERVED);
+	    redisUtil.deleteMetaData(reservationToken);
+		
+	    log.info("좌석 변경 완료: 이전좌석={}, 새좌석={}, eventId={}, scheduleId={}", beforeSeats, afterSeats, eventId, scheduleId);
 	}
 }

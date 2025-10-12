@@ -30,4 +30,18 @@
 		)
 	</insert>
 	
+	<select id="findTicketsByReservationId" resultType="java.util.Map">
+    	SELECT 
+        	T.TICKET_ID AS "티켓번호",
+        	T.TICKET_STATUS AS "티켓상태",
+        	T.RESERVATION_ID AS "예매번호",
+        	S.SEAT_ID AS "좌석번호",
+        	S.SEAT_NAME AS "좌석명",
+        	S.EVENT_ID AS "이벤트번호",
+       	 	S.SCHEDULE_ID AS "회차번호"
+    	FROM TICKET T 
+    	JOIN SEAT_TYPE S ON T.SEAT_ID = S.SEAT_ID 
+    	WHERE T.RESERVATION_ID = #{reservationId}
+	</select>
+	
 </mapper>

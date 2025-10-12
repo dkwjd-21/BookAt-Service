@@ -2,6 +2,7 @@ package com.bookat.service;
 
 public interface QueueService {
 	public Long addUserToQueue(String eventId, String userId);
+	public Long addUserToQueue(String eventId, String userId, String reservationId);
 	public Long getUserRank(String eventId, String userId);
 	public boolean leaveQueue(String eventId, String userId);
 	public boolean tryEnterActive(String eventId, String userId);

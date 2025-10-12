@@ -34,6 +34,7 @@ import com.bookat.service.QueueService;
 import com.bookat.service.ReservationService;
 import com.bookat.service.SeatService;
 import com.bookat.util.PaymentSessionStore;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -52,12 +53,34 @@ public class ReservationController {
 	
 	// 티켓팅 팝업 오픈
 	@GetMapping("/start")
-	public String reservation(@RequestParam int eventId, @AuthenticationPrincipal User user, Model model) {
+	public String reservation(@RequestParam int eventId, @RequestParam(required = false) String reservationId, 
+							  @AuthenticationPrincipal User user, Model model) {
 
 		if (user == null) {
 			throw new RuntimeException("예약 가능 유저가 없습니다.");
 		}
 
+		List<Map<String, Object>> existingDataList = null;
+		
+		// 예약 변경 로직 추가 
+		if(reservationId != null && !reservationId.isEmpty()) {
+			try {
+				// 예약 변경에 필요한 데이터 조회 메서드 
+				existingDataList = reservationService.getExistingReservationData(reservationId);
+				
+				model.addAttribute("isModification", true); 
+				model.addAttribute("modificationId", reservationId);
+				model.addAttribute("existingDataJson", new ObjectMapper().writeValueAsString(existingDataList));
+				
+			} catch (Exception e) {
+				// 유효하지 않은 예약 ID거나 조회 실패 시 
+				log.error("예약 변경 데이터 로드 실패: reservationId={}", reservationId, e);
+				model.addAttribute("isModification", false); 
+			}
+		} else {
+			model.addAttribute("isModification", false); 
+		}
+		
 		ReservationStartDto reservationStartDto = reservationService.startReservation(eventId, user.getUserId());
 		model.addAttribute("event", reservationStartDto.getEvent());
 		model.addAttribute("eventParts", reservationStartDto.getEventParts());
@@ -334,4 +357,47 @@ public class ReservationController {
 		}
 	}
 	
+	// 예매변경 요청
+	@PostMapping("/{reservationToken}/modifySeats")
+	public ResponseEntity<Map<String, Object>> modifySeats(@PathVariable String reservationToken,
+	        											   @RequestBody Map<String, Object> payload){
+		try {
+			int eventId = (Integer) payload.get("eventId");
+			int scheduleId = (Integer) payload.get("scheduleId");
+			
+			List<String> beforeSeats = ((List<Object>) payload.get("beforeSeats"))
+                    									.stream().map(Object::toString)
+                    									.collect(Collectors.toList());
+			
+			List<String> afterSeats = ((List<Object>) payload.get("afterSeats"))
+                    								.stream().map(Object::toString)
+                    								.collect(Collectors.toList());
+			
+			if (afterSeats.isEmpty()) {
+	            return ResponseEntity.badRequest()
+	                    .body(Map.of("status", "ERROR", "message", "변경할 좌석이 선택되지 않았습니다."));
+	        }
+			
+			// 예매 변경 호출 
+			reservationService.modifySeats(reservationToken, eventId, scheduleId, beforeSeats, afterSeats);
+			
+			return ResponseEntity.ok(Map.of(
+	                "status", "SUCCESS",
+	                "message", "좌석 변경 완료",
+	                "newSeats", afterSeats
+	        ));
+			
+		} catch (IllegalArgumentException iae) {
+	        // 좌석 이미 예약됨
+	        return ResponseEntity.status(HttpStatus.CONFLICT)
+	                .body(Map.of("status", "ERROR", "message", iae.getMessage()));
+	    } catch (IllegalStateException ise) {
+	        // 예약 토큰 만료
+	        return ResponseEntity.status(HttpStatus.GONE)
+	                .body(Map.of("status", "EXPIRED", "message", ise.getMessage()));
+	    } catch (Exception e) {
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+	                .body(Map.of("status", "ERROR", "message", "좌석 변경 중 오류 발생"));
+	    }
+	}
 }
