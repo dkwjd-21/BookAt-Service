@@ -40,7 +40,7 @@
         <a th:href="@{/wishlist}" class="mypage-nav__link" th:classappend="${activeMenu == 'wishlist'} ? ' is-active' : ''">위시리스트</a>
       </li>
       <li>
-        <a th:href="@{/reviews}" class="mypage-nav__link" th:classappend="${activeMenu == 'review'} ? ' is-active' : ''">나의 리뷰</a>
+        <a href="#" class="mypage-nav__link js-mypage-review-link" th:classappend="${activeMenu == 'review'} ? ' is-active' : ''">나의 리뷰</a>
       </li>
       <li>
         <a th:href="@{/support}" class="mypage-nav__link" th:classappend="${activeMenu == 'inquiry'} ? ' is-active' : ''">1:1문의내역</a>

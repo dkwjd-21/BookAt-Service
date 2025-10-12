@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>나의 리뷰 - BookAt</title>
+    <link rel="stylesheet" th:href="@{/css/header.css}" />
+    <link rel="stylesheet" th:href="@{/css/footer.css}" />
+    <link rel="stylesheet" th:href="@{/css/mypage.css}" />
+    <link rel="stylesheet" th:href="@{/css/myReview.css}" />
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script th:src="@{/js/utils/axiosIntercepter.js}"></script>
+    <script th:src="@{/js/utils/logout.js}"></script>
+    <script th:src="@{/js/utils/userAuth.js}"></script>
+    <script th:src="@{/js/utils/header.js}"></script>
+  </head>
+  <body>
+    <div th:replace="~{fragments/header :: main-header}"></div>
+
+    <main class="mypage-wrapper">
+      <div th:replace="~{fragments/MypageAside :: mypageAside('review')}"></div>
+
+      <section class="mypage-main">
+        <div class="page-head">
+          <h1 class="page-head__title">나의 리뷰</h1>
+          <div class="page-head__controls">
+            <select class="sort-select" id="sortSelect">
+              <option value="latest">최신순</option>
+              <option value="rating">평점순</option>
+              <option value="type">타입순</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="myreview-wrapper">
+          <!-- 로그인 필요 섹션 -->
+          <div id="loginSection" class="login-section" style="display: none">
+            <div class="login-message">
+              <p>로그인이 필요한 서비스입니다.</p>
+              <a href="/user/login" class="login-btn">로그인하기</a>
+            </div>
+          </div>
+
+          <!-- 리뷰 목록 -->
+          <div id="reviewList" class="review-list" style="display: none">
+            <!-- 리뷰 아이템들이 여기에 동적으로 추가됩니다 -->
+          </div>
+
+          <!-- 리뷰 없음 -->
+          <div id="emptyReview" class="empty-review" style="display: none">
+            <div class="empty-message">
+              <p>작성한 리뷰가 없습니다.</p>
+              <p>도서나 이벤트를 이용하신 후 리뷰를 작성해보세요!</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- 리뷰 수정 모달 -->
+    <div id="editModal" class="review-modal-overlay" style="display: none">
+      <div class="review-modal-content">
+        <div class="modal-header">
+          <h3>리뷰 수정</h3>
+          <button class="modal-close-btn" onclick="closeEditModal()">&times;</button>
+        </div>
+        <form id="editReviewForm">
+          <div class="form-group">
+            <label for="editTitle">리뷰 제목</label>
+            <input type="text" id="editTitle" name="title" maxlength="50" required />
+            <div class="char-count" id="editTitleCount">0/50</div>
+          </div>
+          <div class="form-group">
+            <label for="editContent">리뷰 내용</label>
+            <textarea id="editContent" name="content" maxlength="500" required></textarea>
+            <div class="char-count" id="editContentCount">0/500</div>
+          </div>
+          <div class="form-group">
+            <label>평점</label>
+            <div class="stars-input" id="editStars">
+              <span class="star" data-rating="1">★</span>
+              <span class="star" data-rating="2">★</span>
+              <span class="star" data-rating="3">★</span>
+              <span class="star" data-rating="4">★</span>
+              <span class="star" data-rating="5">★</span>
+            </div>
+          </div>
+          <div class="modal-buttons">
+            <button type="button" class="btn-cancel" onclick="closeEditModal()">취소</button>
+            <button type="submit" class="btn-submit">수정하기</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- 리뷰 삭제 확인 모달 -->
+    <div id="deleteModal" class="review-modal-overlay" style="display: none">
+      <div class="review-modal-content">
+        <div class="modal-header">
+          <h3>리뷰 삭제</h3>
+          <button class="modal-close-btn" onclick="closeDeleteModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p>정말로 이 리뷰를 삭제하시겠습니까?</p>
+          <p class="warning-text">삭제된 리뷰는 복구할 수 없습니다.</p>
+        </div>
+        <div class="modal-buttons">
+          <button type="button" class="btn-cancel" onclick="closeDeleteModal()">취소</button>
+          <button type="button" class="btn-delete" onclick="confirmDelete()">삭제하기</button>
+        </div>
+      </div>
+    </div>
+
+    <div th:replace="~{fragments/footer :: main-footer}"></div>
+
+    <script th:src="@{/js/mypage/myReview.js}"></script>
+  </body>
+</html>

@@ -5,10 +5,12 @@
   <!-- 필요에 맞게 실제 컬럼명으로 수정하세요 -->
   <select id="findByBookId" parameterType="string" resultType="com.bookat.dto.ReviewDto">
     SELECT
+      r.review_id      AS reviewId,
       r.rating         AS rating,
       r.user_id        AS userId,
-      r.review_date     AS createdAt,
-      r.review_content        AS content
+      r.review_date    AS createdAt,
+      r.review_title   AS title,
+      r.review_content AS content
     FROM review r
     WHERE r.book_id = #{bookId}
     ORDER BY r.review_date DESC
@@ -22,8 +24,126 @@
   		SELECT * FROM REVIEW WHERE EVENT_ID = #{eventId}
   </select>
   
+  <select id="findReviewDtosByEventId" parameterType="int" resultType="com.bookat.dto.ReviewDto">
+    SELECT
+      r.review_id      AS reviewId,
+      r.rating         AS rating,
+      r.user_id        AS userId,
+      r.review_date    AS createdAt,
+      r.review_title   AS title,
+      r.review_content AS content
+    FROM review r
+    WHERE r.event_id = #{eventId}
+    ORDER BY r.review_date DESC
+  </select>
+  
   <select id="countByEventId" parameterType="int" resultType="int">
   		SELECT COUNT(*) FROM REVIEW WHERE EVENT_ID = #{eventId}
+  </select>
+  
+  <!-- 리뷰 작성 -->
+  <insert id="insertReview" parameterType="com.bookat.entity.Review">
+    INSERT INTO REVIEW (
+      review_id, user_id, review_type, review_title, review_content, 
+      review_date, book_id, event_id, rating
+    ) VALUES (
+      SEQ_REVIEW.NEXTVAL, #{userId}, #{reviewType}, #{reviewTitle}, #{reviewContent}, 
+      SYSDATE, #{bookId, jdbcType=VARCHAR}, #{eventId, jdbcType=NUMERIC}, #{rating}
+    )
+  </insert>
+  
+  <!-- 리뷰 수정 -->
+  <update id="updateReview" parameterType="com.bookat.entity.Review">
+    UPDATE REVIEW
+    SET review_title = #{reviewTitle},
+        review_content = #{reviewContent},
+        rating = #{rating}
+    WHERE review_id = #{reviewId}
+      AND user_id = #{userId}
+  </update>
+  
+  <!-- 리뷰 삭제 -->
+  <delete id="deleteReview">
+    DELETE FROM REVIEW
+    WHERE review_id = #{reviewId}
+      AND user_id = #{userId}
+  </delete>
+  
+  <!-- 특정 사용자가 특정 도서에 작성한 리뷰 조회 (중복 체크용) -->
+  <select id="findByBookIdAndUserId" resultType="com.bookat.entity.Review">
+    SELECT 
+      review_id AS reviewId,
+      user_id AS userId,
+      review_type AS reviewType,
+      review_title AS reviewTitle,
+      review_content AS reviewContent,
+      review_date AS reviewDate,
+      book_id AS bookId,
+      event_id AS eventId,
+      rating
+    FROM REVIEW
+    WHERE book_id = #{bookId}
+      AND user_id = #{userId}
+  </select>
+  
+  <!-- 특정 사용자가 특정 이벤트에 작성한 리뷰 조회 (중복 체크용) -->
+  <select id="findByEventIdAndUserId" resultType="com.bookat.entity.Review">
+    SELECT
+      review_id AS reviewId,
+      user_id AS userId,
+      review_type AS reviewType,
+      review_title AS reviewTitle,
+      review_content AS reviewContent,
+      review_date AS reviewDate,
+      book_id AS bookId,
+      event_id AS eventId,
+      rating
+    FROM REVIEW
+    WHERE event_id = #{eventId}
+      AND user_id = #{userId}
+  </select>
+
+  <!-- 리뷰 ID로 조회 -->
+  <select id="findByReviewId" parameterType="int" resultType="com.bookat.entity.Review">
+    SELECT
+      review_id AS reviewId,
+      user_id AS userId,
+      review_type AS reviewType,
+      review_title AS reviewTitle,
+      review_content AS reviewContent,
+      review_date AS reviewDate,
+      book_id AS bookId,
+      event_id AS eventId,
+      rating
+    FROM REVIEW
+    WHERE review_id = #{reviewId}
+  </select>
+
+  <!-- 사용자가 작성한 모든 리뷰 조회 (도서/이벤트 정보 포함) -->
+  <select id="findByUserId" parameterType="string" resultType="com.bookat.dto.ReviewDto">
+    SELECT
+      r.review_id AS reviewId,
+      r.rating AS rating,
+      r.user_id AS userId,
+      r.review_date AS createdAt,
+      r.review_title AS title,
+      r.review_content AS content,
+      r.review_type AS reviewType,
+      r.book_id AS bookId,
+      r.event_id AS eventId,
+      CASE 
+        WHEN r.review_type = 'B' THEN b.book_title
+        WHEN r.review_type = 'E' THEN e.event_name
+      END AS targetTitle,
+      CASE 
+        WHEN r.review_type = 'B' THEN '도서'
+        WHEN r.review_type = 'E' THEN '이벤트'
+      END AS targetType
+    FROM review r
+    LEFT JOIN book b ON r.book_id = b.book_id AND r.review_type = 'B'
+    LEFT JOIN event e ON r.event_id = e.event_id AND r.review_type = 'E'
+    WHERE r.user_id = #{userId}
+    ORDER BY r.review_date DESC
   </select>
 
 </mapper>
