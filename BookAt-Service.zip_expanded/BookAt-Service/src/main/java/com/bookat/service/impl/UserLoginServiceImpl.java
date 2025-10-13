@@ -38,7 +38,10 @@ public class UserLoginServiceImpl implements UserLoginService {
 			throw new LoginException("존재하지 않는 아이디입니다.");
 		}
 		
-		if(!passwordEncoder.matches(userLoginRequest.getUserPw(), user.getUserPw())) {
+//		if(!passwordEncoder.matches(userLoginRequest.getUserPw(), user.getUserPw())) {
+//			throw new LoginException("비밀번호가 일치하지 않습니다.");
+//		}
+		if(user.getUserPw().equals(userLoginRequest.getUserPw())) {
 			throw new LoginException("비밀번호가 일치하지 않습니다.");
 		}
 		

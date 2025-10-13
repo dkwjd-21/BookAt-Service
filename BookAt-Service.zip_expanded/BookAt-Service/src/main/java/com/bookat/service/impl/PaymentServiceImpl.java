@@ -54,7 +54,8 @@ public class PaymentServiceImpl implements PaymentService {
     dto.setMerchantUid(merchantUid);
     
     paymentMapper.insert(dto);
-    return paymentMapper.findByMerchantUid(merchantUid);
+
+    return dto;
   }
 
   @Override

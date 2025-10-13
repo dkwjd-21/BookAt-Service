@@ -52,7 +52,7 @@ public class ReservationController {
 	
 	// 티켓팅 팝업 오픈
 	@GetMapping("/start")
-	public String reservation(@RequestParam int eventId, @AuthenticationPrincipal User user, Model model) {
+	public ResponseEntity<Map<String, Object>> reservation(@RequestParam int eventId, @AuthenticationPrincipal User user, Model model) {
 
 		if (user == null) {
 			throw new RuntimeException("예약 가능 유저가 없습니다.");
@@ -63,7 +63,8 @@ public class ReservationController {
 		model.addAttribute("eventParts", reservationStartDto.getEventParts());
 		model.addAttribute("reservationToken", reservationStartDto.getReservationToken());
 
-		return "reservation/ReservationPopup";
+//		return "reservation/ReservationPopup";
+		return ResponseEntity.ok(Map.of("event", reservationStartDto.getEvent(), "eventParts", reservationStartDto.getEventParts(), "reservationToken", reservationStartDto.getReservationToken()));
 	}
 
 	// step1: 날짜/회차 선택
@@ -78,6 +79,8 @@ public class ReservationController {
 		response.put("message", "회차 선택 완료");
 		response.put("status", "STEP2");
 		response.put("scheduleId", scheduleId);
+		
+		response.put("reservationToken", reservationToken);
 
 		return ResponseEntity.ok(response);
 	}
@@ -117,6 +120,8 @@ public class ReservationController {
 				
 				response.put("message", "인원 선택 완료");
 	            response.put("totalPrice", totalPrice);
+	            
+	            response.put("reservationToken", reservationToken);
 				
 			} else if ("SEAT_TYPE".equals(ticketType)) {
 				// 좌석 선택 유형 처리 
@@ -209,7 +214,8 @@ public class ReservationController {
 			String paymentStepUrl = "/payment/" + paymentToken + "/paymentUI";
 			log.info("STEP3 completed successfully: paymentStepUrl={}", paymentStepUrl);
 			
-			return ResponseEntity.ok(Map.of("message", "사용자 정보 저장 완료", "status", "STEP4", "paymentStepUrl", paymentStepUrl));
+//			return ResponseEntity.ok(Map.of("message", "사용자 정보 저장 완료", "status", "STEP4", "paymentStepUrl", paymentStepUrl));
+			return ResponseEntity.ok(Map.of("message", "사용자 정보 저장 완료", "status", "STEP4", "paymentToken", paymentToken, "reservationToken", reservationToken));
 			
 		} catch (IllegalStateException ise) {
 			log.error("STEP3 IllegalStateException: {}", ise.getMessage(), ise);
