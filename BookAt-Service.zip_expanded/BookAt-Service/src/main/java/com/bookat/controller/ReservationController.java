@@ -364,6 +364,7 @@ public class ReservationController {
 		try {
 			int eventId = (Integer) payload.get("eventId");
 			int scheduleId = (Integer) payload.get("scheduleId");
+			int reservationId = (Integer) payload.get("reservationId");
 			
 			List<String> beforeSeats = ((List<Object>) payload.get("beforeSeats"))
                     									.stream().map(Object::toString)
@@ -379,7 +380,7 @@ public class ReservationController {
 	        }
 			
 			// 예매 변경 호출 
-			reservationService.modifySeats(reservationToken, eventId, scheduleId, beforeSeats, afterSeats);
+			reservationService.modifySeats(reservationToken, eventId, scheduleId, reservationId, beforeSeats, afterSeats);
 			
 			return ResponseEntity.ok(Map.of(
 	                "status", "SUCCESS",

@@ -12,5 +12,5 @@ public interface TicketMapper {
 
 	int insertTicket(Ticket ticket);
 	List<Map<String, Object>> findTicketsByReservationId(String reservationId);
-	
+	int updateTicketStatusBySeatId(int seatId, int status);
 }

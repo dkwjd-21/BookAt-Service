@@ -28,6 +28,7 @@
 					<th>예매번호</th>
 					<th>티켓번호</th>
 					<th>티켓상태</th>
+					<th>인원유형</th>
 					<th>좌석번호</th>
 					<th>좌석명</th>
 					<th>이벤트번호</th>
@@ -35,28 +36,20 @@
 				</tr>
 			</thead>
 			<tbody>
-				<tr>
-					<td>122</td>
-					<td>163</td>
-					<td>1</td>
-					<td>1</td>
-					<td>A1</td>
-					<td>115</td>
-					<td>9</td>
-				</tr>
-				<tr>
-					<td>122</td>
-					<td>164</td>
-					<td>1</td>
-					<td>10</td>
-					<td>A2</td>
-					<td>115</td>
-					<td>9</td>
+				<tr th:each="data : ${existingDataList}">
+					<td th:text="${data['예매번호']}"></td>
+					<td th:text="${data['티켓번호']}"></td>
+					<td th:text="${data['티켓상태']}"></td>
+					<td th:text="${data['인원유형']}"></td>
+					<td th:text="${data['좌석번호']}"></td>
+					<td th:text="${data['좌석명']}"></td>
+					<td th:text="${data['이벤트번호']}"></td>
+					<td th:text="${data['회차번호']}"></td>
 				</tr>
 			</tbody>
 		</table>
 		
-		<button onclick="onModifyModal(115, 122);">예매변경</button>
+		<button onclick="onModifyModal(100, 102);">예매변경</button>
 	</div>
 	
 	<div class="queueModal-overlay" style="display: none">

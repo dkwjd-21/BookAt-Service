@@ -463,41 +463,98 @@ public class ReservationServiceImpl implements ReservationService {
 		return existingTickets;
 	}
 
+	@Transactional
 	@Override
-	public void modifySeats(String reservationToken, int eventId, int scheduleId, List<String> beforeSeats,
+	public void modifySeats(String reservationToken, int eventId, int scheduleId, int reservationId, List<String> beforeSeats,
 			List<String> afterSeats) {
 
+		log.info("===== 좌석 변경 시작 =====");
+	    log.info("reservationToken={}, eventId={}, scheduleId={}, reservationId={}, beforeSeats={}, afterSeats={}",
+	            reservationToken, eventId, scheduleId, reservationId, beforeSeats, afterSeats);
+
+		
 		// 1. 예약 세션 검증
 		if (!redisUtil.validateReservationSession(reservationToken)) {
+			log.error("예약 세션 검증 실패: reservationToken={}", reservationToken);
 			throw new IllegalStateException("예약 세션이 만료되었습니다. 다시 예약해주세요.");
 		}
-
+		log.info("예약 세션 검증 완료");
+		
 		// 2. Redis 세션에 새 좌석 정보 업데이트
+		log.info("Redis 세션에 새 좌석 정보 업데이트 시작");
 		String seatsCsv = String.join(",", afterSeats);
 		redisUtil.updateStep2SeatType(reservationToken, seatsCsv, afterSeats.size(), afterSeats.size()); 
+		log.info("Redis 좌석 정보 업데이트 완료: seatsCsv={}", seatsCsv);
 		
 		// TTL 만료 대비 메타데이터 갱신
 	    redisUtil.createSeatMetaDataForSessionExpired(reservationToken, eventId, scheduleId, seatsCsv);
 		
 	    // 3. 좌석 확정 처리
+	    log.info("좌석 확정 처리 시작");
 	    boolean confirmSuccess = seatService.confirmSeats(eventId, scheduleId, afterSeats);
 	    if (!confirmSuccess) {
+	    	log.error("좌석 확정 처리 실패: afterSeats={}", afterSeats);
 	        throw new IllegalStateException("좌석 확정 처리 실패");
 	    }
+	    log.info("좌석 확정 처리 완료");
 	    
 		// 4. 기존 좌석 반환
 		if (beforeSeats != null && !beforeSeats.isEmpty()) {
+			log.info("기존 좌석 반환 시작: beforeSeats={}", beforeSeats);
 			boolean releaseSuccess = seatService.releaseSeats(eventId, scheduleId, beforeSeats);
 			if (!releaseSuccess) {
 				log.warn("기존 좌석 복구 실패: {}", beforeSeats);
+			} else {
+				log.info("기존 좌석 반환 완료");
 			}
+			
+			// 기존 티켓 상태 업데이트 (1사용가능 -> -1사용불가)
+			log.info("기존 티켓 상태 업데이트 시작");
+			for (String seatName : beforeSeats) {
+	            EventSeatDto seat = seatService.selectOneBySeatName(seatName, eventId, scheduleId);
+	            if (seat != null) {
+	                ticketMapper.updateTicketStatusBySeatId(seat.getSeatId(), TicketStatus.CANCELED.code);
+	                log.info("기존 좌석 티켓 상태 변경 완료: seatId={}", seat.getSeatId());
+	            } else {
+	            	log.warn("기존 좌석 정보 조회 실패: seatName={}", seatName);
+	            }
+	        }
 		}
 
-		// 4. Redis 상태 업데이트
+		// 5. Redis 상태 업데이트
+		log.info("Redis 상태 업데이트 시작");
 	    redisUtil.updateStepStatus(reservationToken, "COMPLETED");
 	    redisUtil.updateReservationStatus(reservationToken, ReservationStatus.RESERVED);
 	    redisUtil.deleteMetaData(reservationToken);
 		
 	    log.info("좌석 변경 완료: 이전좌석={}, 새좌석={}, eventId={}, scheduleId={}", beforeSeats, afterSeats, eventId, scheduleId);
+	    
+	    // 예매 상태 2로 변경 (테스트 단계에서는 주석처리) 
+	    // reservationMapper.updateReservationStatus(reservationId, ReservationStatus.CHANGE_DONE.code);
+	    // log.info("예약 상태 변경 완료: reservationId={}, status={}", reservationId, ReservationStatus.CHANGE_DONE);
+	    
+	    // 신규 티켓 생성
+	    log.info("신규 티켓 생성 시작");
+	    Reservation existingReservation = reservationMapper.selectReservationByReservaionId(reservationId);
+	    Long paymentId = existingReservation.getPaymentId();
+	    if (afterSeats != null && !afterSeats.isEmpty()) {
+	        for (String seatName : afterSeats) {
+	            EventSeatDto seat = seatService.selectOneBySeatName(seatName, eventId, scheduleId);
+	            if (seat != null) {
+	                Ticket ticket = new Ticket();
+	                ticket.setTicketStatus(TicketStatus.ACTIVE.code);
+	                ticket.setTicketType("SEAT_TYPE");
+	                ticket.setSeatId(seat.getSeatId());
+	                ticket.setReservationId((long) reservationId);
+	                ticket.setPaymentId(paymentId);
+	                ticketMapper.insertTicket(ticket);
+	                log.info("신규 좌석 티켓 생성 완료: seatId={}", seat.getSeatId());
+	            } else {
+	            	log.warn("신규 좌석 정보 조회 실패: seatName={}", seatName);
+	            }
+	        }
+	    }
+	    
+	    log.info("===== 좌석 변경 완료 =====");
 	}
 }

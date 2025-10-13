@@ -248,8 +248,11 @@
 
 				<!-- 변경 예약 summary -->
 				<div id="modification-summary" style="display: none;">
-					<div class="person-info-mod"></div>
-					<div class="seat-info-mod">
+					<div class="person-info-mod" th:if="${event.ticketType == 'PERSON_TYPE'}">
+						<p id="mod-selected-schedule-info"></p>
+						<p id="mod-changed-schedule-info"></p>
+					</div>
+					<div class="seat-info-mod" th:if="${event.ticketType == 'SEAT_TYPE'}">
 						<p id="mod-selected-seats-info"></p>
 						<p id="mod-changed-seats-info"></p>
 					</div>
@@ -258,7 +261,7 @@
 					</div>
 				</div>
 
-	
+
 				<button id="next-btn" class="next-button">다음 단계</button>
 				<button id="modify-btn" class="next-button" style="display: none;">변경 완료</button>
 				<button id="submit-btn" type="submit" class="next-button" form="reservation-form" style="display: none;"

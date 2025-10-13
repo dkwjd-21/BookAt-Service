@@ -33,6 +33,6 @@ public interface ReservationService {
 	List<Map<String, Object>> getExistingReservationData(String reservationId);
 	
 	// 예매 변경
-	public void modifySeats(String reservationToken, int eventId, int scheduleId,
+	public void modifySeats(String reservationToken, int eventId, int scheduleId, int reservationId,
             List<String> beforeSeats, List<String> afterSeats);
 }
