@@ -62,9 +62,9 @@ public class PaymentSessionStore {
 
   public static PaymentSession of(String bookId, int qty, String method,
           java.math.BigDecimal amount, String merchantUid, String userId,
-          String title) {
+          String title,Long orderId) {
           
-	     return new PaymentSession(bookId, qty, method, amount, merchantUid, userId, "READY", OffsetDateTime.now().toString(),title
+	     return new PaymentSession(bookId, qty, method, amount, merchantUid, userId, "READY", OffsetDateTime.now().toString(),title,orderId
          );
   }
  

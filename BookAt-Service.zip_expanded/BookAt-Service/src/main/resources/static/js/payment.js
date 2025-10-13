@@ -122,93 +122,65 @@
     return { subtotal, shippingFee, totalAmount, items: [] };
   }
 
-  // cartIds 뽑기
-  function collectCartIds() {
+  // 서버가 기대하는 바디로 변환: { items: [...] }
+  function buildOrderCreateBody() {
     const { items } = collectCartPayload();
     if (items && items.length) {
-      return items.map(it => it.cartId ?? it.cartID ?? it.id ?? it.bookId).filter(Boolean);
+      return {
+        items: items.map(it => ({
+          // cart에서 오면 cartId 존재, 바로구매면 없어도 됨
+          cartId: it.cartId ?? it.cartID ?? it.id ?? null,
+          bookId: Number(it.bookId),
+          price: Number(it.price),
+          quantity: Number(it.quantity ?? it.cartQuantity ?? 1),
+        }))
+      };
     }
-    // DOM fallback
-    const nodes = Array.from(document.querySelectorAll("#orderItems .order-item, [data-cart-id]"));
-    const ids = nodes.map(el =>
-      el.getAttribute("data-cart-id") ||
-      el.getAttribute("data-cartid") ||
-      el.getAttribute("data-id") ||
-      el.getAttribute("data-book-id")
-    ).filter(Boolean);
-    return ids;
-  }
+	  // DOM 
+	  const nodes = Array.from(document.querySelectorAll("#orderItems .order-item"));
+	  const domItems = nodes.map(el => {
+	    const priceText = el.querySelector(".price")?.textContent || "0";
+	    const qtyText   = el.querySelector(".quantity")?.textContent || "1";
+	    const price = Number(priceText.toString().replace(/[^\d]/g, ""));
+	    const quantity = Number(qtyText.toString().replace(/[^\d]/g, "")) || 1;
+	    return { cartId: null, bookId: 0, price, quantity };
+	  });
+	  return { items: domItems };
+	}
 
-  // 주문 선생성 API
-  async function createOrderOnServerOnce() {
-    if (getOrderIdFromPage()) return getOrderIdFromPage();
+	// ===== 주문 선생성 API (클릭 시 한 번만)
+	async function createOrderOnServerOnce() {
+	  const exists = getOrderIdFromPage();
+	  if (exists) return exists;
 
-    const isDirect =
-      window.isDirectOrder === true ||
-      document.body?.dataset?.direct === "1";
+	  const body = buildOrderCreateBody();
+	  if (!body.items || body.items.length === 0) {
+	    throw new Error("주문할 상품을 찾지 못했습니다. 장바구니에서 선택 후 들어와주세요.");
+	  }
 
-    if (isDirect) {
-      // ---------- [바로구매] ----------
-      const bookId = window.bookData?.bookId;
-      const qty = Number(window.quantity || 1);
-      const unitPrice = Number(window.bookData?.price || 0);
+	  // POST /order/create
+	  const res = await window.axiosInstance.post("/order/create", body, {
+	    headers: { "Content-Type": "application/json" }
+	  });
+	  const data = res.data || {};
+	  const orderId = data.orderId;
+	  if (!orderId) {
+	    throw new Error(data?.message || "주문번호를 찾을 수 없습니다.");
+	  }
 
-      if (!bookId || !qty) {
-        console.warn("[ORDER][DIRECT] bookId/qty 누락");
-        return null;
-      }
-      // 금액 계산(프런트 계산값은 참고용, 서버가 최종 검증)
-      const subtotal = unitPrice * qty;
-      const shippingFee = subtotal > 0 && subtotal < 15000 ? 3000 : 0;
-      const totalAmount = subtotal + shippingFee;
+	  // hidden/dataset에 심어두기
+	  let hid = document.getElementById("orderId");
+	  if (!hid) {
+	    hid = document.createElement("input");
+	    hid.type = "hidden";
+	    hid.id = "orderId";
+	    document.body.appendChild(hid);
+	  }
+	  hid.value = String(orderId);
+	  try { document.body.dataset.orderId = String(orderId); } catch {}
 
-      // POST /order/direct (JSON {orderId})
-      const body = { bookId, quantity: qty, unitPrice, totalAmount };
-      const res = await window.axiosInstance.post("/order/direct", body);
-      const data = res.data || {};
-      if (data && data.orderId) {
-        let hid = document.getElementById("orderId");
-        if (!hid) {
-          hid = document.createElement("input");
-          hid.type = "hidden";
-          hid.id = "orderId";
-          document.body.appendChild(hid);
-        }
-        hid.value = String(data.orderId);
-        try { document.body.dataset.orderId = String(data.orderId); } catch {}
-        console.log("[ORDER][DIRECT] pre-created:", data.orderId);
-        return data.orderId;
-      }
-      throw new Error(data?.message || "바로구매 주문 선생성 실패");
-    } else {
-      // ---------- [장바구니] ----------
-      const cartIds = collectCartIds();
-      if (!cartIds.length) {
-        console.warn("[ORDER][CART] cartIds가 비어 있습니다. 장바구니에서 선택 후 들어왔는지 확인하세요.");
-        return null;
-      }
-      const { subtotal, shippingFee, totalAmount } = collectCartPayload();
-      const body = { cartIds, subtotal, shippingFee, totalAmount };
-
-      // POST /order/create (JSON {orderId})
-      const res = await window.axiosInstance.post("/order/create", body);
-      const data = res.data || {};
-      if (data && data.orderId) {
-        let hid = document.getElementById("orderId");
-        if (!hid) {
-          hid = document.createElement("input");
-          hid.type = "hidden";
-          hid.id = "orderId";
-          document.body.appendChild(hid);
-        }
-        hid.value = String(data.orderId);
-        try { document.body.dataset.orderId = String(data.orderId); } catch {}
-        console.log("[ORDER][CART] pre-created:", data.orderId);
-        return data.orderId;
-      }
-      throw new Error(data?.message || "주문 선생성 실패");
-    }
-  }
+	  return orderId;
+	}
 
   // 세션 생성 
   async function createCartSessionHash({ amount, title, orderId }) {
@@ -369,15 +341,15 @@
             ?.textContent?.trim();
         const title = count > 1 ? `도서 ${count}건` : firstTitle || "도서 결제";
 
-        const orderId = getOrderIdFromPage();
-        if (!orderId) {
-          alert("주문번호를 찾을 수 없습니다. 페이지를 새로고침하거나 장바구니에서 다시 시도해 주세요.");
-          return;
-        }
+		// 주문 생성
+		let orderId = getOrderIdFromPage();
+		if (!orderId) {
+		  orderId = await createOrderOnServerOnce();
+		}
 
         const { totalAmount } = collectCartPayload();
 
-        // 기존 결제 세션 토큰이 있으면 재사용
+        // 결제 세션 토큰
         let token = getStoredPayToken(orderId);
         if (!token) {
           token = await createCartSessionHash({ amount: totalAmount, title, orderId });
@@ -399,6 +371,7 @@
           method: btn.dataset.method,
         });
 
+		//완료 검증
         const done = await window.axiosInstance.post("/payment/api/complete", {
           merchantUid: rsp.merchant_uid,
           impUid: rsp.imp_uid,
@@ -448,10 +421,6 @@
   document.addEventListener("DOMContentLoaded", () => {
     initPayTabs();
     if (!window.axiosInstance) console.warn("axiosInstance not initialized");
-
-    // 페이지 진입 시 장바구니 주문이라면 1회만 주문 선생성(바로구매는 생략)
-    createOrderOnServerOnce()
-      .catch(e => console.warn("[ORDER] pre-create skipped:", e?.response?.data || e?.message || e));
 
     bindPayFragment().catch((err) => {
       if (err && /프래그먼트|토큰|세션/.test(String(err.message || ""))) {
