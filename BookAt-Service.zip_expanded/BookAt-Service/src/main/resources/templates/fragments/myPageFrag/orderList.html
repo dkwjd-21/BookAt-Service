@@ -1,0 +1,75 @@
+<div th:fragment="orderList-fragment">
+  <div class="page-head">
+    <h1 class="page-head__title">주문/배송 조회</h1>
+  </div>
+
+  <div class="orderlist-wrapper">
+    <section class="orderlist-status-panel" id="statusPanel" style="display: none">
+      <div class="status-box">
+        <div class="status-item">
+          <span class="status-label">배송준비중 (결제완료)</span>
+          <span class="status-count" data-type="ready">0</span>
+        </div>
+        <div class="status-item">
+          <span class="status-label">배송중</span>
+          <span class="status-count" data-type="shipping">0</span>
+        </div>
+        <div class="status-item">
+          <span class="status-label">배송완료</span>
+          <span class="status-count" data-type="completed">0</span>
+        </div>
+        <div class="status-item">
+          <span class="status-label">교환/반품/취소</span>
+          <span class="status-count" data-type="return">0</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="orderlist-recent" id="orderSection" style="display: none">
+      <header class="recent-header">
+        <h2>최근 주문 <span class="recent-period">(최근 6개월 이내)</span></h2>
+      </header>
+
+      <div class="order-history" id="orderHistory"></div>
+      <div class="order-empty" id="orderEmpty" style="display: none">
+        <p>조회 가능한 주문이 없습니다.</p>
+      </div>
+    </section>
+
+    <section class="orderlist-guide" id="guideSection" style="display: none">
+      <div class="guide-card">
+        <p>새로운 주문을 진행하시겠어요?</p>
+        <a class="btn-primary" th:href="@{/books}">도서 둘러보기</a>
+      </div>
+    </section>
+
+    <section class="orderlist-login" id="loginSection" style="display: none">
+      <div class="login-callout">
+        <p>로그인이 필요한 서비스입니다.</p>
+        <a class="btn-primary" th:href="@{/user/login}">로그인하기</a>
+      </div>
+    </section>
+  </div>
+
+  <form id="trackingForm" action="https://info.sweettracker.co.kr/tracking/4" method="post" target="trackingPopup" style="display: none">
+    <input type="hidden" name="t_key" th:value="${sweetTrackerApiKey}" />
+    <input type="hidden" name="t_code" value="04" />
+    <input type="hidden" name="t_invoice" />
+  </form>
+
+  <!-- 알림 모달 -->
+  <div id="orderAlertModal" class="modal-overlay review-modal" style="display: none">
+    <div class="modal-content alert-modal-content">
+      <div class="modal-header-simple">
+        <h3 id="orderAlertModalTitle">알림</h3>
+        <button class="close-btn" onclick="window.closeOrderAlertModal()">&times;</button>
+      </div>
+      <div class="modal-body-simple">
+        <p id="orderAlertModalMessage"></p>
+      </div>
+      <div class="modal-buttons-simple">
+        <button type="button" class="submit-btn" onclick="window.closeOrderAlertModal()">확인</button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -233,14 +233,28 @@ body {
 .wishlist-btn,
 .reserve-btn {
   padding: 10px 20px;
-  border: 1px solid #ccc;
-  /* background-color: white; */
   cursor: pointer;
   font-size: 16px;
   border-radius: 5px;
-  /* background-color: #f9d849; */
   color: rgb(0, 0, 0);
+  border: 1px solid #d1d5db;
+  background-color: white;
+  transition: all 0.2s ease;
+}
+
+.reserve-btn {
+  background-color: #f9d849;
   border: none;
+  color: #000;
+  font-weight: bold;
+}
+
+.reserve-btn:hover {
+  background-color: #fdd835;
+}
+
+.reserve-btn:focus {
+  outline: none;
 }
 
 .wishlist-btn:hover {
@@ -361,18 +375,6 @@ body {
   border-radius: 5px;
 }
 
-.review-write-btn {
-  float: right;
-  padding: 8px 15px;
-  border: 1px solid #ccc;
-  background-color: #f9d849;
-  cursor: pointer;
-  color: #333;
-  border-radius: 10px;
-  width: 150px;
-  text-align: center;
-}
-
 .info_text {
   font-family: Arial, Helvetica, sans-serif;
 }
@@ -383,34 +385,34 @@ body {
   height: 280px;
   border-radius: 10px;
 }
-/* -------------------------------------- */
-.modal-overlay {
-  display: none; /* 평소에는 숨김 */
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.6);
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
+/* ========== 리뷰 모달 스타일 ========== */
+.review-modal-overlay {
+  display: none !important; /* 평소에는 숨김 */
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  background-color: rgba(0, 0, 0, 0.6) !important;
+  justify-content: center !important;
+  align-items: center !important;
+  z-index: 1000 !important;
 }
 
-/* 모달 본문 창 */
-.modal-content {
-  background-color: #fff;
-  padding: 30px;
-  border-radius: 8px;
-  width: 90%;
-  max-width: 500px;
-  position: relative;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-  animation: slide-down 0.3s ease-out;
+/* 리뷰 모달 본문 창 */
+.review-modal-content {
+  background-color: #fff !important;
+  padding: 30px !important;
+  border-radius: 8px !important;
+  width: 90% !important;
+  max-width: 500px !important;
+  position: relative !important;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3) !important;
+  animation: review-slide-down 0.3s ease-out;
 }
 
-/* 모달 나타날 때 애니메이션 */
-@keyframes slide-down {
+/* 리뷰 모달 나타날 때 애니메이션 */
+@keyframes review-slide-down {
   from {
     transform: translateY(-30px);
     opacity: 0;
@@ -421,24 +423,44 @@ body {
   }
 }
 
-/* 닫기 버튼 */
-.modal-content .close-btn {
+/* 리뷰 모달 닫기 버튼 */
+.review-modal-content .close-btn {
   position: absolute;
-  top: 10px;
-  right: 15px;
-  font-size: 28px;
+  top: 15px;
+  right: 20px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: #f8f9fa;
+  border-radius: 50%;
+  font-size: 18px;
   font-weight: bold;
-  color: #aaa;
+  color: #6c757d;
   cursor: pointer;
-}
-.modal-content .close-btn:hover {
-  color: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.modal-content h2 {
+.review-modal-content .close-btn:hover {
+  background: #e9ecef;
+  color: #495057;
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.review-modal-content .close-btn:active {
+  transform: scale(0.95);
+}
+
+.review-modal-content h2 {
   margin-top: 0;
   margin-bottom: 20px;
   text-align: center;
+  font-size: 24px;
+  color: #111827;
 }
 
 /* 모달 폼 그룹 */
@@ -450,6 +472,8 @@ body {
   display: block;
   margin-bottom: 8px;
   font-weight: bold;
+  color: #374151;
+  font-size: 14px;
 }
 
 /* 별점 입력 스타일 */
@@ -460,35 +484,74 @@ body {
   transition: color 0.2s;
 }
 
-/* 마우스 올렸을 때 별 색상 변경 */
-.stars-input:hover .star {
-  color: #f9d849;
-}
-.stars-input .star:hover ~ .star {
-  color: #ddd;
-}
-
-/* 선택된 별 색상 고정 */
+/* 선택된 별 색상 고정 (우선순위 높임) */
 .stars-input .star.selected {
-  color: #f9d849;
+  color: #f9d849 !important;
 }
-.stars-input .star.selected ~ .star {
+
+/* 선택되지 않은 별은 회색으로 */
+.stars-input .star:not(.selected) {
   color: #ddd;
 }
 
-/* 리뷰 내용 입력창 */
-.modal-content textarea {
+/* 문자 수 표시 */
+.char-count {
+  text-align: right;
+  margin-top: 5px;
+  font-size: 12px;
+  color: #666;
+}
+
+.char-count.warning {
+  color: #f59e0b;
+}
+
+.char-count.error {
+  color: #ef4444;
+}
+
+/* 리뷰 모달 제목 입력 필드 */
+.review-modal-content input[type="text"] {
   width: 100%;
   box-sizing: border-box;
   padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
   font-size: 16px;
-  resize: vertical;
+  transition: border-color 0.2s ease;
 }
 
-/* 등록하기 버튼 */
-.modal-content .submit-btn {
+.review-modal-content input[type="text"]:focus {
+  outline: none;
+  border-color: #f9d849;
+  box-shadow: 0 0 0 3px rgba(249, 216, 73, 0.1);
+}
+
+/* 리뷰 모달 내용 텍스트박스 */
+.review-modal-content textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 16px;
+  font-family: inherit;
+  line-height: 1.5;
+  resize: vertical;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+  transition: border-color 0.2s ease;
+}
+
+.review-modal-content textarea:focus {
+  outline: none;
+  border-color: #f9d849;
+  box-shadow: 0 0 0 3px rgba(249, 216, 73, 0.1);
+}
+
+/* 리뷰 모달 등록하기 버튼 */
+.review-modal-content .submit-btn {
   width: 100%;
   padding: 12px;
   background-color: #f9d849;
@@ -496,12 +559,18 @@ body {
   border-radius: 6px;
   font-size: 16px;
   font-weight: bold;
+  color: #000;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.2s ease;
 }
 
-.modal-content .submit-btn:hover {
+.review-modal-content .submit-btn:hover {
   background-color: #fdd835;
+  box-shadow: 0 2px 8px rgba(249, 216, 73, 0.3);
+}
+
+.review-modal-content .submit-btn:active {
+  transform: scale(0.98);
 }
 
 .schedule-list ul {
@@ -514,4 +583,107 @@ body {
   margin-bottom: 4px;
   font-size: 16px;
   color: #4b5563;
+}
+
+/* ========== 리뷰 관련 추가 스타일 ========== */
+
+/* 리뷰 컨테이너 및 텍스트 줄바꿈 */
+.review-item-container {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.review-item-container * {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
+}
+
+/* 리뷰 작성 버튼 */
+.review-write-btn {
+  float: right;
+  display: inline-block;
+  padding: 8px 14px;
+  background: #fff;
+  color: #333;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  text-align: center;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.review-write-btn:hover,
+.review-write-btn:focus-visible {
+  background: #f9d849;
+  border-color: #f9d849;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+/* 리뷰 수정/삭제 버튼 */
+.review-action-btn {
+  padding: 6px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+  color: #000;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.review-action-btn:hover {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+.review-action-btn.delete-btn:hover {
+  background: #fee2e2;
+  border-color: #ef4444;
+  color: #dc2626;
+}
+
+/* 모달 버튼 그룹 스타일 */
+.modal-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.modal-buttons .btn {
+  flex: 1;
+  max-width: 150px;
+  text-align: center;
+  padding: 12px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  color: #000;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.modal-buttons .btn:hover {
+  background: #f9d849;
+  border-color: #f9d849;
+  color: #000;
+}
+
+.modal-buttons .btn--primary {
+  background: #f9d849;
+  border-color: #f9d849;
+  color: #000;
+}
+
+.modal-buttons .btn--primary:hover {
+  background: #fdd835;
+  border-color: #fdd835;
 }

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.bookat.mapper.MyPageMapper">
+
+	<select id="getReservationDetails" resultType="com.bookat.dto.myPage.ReservationDetailDto">
+		SELECT
+			e.event_name,
+			e.event_image,
+			s.schedule_time,
+			s.schedule_name,
+			r.reserved_count,
+			r.reservation_status,
+			r.reservation_date,
+			p.total_price
+		FROM reservation r
+		JOIN event e on e.event_id = r.event_id
+		JOIN event_part s on s.schedule_id = r.schedule_id
+		JOIN payment p on p.payment_id = r.payment_id
+		WHERE r.user_id = #{userId}
+	</select>
+	
+	<select id="getTicketDetails" resultType="com.bookat.dto.myPage.TicketDetailDto">
+		SELECT
+			e.event_name,
+			s.schedule_name,
+			s.schedule_time,
+			t.person_type,
+			st.seat_name,
+			t.ticket_type
+		FROM ticket t
+		JOIN reservation r ON r.reservation_id = t.reservation_id
+			JOIN event e ON e.event_id = r.event_id
+			JOIN event_part s ON s.schedule_id = r.schedule_id
+		LEFT JOIN seat_type st ON st.seat_id = t.seat_id
+		WHERE t.reservation_id = #{reservationId}
+	</select>
+	
+</mapper>

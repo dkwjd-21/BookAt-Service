@@ -17,6 +17,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.bookat.dto.EventPartDto;
 import com.bookat.dto.EventResDto;
+import com.bookat.dto.ReviewDto;
 import com.bookat.entity.Book;
 import com.bookat.entity.Review;
 import com.bookat.service.impl.EventServiceImpl;
@@ -119,7 +120,7 @@ public class EventController {
         Book book = eventService.selectBookOne(event.getBookId());
         model.addAttribute("book", book);
         
-        List<Review> reviews = reviewService.findByEventId(event.getEventId());
+        List<ReviewDto> reviews = reviewService.findReviewDtosByEventId(event.getEventId());
         model.addAttribute("reviews",reviews);
         System.out.println("불러온 리뷰 : "+reviews);
         

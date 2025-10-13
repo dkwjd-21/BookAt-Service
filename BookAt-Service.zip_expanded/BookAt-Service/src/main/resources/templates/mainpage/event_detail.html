@@ -69,7 +69,7 @@
             <div class="actions">
               <button class="wishlist-btn">찜</button>
               <button class="wishlist-btn">알림받기</button>
-              <button id="reserve-btn" th:data-event-id="${event.eventId}" class="reserve-btn" th:data-event-date="${#dates.format(event.eventDate, 'yyyy-MM-dd')}"></button>
+              <button id="reserve-btn" th:data-event-id="${event.eventId}" class="reserve-btn" th:data-event-date="${#dates.format(event.eventDate, 'yyyy-MM-dd')}">예매하기</button>
             </div>
           </div>
         </section>
@@ -148,9 +148,7 @@
           <h2>리뷰</h2>
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px">
             <h3 class="section-title" style="margin: 0">전체 리뷰 (<span th:text="${reviewCount}">0</span>)</h3>
-            <form th:action="@{|/books/${book.bookId}/reviews/new|}" method="get">
-              <a class="review-write-btn" role="button" id="openReviewModalBtn"> 리뷰 작성 </a>
-            </form>
+            <button type="button" class="review-write-btn" id="openReviewModalBtn">리뷰 작성</button>
           </div>
           <div class="soft-divider"></div>
           <br />
@@ -161,7 +159,7 @@
           <div th:if="${#lists.isEmpty(reviews)}" style="color: #6b7280">작성된 리뷰가 없습니다.</div>
 
           <!-- 리뷰 리스트 -->
-          <div th:each="rv : ${reviews}" style="padding: 30px 0; border-bottom: 2px solid #eee">
+          <div th:each="rv : ${reviews}" class="review-item-container" style="padding: 30px 0; border-bottom: 2px solid #eee; position: relative" th:attr="data-review-id=${rv.reviewId}, data-author-id=${rv.userId}, data-title=${rv.title}, data-content=${rv.content}, data-rating=${rv.rating}">
             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px">
               <!-- 별점 표시: 가득★ 와 빈☆를 5개 기준으로 -->
               <span>
@@ -169,10 +167,21 @@
                   <span th:each="i : ${#numbers.sequence(1,5)}" th:text="${i <= rv.rating} ? '★' : '☆'" th:classappend="${i <= rv.rating} ? 'on' : ''">★</span>
                 </span>
               </span>
-              <span class="meta" th:text="${rv.userId}">user_id</span>&nbsp;&nbsp;|&nbsp;&nbsp;
-              <span class="meta" th:text="${#temporals.format(rv.reviewDate, 'yyyy.MM.dd')}">2025.09.01</span>
+              <span class="meta review-author-id" th:text="${rv.userId}">user_id</span>&nbsp;&nbsp;|&nbsp;&nbsp;
+              <span class="meta" th:text="${#temporals.format(rv.createdAt, 'yyyy.MM.dd')}">2025.09.01</span>
             </div>
-            <div style="white-space: pre-line; color: #374151; margin-top: 20px; margin-left: 90px" th:text="${rv.reviewContent}">리뷰 내용</div>
+
+            <!-- 리뷰 제목 -->
+            <div style="font-weight: 600; font-size: 16px; color: #111827; margin-top: 12px; margin-left: 90px; word-wrap: break-word; overflow-wrap: break-word; max-width: calc(100% - 120px)" th:text="${rv.title}">리뷰 제목</div>
+
+            <!-- 리뷰 내용 -->
+            <div style="white-space: pre-line; color: #374151; margin-top: 8px; margin-left: 90px; word-wrap: break-word; overflow-wrap: break-word; max-width: calc(100% - 120px)" th:text="${rv.content}">리뷰 내용</div>
+
+            <!-- 수정/삭제 버튼 (JavaScript로 동적으로 표시) -->
+            <div class="review-actions" style="position: absolute; top: 30px; right: 0; display: none; gap: 8px">
+              <button type="button" class="review-action-btn edit-btn">수정</button>
+              <button type="button" class="review-action-btn delete-btn">삭제</button>
+            </div>
           </div>
         </section>
       </main>
@@ -243,17 +252,18 @@
       </div>
     </div>
   </body>
-  <!-- 리뷰 작성 모달창 -->
-  <div id="reviewModal" class="modal-overlay">
-    <div class="modal-content">
-      <span class="close-btn">&times;</span>
+  <!-- 리뷰 작성 모달 -->
+  <div id="reviewModal" class="review-modal-overlay">
+    <div class="review-modal-content">
+      <button type="button" class="close-btn" aria-label="close">&times;</button>
       <h2>리뷰 작성</h2>
+
       <form id="reviewForm">
         <input type="hidden" name="eventId" th:value="${event.eventId}" />
 
         <div class="form-group">
           <label>별점</label>
-          <div class="stars-input">
+          <div class="stars-input" id="starsInput">
             <span class="star" data-value="1">★</span>
             <span class="star" data-value="2">★</span>
             <span class="star" data-value="3">★</span>
@@ -264,12 +274,131 @@
         </div>
 
         <div class="form-group">
+          <label for="reviewTitle">리뷰 제목</label>
+          <input type="text" id="reviewTitle" name="title" placeholder="리뷰 제목을 입력해주세요." maxlength="50" required />
+          <div class="char-count"><span id="titleCharCount">0</span>/50자</div>
+        </div>
+
+        <div class="form-group">
           <label for="reviewContent">리뷰 내용</label>
-          <textarea id="reviewContent" name="content" rows="6" placeholder="리뷰 내용을 입력해주세요." required></textarea>
+          <textarea id="reviewContent" name="content" rows="6" placeholder="리뷰 내용을 입력해주세요." maxlength="500" style="resize: vertical; word-wrap: break-word" required></textarea>
+          <div class="char-count"><span id="contentCharCount">0</span>/500자</div>
         </div>
 
         <button type="submit" class="submit-btn">등록하기</button>
       </form>
+    </div>
+  </div>
+
+  <!-- 리뷰 수정 모달 -->
+  <div id="editReviewModal" class="review-modal-overlay">
+    <div class="review-modal-content">
+      <button type="button" class="close-btn" aria-label="close">&times;</button>
+      <h2>리뷰 수정</h2>
+
+      <form id="editReviewForm">
+        <input type="hidden" id="editReviewId" />
+
+        <div class="form-group">
+          <label>별점</label>
+          <div class="stars-input" id="editStarsInput">
+            <span class="star" data-value="1">★</span>
+            <span class="star" data-value="2">★</span>
+            <span class="star" data-value="3">★</span>
+            <span class="star" data-value="4">★</span>
+            <span class="star" data-value="5">★</span>
+          </div>
+          <input type="hidden" id="editRating" name="rating" value="0" required />
+        </div>
+
+        <div class="form-group">
+          <label for="editReviewTitle">리뷰 제목</label>
+          <input type="text" id="editReviewTitle" name="title" placeholder="리뷰 제목을 입력해주세요." maxlength="50" required />
+          <div class="char-count"><span id="editTitleCharCount">0</span>/50자</div>
+        </div>
+
+        <div class="form-group">
+          <label for="editReviewContent">리뷰 내용</label>
+          <textarea id="editReviewContent" name="content" rows="6" placeholder="리뷰 내용을 입력해주세요." maxlength="500" style="resize: vertical; word-wrap: break-word" required></textarea>
+          <div class="char-count"><span id="editContentCharCount">0</span>/500자</div>
+        </div>
+
+        <button type="submit" class="submit-btn">수정하기</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 중복 리뷰 모달 -->
+  <div id="duplicateReviewModal" class="review-modal-overlay">
+    <div class="review-modal-content">
+      <button type="button" class="close-btn" aria-label="close">&times;</button>
+      <h2>이미 작성된 리뷰가 있습니다</h2>
+      <p>해당 이벤트에 대한 리뷰를 이미 작성하셨습니다.<br />한 이벤트당 하나의 리뷰만 작성할 수 있습니다.</p>
+      <div class="modal-buttons">
+        <button type="button" class="btn btn--primary" id="closeDuplicateModalBtn">확인</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 리뷰 로그인 필요 모달 -->
+  <div id="reviewLoginRequiredModal" class="review-modal-overlay">
+    <div class="review-modal-content">
+      <button type="button" class="close-btn" aria-label="close">&times;</button>
+      <h2>로그인 필요</h2>
+      <p>리뷰를 작성하려면 로그인이 필요합니다.</p>
+      <div class="modal-buttons">
+        <button type="button" class="btn btn--primary" id="reviewGoToLoginBtn">로그인하기</button>
+        <button type="button" class="btn" id="reviewCancelLoginBtn">취소</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 리뷰 작성 성공 모달 -->
+  <div id="reviewCreateSuccessModal" class="review-modal-overlay">
+    <div class="review-modal-content">
+      <button type="button" class="close-btn" aria-label="close">&times;</button>
+      <h2>리뷰 작성 완료</h2>
+      <p>리뷰가 성공적으로 작성되었습니다!</p>
+      <div class="modal-buttons">
+        <button type="button" class="btn btn--primary" id="reviewCreateOkBtn">확인</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 리뷰 수정 성공 모달 -->
+  <div id="reviewUpdateSuccessModal" class="review-modal-overlay">
+    <div class="review-modal-content">
+      <button type="button" class="close-btn" aria-label="close">&times;</button>
+      <h2>리뷰 수정 완료</h2>
+      <p>리뷰가 성공적으로 수정되었습니다!</p>
+      <div class="modal-buttons">
+        <button type="button" class="btn btn--primary" id="reviewUpdateOkBtn">확인</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 리뷰 삭제 확인 모달 -->
+  <div id="reviewDeleteConfirmModal" class="review-modal-overlay">
+    <div class="review-modal-content">
+      <button type="button" class="close-btn" aria-label="close">&times;</button>
+      <h2>리뷰 삭제</h2>
+      <p>정말로 이 리뷰를 삭제하시겠습니까?</p>
+      <div class="modal-buttons">
+        <button type="button" class="btn btn--primary" id="reviewDeleteConfirmBtn">삭제</button>
+        <button type="button" class="btn" id="reviewDeleteCancelBtn">취소</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 리뷰 삭제 성공 모달 -->
+  <div id="reviewDeleteSuccessModal" class="review-modal-overlay">
+    <div class="review-modal-content">
+      <button type="button" class="close-btn" aria-label="close">&times;</button>
+      <h2>리뷰 삭제 완료</h2>
+      <p>리뷰가 성공적으로 삭제되었습니다!</p>
+      <div class="modal-buttons">
+        <button type="button" class="btn btn--primary" id="reviewDeleteOkBtn">확인</button>
+      </div>
     </div>
   </div>
 </html>

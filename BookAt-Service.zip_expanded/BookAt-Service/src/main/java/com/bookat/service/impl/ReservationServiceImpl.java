@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,7 +43,6 @@ public class ReservationServiceImpl implements ReservationService {
 	private final ReservationMapper reservationMapper;
 	private final TicketMapper ticketMapper;
 	private final EventPartMapper eventPartMapper;
-	private final StringRedisTemplate redisTemplate;
 	private final SeatServiceImpl seatService;
 	private final ReservationRedisUtil redisUtil;
 	private final QueueServiceImpl queueService;
@@ -63,26 +61,25 @@ public class ReservationServiceImpl implements ReservationService {
 		eventParts.sort(Comparator.comparing(EventPart::getScheduleTime));
 
 		// 이벤트의 날짜
-		if (eventParts != null) {
-			for (EventPart part : eventParts) {
-				Date scheduleTime = part.getScheduleTime();
-				eventDate = scheduleTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-			}
+		if(!eventParts.isEmpty()) {
+			Date scheduleTime = eventParts.get(eventParts.size() -1).getScheduleTime();
+			eventDate = scheduleTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 		}
+
 
 		// person type - 잔여좌석 불러오기
 		if ("PERSON_TYPE".equals(event.getTicketType())) {
-			for (EventPart eventPart : eventParts) {
-				String redisKey = String.format("EVENT:%d:SCHEDULE:%d:AVAILABLE_SEAT", eventId,
-						eventPart.getScheduleId());
-				String availableSeat = redisTemplate.opsForValue().get(redisKey);
-
-				if (availableSeat != null) {
-					eventPart.setRemainingSeat(Integer.parseInt(availableSeat));
-				} else {
-					eventPart.setRemainingSeat(0);
-				}
+			List<String> scheduleList = eventParts.stream()
+					.map(p -> String.valueOf(p.getScheduleId()))
+					.toList();
+			
+			Map<String, Integer> availableSeatsMap = redisUtil.getAvailableSeatsMap(String.valueOf(eventId), scheduleList);
+			
+			for(EventPart part : eventParts) {
+				int remainingSeats = availableSeatsMap.getOrDefault(String.valueOf(part.getScheduleId()), 0);
+				part.setRemainingSeat(remainingSeats);
 			}
+
 		}
 
 		// 예약 세션 생성
@@ -349,7 +346,9 @@ public class ReservationServiceImpl implements ReservationService {
 		Reservation reservation = new Reservation();
 		reservation.setPaymentId(paymentId);
 		reservation.setReservationStatus(ReservationStatus.RESERVED.code);
-		reservation.setScheduleId(Integer.parseInt(reservationData.get("scheduleId").toString()));
+		reservation.setReservedCount(Integer.parseInt(reservationData.get("reservedCount").toString()));
+		reservation.setScheduleId(scheduleId);
+		reservation.setEventId(eventId);
 		reservation.setUserId((String) reservationData.get("userId"));
 		reservationMapper.insertReservation(reservation);
 
