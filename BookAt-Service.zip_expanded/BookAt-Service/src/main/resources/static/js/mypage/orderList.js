@@ -531,31 +531,3 @@ window.initOrderList = async function () {
   await loadOrderData();
   initEventListeners();
 };
-
-// DOMContentLoaded에서 자동 실행
-document.addEventListener("DOMContentLoaded", async () => {
-  const currentPath = window.location.pathname;
-  const isMyPageMain = currentPath === "/myPage" || currentPath === "/myPage/";
-
-  if (!isMyPageMain) {
-    const asideOrderLink = document.querySelector(".js-mypage-order-link");
-    if (asideOrderLink) {
-      asideOrderLink.addEventListener("click", async (event) => {
-        event.preventDefault();
-        try {
-          const res = await window.axiosInstance.get("/order/orderList", { responseType: "text" });
-          document.open();
-          document.write(res.data);
-          document.close();
-          window.history.pushState({}, "", "/myPage/orderList");
-        } catch (error) {
-          window.location.href = "/user/login";
-        }
-      });
-    }
-
-    if (typeof window.initOrderList === "function") {
-      await window.initOrderList();
-    }
-  }
-});

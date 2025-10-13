@@ -48,13 +48,6 @@ public class OrderController {
     @Value("${sweettracker.api.key:}")
     private String sweetTrackerApiKey;
 
-    @GetMapping("/orderList")
-    public String orderListPage(Model model, @AuthenticationPrincipal User user) {
-        model.addAttribute("user", user);
-        model.addAttribute("sweetTrackerApiKey", sweetTrackerApiKey);
-        return "mypage/orderList";
-    }
-
     @GetMapping("/orderList/api")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> orderListApi(@AuthenticationPrincipal User user) {

@@ -7,6 +7,10 @@
   --mypage-muted: #6b7280;
 }
 
+body {
+  background-color: var(--mypage-bg);
+}
+
 .mypage-wrapper {
   max-width: 1200px;
   margin: 0 auto;
@@ -14,6 +18,7 @@
   display: flex;
   gap: 32px;
   align-items: flex-start;
+  background-color: #f0f2f5;
 }
 
 .mypage-aside {
@@ -22,7 +27,7 @@
   border-radius: 18px;
   border: 1px solid var(--mypage-border);
   background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-  box-shadow: 0 20px 40px rgba(0, 27, 79, 0.08);
+  box-shadow: 0 4px 12px rgba(0, 27, 79, 0.06);
   overflow: hidden;
   position: sticky;
   top: 100px;
@@ -184,6 +189,11 @@
 .mypage-main {
   flex: 1;
   min-width: 0;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid var(--mypage-border);
+  border-radius: 18px;
+  padding: 32px;
+  box-shadow: 0 4px 12px rgba(0, 27, 79, 0.06);
 }
 
 /* Fragment 전환 스타일 */
@@ -211,9 +221,11 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  margin-bottom: 28px;
+  margin: -32px -32px 28px -32px;
+  padding: 24px 32px 16px 32px;
   border-bottom: 1px solid var(--mypage-border);
-  padding-bottom: 16px;
+  background: linear-gradient(90deg, rgba(0, 50, 116, 0.03) 0%, transparent 100%);
+  border-radius: 18px 18px 0 0;
 }
 
 .mypage-main .page-head__title {
@@ -284,6 +296,16 @@
     width: 100%;
     display: grid;
     grid-template-columns: minmax(0, 1fr);
+    position: static;
+  }
+
+  .mypage-main {
+    padding: 24px;
+  }
+
+  .mypage-main .page-head {
+    margin: -24px -24px 20px -24px;
+    padding: 20px 24px 14px 24px;
   }
 
   .mypage-nav__list {
@@ -304,6 +326,15 @@
 }
 
 @media (max-width: 640px) {
+  .mypage-main {
+    padding: 20px;
+  }
+
+  .mypage-main .page-head {
+    margin: -20px -20px 16px -20px;
+    padding: 16px 20px 12px 20px;
+  }
+
   .mypage-nav__link {
     flex: 1 1 100%;
   }

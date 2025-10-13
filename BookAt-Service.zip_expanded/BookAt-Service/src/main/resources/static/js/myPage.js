@@ -51,6 +51,13 @@ function updateActiveLink(activeLink, allLinks) {
 
 // fragment 표시
 function showFragment(fragmentType) {
+  // 선택된 fragment 확인
+  const targetFragment = document.getElementById(`fragment-${fragmentType}`);
+  if (!targetFragment) return;
+
+  // 이미 활성화되어 있는지 체크 (중복 초기화 방지)
+  const wasActive = targetFragment.classList.contains("active");
+
   // 모든 fragment 숨기기
   const allFragments = document.querySelectorAll(".mypage-fragment");
   allFragments.forEach((fragment) => {
@@ -59,21 +66,18 @@ function showFragment(fragmentType) {
   });
 
   // 선택된 fragment 보여주기
-  const targetFragment = document.getElementById(`fragment-${fragmentType}`);
-  if (targetFragment) {
-    targetFragment.classList.add("active");
-    targetFragment.style.display = "block";
+  targetFragment.classList.add("active");
+  targetFragment.style.display = "block";
 
-    // fragment별 초기화 함수 호출
+  // 이미 활성화되어 있지 않았다면 초기화 함수 호출
+  if (!wasActive) {
     if (fragmentType === "reservation") {
       goReservationDetails();
     } else if (fragmentType === "order") {
-      // orderList.js의 초기화 함수가 있다면 호출
       if (typeof window.initOrderList === "function") {
         window.initOrderList();
       }
     } else if (fragmentType === "review") {
-      // myReview.js의 초기화 함수가 있다면 호출
       if (typeof window.initMyReview === "function") {
         window.initMyReview();
       }
@@ -84,7 +88,7 @@ function showFragment(fragmentType) {
 // 예매 내역 데이터 로드
 async function goReservationDetails() {
   try {
-    const res = await axiosInstance.get("/myPage/reservationDetails");
+    const res = await window.axiosInstance.get("/myPage/reservationDetails");
     const { status, reservations } = res.data;
 
     const reservationContainer = document.getElementById("reservation-container");

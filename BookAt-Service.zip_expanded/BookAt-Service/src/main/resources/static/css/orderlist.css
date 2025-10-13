@@ -11,14 +11,7 @@
   --orderlist-accent: #f0d9da;
 }
 
-body {
-  background-color: var(--orderlist-bg);
-}
-
 .orderlist-wrapper {
-  max-width: 1080px;
-  margin: 0 auto 80px;
-  padding: 0 20px;
   display: flex;
   flex-direction: column;
   gap: 32px;

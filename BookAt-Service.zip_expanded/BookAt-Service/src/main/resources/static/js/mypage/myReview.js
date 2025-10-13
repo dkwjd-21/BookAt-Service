@@ -350,39 +350,8 @@ window.updateCharCount = function (inputId, countId, maxLength) {
   }
 };
 
-// DOMContentLoaded에서 자동 실행
+// DOMContentLoaded에서 모달 이벤트 리스너 설정
 document.addEventListener("DOMContentLoaded", async () => {
-  // 현재 페이지 경로 확인
-  const currentPath = window.location.pathname;
-  const isMyPageMain = currentPath === "/myPage" || currentPath === "/myPage/";
-
-  // myPageMain이 아닌 경우에만 aside 링크 이벤트 등록 (myPageMain에서는 myPage.js가 처리)
-  if (!isMyPageMain) {
-    const asideReviewLink = document.querySelector(".js-mypage-review-link");
-
-    if (asideReviewLink) {
-      asideReviewLink.addEventListener("click", async (event) => {
-        event.preventDefault();
-        try {
-          const res = await window.axiosInstance.get("/myPage/myReview", {
-            responseType: "text",
-          });
-          document.open();
-          document.write(res.data);
-          document.close();
-          window.history.pushState({}, "", "/myPage/myReview");
-        } catch (error) {
-          window.location.href = "/user/login";
-        }
-      });
-    }
-
-    // 기존 myReview.html 페이지에서 자동 실행
-    if (typeof window.initMyReview === "function") {
-      await window.initMyReview();
-    }
-  }
-
   // 이벤트 위임: 리뷰 목록의 수정/삭제 버튼 처리 (중복 등록 방지)
   const reviewList = document.getElementById("reviewList");
   if (reviewList) {
