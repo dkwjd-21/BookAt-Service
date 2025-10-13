@@ -28,6 +28,9 @@
         <a th:href="@{/reservation}" class="mypage-nav__link" th:classappend="${activeMenu == 'reservation'} ? ' is-active' : ''">예매내역조회</a>
       </li>
       <li>
+        <a th:href="@{/cart}" class="mypage-nav__link" th:classappend="${activeMenu == 'cart'} ? ' is-active' : ''">장바구니</a>
+      </li>
+      <li>
         <a th:href="@{/calendar}" class="mypage-nav__link" th:classappend="${activeMenu == 'calendar'} ? ' is-active' : ''">이벤트캘린더</a>
       </li>
       <li>
