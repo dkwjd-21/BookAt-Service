@@ -3,27 +3,29 @@ package com.bookat.controller;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.bookat.dto.ReviewDto;
 import com.bookat.dto.myPage.ReservationDetailDto;
 import com.bookat.dto.myPage.TicketDetailDto;
 import com.bookat.entity.User;
 import com.bookat.service.MyPageService;
-import com.bookat.dto.ReviewDto;
-import com.bookat.entity.User;
 import com.bookat.service.ReviewService;
+import lombok.RequiredArgsConstructor;
 
 @Controller
 @RequestMapping("/myPage")
+@RequiredArgsConstructor
 public class MyPageController {
 	
 	private final MyPageService myPageService;

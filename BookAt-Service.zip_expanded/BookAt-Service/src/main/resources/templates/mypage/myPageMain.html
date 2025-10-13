@@ -9,6 +9,7 @@
     <link rel="stylesheet" th:href="@{/css/mypage.css}" />
     <link rel="stylesheet" th:href="@{/css/reservationDetails.css}" />
     <link rel="stylesheet" th:href="@{/css/orderlist.css}" />
+    <link rel="stylesheet" th:href="@{/css/myReview.css}" />
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script th:src="@{/js/utils/axiosIntercepter.js}"></script>
     <script th:src="@{/js/utils/logout.js}"></script>
@@ -35,12 +36,19 @@
           <div id="fragment-order" class="mypage-fragment active">
             <div th:replace="~{fragments/myPageFrag/orderList :: orderList-fragment}"></div>
           </div>
+
+          <!-- 나의 리뷰 fragment -->
+          <div id="fragment-review" class="mypage-fragment">
+            <div th:replace="~{fragments/myPageFrag/myReview :: myReview-fragment}"></div>
+          </div>
         </div>
       </section>
     </main>
 
     <!-- orderList.js 스크립트 로드 -->
     <script th:src="@{/js/mypage/orderList.js}"></script>
+    <!-- myReview.js 스크립트 로드 -->
+    <script th:src="@{/js/mypage/myReview.js}"></script>
 
     <div th:replace="~{fragments/footer :: main-footer}"></div>
   </body>

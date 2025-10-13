@@ -505,24 +505,16 @@ body {
 #reviewStars .star {
   color: #ddd;
   transition: color 0.2s;
+  cursor: pointer;
+  user-select: none;
 }
 
-#reviewStars:hover .star {
-  color: #a5c05d;
-}
-
-#reviewStars .star:hover ~ .star {
-  color: #ddd;
-}
-
-#reviewStars .star.selected {
+#reviewStars .star.selected,
+#reviewStars .star.hover {
   color: #b5d173;
 }
 
-#reviewStars .star.selected ~ .star:not(.selected) {
-  color: #ddd;
-}
-
+.modal-overlay.review-modal .modal-content input[type="text"],
 .modal-overlay.review-modal .modal-content textarea {
   width: 100%;
   box-sizing: border-box;
@@ -531,6 +523,62 @@ body {
   border-radius: 4px;
   font-size: 16px;
   resize: vertical;
+}
+
+.modal-overlay.review-modal .modal-content .char-count {
+  font-size: 12px;
+  color: #888;
+  text-align: right;
+  margin-top: 4px;
+}
+
+.modal-overlay.review-modal .modal-content .char-count.warning {
+  color: #f39c12;
+}
+
+.modal-overlay.review-modal .modal-content .char-count.error {
+  color: #e74c3c;
+  font-weight: bold;
+}
+
+/* 알림 모달 스타일 */
+.alert-modal-content {
+  max-width: 400px !important;
+}
+
+.modal-header-simple {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 20px 0 20px;
+  margin-bottom: 15px;
+}
+
+.modal-header-simple h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.modal-body-simple {
+  padding: 10px 20px 20px 20px;
+  text-align: center;
+}
+
+.modal-body-simple p {
+  font-size: 16px;
+  margin: 0;
+}
+
+.modal-buttons-simple {
+  padding: 0 20px 20px 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.modal-buttons-simple .submit-btn {
+  width: auto;
+  min-width: 100px;
 }
 
 .modal-overlay.review-modal .modal-content .submit-btn {

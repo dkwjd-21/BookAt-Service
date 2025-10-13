@@ -23,7 +23,7 @@ function initMyPageNavigation() {
       if (currentPath === "/myPage" || currentPath === "/myPage/") {
         const href = this.getAttribute("href");
 
-        // 주문배송조회와 예매내역만 SPA 방식으로 처리
+        // 주문배송조회, 예매내역, 나의리뷰만 SPA 방식으로 처리
         if (href.includes("/myPage/orderList")) {
           e.preventDefault();
           showFragment("order");
@@ -31,6 +31,10 @@ function initMyPageNavigation() {
         } else if (href.includes("/reservation")) {
           e.preventDefault();
           showFragment("reservation");
+          updateActiveLink(this, navLinks);
+        } else if (href.includes("/myPage/myReview") || this.classList.contains("js-mypage-review-link")) {
+          e.preventDefault();
+          showFragment("review");
           updateActiveLink(this, navLinks);
         }
         // 다른 메뉴는 기본 동작 (페이지 이동)
@@ -68,6 +72,11 @@ function showFragment(fragmentType) {
       if (typeof window.initOrderList === "function") {
         window.initOrderList();
       }
+    } else if (fragmentType === "review") {
+      // myReview.js의 초기화 함수가 있다면 호출
+      if (typeof window.initMyReview === "function") {
+        window.initMyReview();
+      }
     }
   }
 }
@@ -83,7 +92,6 @@ async function goReservationDetails() {
     const template = document.getElementById("reservation-template");
 
     if (!reservationContainer || !reservationMain || !template) {
-      console.error("예매내역 컨테이너를 찾을 수 없습니다.");
       return;
     }
 
@@ -109,7 +117,6 @@ async function goReservationDetails() {
       reservationMain.appendChild(clone);
     });
   } catch (err) {
-    console.error("예매내역 로드 오류:", err);
     const reservationMain = document.getElementById("reservation-main");
     if (reservationMain) {
       reservationMain.innerHTML = '<p class="no-reservation-info">예매 내역을 불러오는데 실패했습니다.</p>';

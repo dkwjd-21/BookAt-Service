@@ -3,8 +3,8 @@
 :root {
   --myreview-bg: #f7f7f7;
   --myreview-border: #d9d9d9;
-  --myreview-book-primary: #b5d173; 
-  --myreview-event-primary: #f9d849; 
+  --myreview-book-primary: #b5d173;
+  --myreview-event-primary: #f9d849;
   --myreview-heading: #333333;
   --myreview-text: #555555;
   --myreview-muted: #888888;
@@ -212,6 +212,7 @@ body {
 .target-info {
   min-width: 200px;
   flex-shrink: 0;
+  width: 200px;
 }
 
 .target-title {
@@ -294,6 +295,31 @@ body {
   max-height: 80vh;
   overflow-y: auto;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+}
+
+/* 알림 모달 스타일 */
+.alert-modal-content {
+  max-width: 400px;
+}
+
+.alert-modal .modal-body {
+  padding: 20px 24px 24px 24px;
+  text-align: center;
+}
+
+.alert-modal .modal-body p {
+  font-size: 16px;
+  color: var(--myreview-text);
+  margin: 0;
+}
+
+.alert-modal .modal-buttons {
+  padding: 0 24px 24px 24px;
+  justify-content: center;
+}
+
+.alert-modal .btn-submit {
+  min-width: 100px;
 }
 
 .modal-header {
@@ -415,12 +441,8 @@ body {
   user-select: none;
 }
 
-.stars-input .star.selected {
-  color: #ffc107;
-}
-
-.stars-input .star:hover,
-.stars-input .star:hover ~ .star {
+.stars-input .star.selected,
+.stars-input .star.hover {
   color: #ffc107;
 }
 
@@ -430,6 +452,8 @@ body {
   gap: 12px;
   justify-content: flex-end;
   margin-top: 24px;
+  margin-bottom: 20px;
+  margin-right: 20px;
 }
 
 .btn-cancel,
