@@ -78,7 +78,7 @@ public class BookController{
 	
 	//도서 상세 페이지
 	@GetMapping("/{bookId}")
-	public String bookDetail(@PathVariable String bookId, Model model) {
+	public String bookDetail(@PathVariable String bookId, Model model, Authentication authentication) {
 		BookDto book = bookService.selectOne(bookId);
 		model.addAttribute("book", book);
 

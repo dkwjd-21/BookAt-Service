@@ -1,6 +1,7 @@
 package com.bookat.util;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -166,6 +167,24 @@ public class ReservationRedisUtil {
 		String availableSeatsKey = getAvailableSeatsKey(eventId, scheduleId);
 		String value = redisTemplate.opsForValue().get(availableSeatsKey);
 		return value != null ? Integer.parseInt(value) : 0;
+	}
+	
+	// 잔여좌석 다건 조회
+	public Map<String, Integer> getAvailableSeatsMap(String eventId, List<String> scheduleList) {
+		List<String> rediskeys = scheduleList.stream()
+				.map(scheduleId -> getAvailableSeatsKey(eventId, scheduleId))
+				.toList();
+		
+		List<String> seatValues = redisTemplate.opsForValue().multiGet(rediskeys);
+		
+		Map<String, Integer> availableSeatsMap = new HashMap<>();
+		for(int i = 0; i < scheduleList.size(); i++) {
+			String seatStr = seatValues.get(i);
+			int remainingSeats = (seatStr != null) ? Integer.parseInt(seatStr) : 0;
+			availableSeatsMap.put(scheduleList.get(i), remainingSeats);
+		}
+		
+		return availableSeatsMap;
 	}
 
 	// seatType

@@ -2,6 +2,23 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.bookat.mapper.OrderMapper">
+    <resultMap id="userOrderSummaryMap" type="com.bookat.dto.UserOrderSummaryDto">
+        <id property="orderId" column="order_id" />
+        <result property="orderDate" column="order_date" />
+        <result property="orderStatus" column="order_status" />
+        <result property="totalPrice" column="total_price" />
+        <result property="trackingNumber" column="tracking_number" />
+    </resultMap>
+
+    <resultMap id="orderItemMap" type="com.bookat.dto.OrderItemResponse">
+        <result property="bookId" column="book_id" />
+        <result property="title" column="book_title" />
+        <result property="author" column="author" />
+        <result property="quantity" column="order_quantity" />
+        <result property="price" column="item_price" />
+        <result property="coverImage" column="book_cover" />
+    </resultMap>
+
     <insert id="insertOrder" parameterType="com.bookat.dto.BookOrderRequestDto">
         <selectKey keyProperty="orderId" resultType="long" order="BEFORE">
             SELECT SEQ_BOOK_ORDER.NEXTVAL FROM DUAL
@@ -17,4 +34,30 @@
         INSERT INTO ORDER_ITEM (ORDER_ITEM_ID, BOOK_ID, ORDER_ID, ORDER_QUANTITY, ITEM_PRICE)
         VALUES (#{orderItemId}, #{bookId}, #{orderId}, #{quantity}, #{price})
     </insert>
+
+    <select id="selectUserOrderSummaries" parameterType="string" resultMap="userOrderSummaryMap">
+        SELECT
+            bo.order_id,
+            bo.order_date,
+            bo.order_status,
+            bo.total_price,
+            bo.tracking_number
+        FROM book_order bo
+        WHERE bo.user_id = #{userId}
+        ORDER BY bo.order_date DESC
+    </select>
+
+    <select id="selectOrderItemsByOrderId" parameterType="long" resultMap="orderItemMap">
+        SELECT
+            oi.book_id,
+            b.book_title,
+            b.author,
+            oi.order_quantity,
+            oi.item_price,
+            b.book_cover
+        FROM order_item oi
+        JOIN book b ON oi.book_id = b.book_id
+        WHERE oi.order_id = #{orderId}
+        ORDER BY oi.order_item_id ASC
+    </select>
 </mapper>

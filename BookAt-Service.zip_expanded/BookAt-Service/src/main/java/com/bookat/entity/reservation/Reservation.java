@@ -17,7 +17,9 @@ public class Reservation {
 	private Long paymentId;
 	private Date reservationDate;
 	private int reservationStatus;
+	private int reservedCount;
 	private int scheduleId;
+	private int eventId;
 	private String userId;
 	
 }
