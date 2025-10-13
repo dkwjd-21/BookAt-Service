@@ -15,7 +15,7 @@ public class CookieUtil {
 		cookie .setHttpOnly(true);
 //		cookie .setSecure(true);
 		cookie .setPath("/");
-		cookie.setMaxAge(JwtTokenProvider.EXPIRATION_1D);
+		cookie.setMaxAge(JwtTokenProvider.EXPIRATION_1D / 1000);
 		response.addCookie(cookie);
     }
     

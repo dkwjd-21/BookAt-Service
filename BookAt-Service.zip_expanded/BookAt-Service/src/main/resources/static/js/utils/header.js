@@ -51,18 +51,41 @@ document.addEventListener("DOMContentLoaded", () => {
   if (myPageBtn) {
     myPageBtn.addEventListener("click", async (e) => {
       e.preventDefault();
-	  try {
-		const res = await axiosInstance.get("/myPage/", {
-			responseType: "text",
-		});
-		document.open();
-		document.write(res.data);
-		document.close();
-		window.history.pushState({}, "", "/myPage/");
-	  } catch (err) {
-		console.log("로그인이 필요함");
-		window.location.href = "/user/login";
-	  }
+
+      // 토큰이 있는지 확인
+      const token = localStorage.getItem(window.accessTokenKey || "accessToken");
+      if (!token) {
+        alert("로그인이 필요합니다.");
+        window.location.href = "/user/login";
+        return;
+      }
+
+      try {
+        // fetch로 토큰과 함께 요청
+        const response = await fetch("/myPage/", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "text/html",
+          },
+        });
+
+        if (response.ok) {
+          const html = await response.text();
+          document.open();
+          document.write(html);
+          document.close();
+          window.history.pushState({}, "", "/myPage");
+        } else if (response.status === 401 || response.status === 403) {
+          alert("로그인이 필요합니다.");
+          window.location.href = "/user/login";
+        } else {
+          alert("페이지 로드에 실패했습니다.");
+        }
+      } catch (error) {
+        console.error("마이페이지 로드 오류:", error);
+        alert("페이지 로드 중 오류가 발생했습니다.");
+      }
     });
   }
 

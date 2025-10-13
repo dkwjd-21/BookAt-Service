@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -347,7 +346,9 @@ public class ReservationServiceImpl implements ReservationService {
 		Reservation reservation = new Reservation();
 		reservation.setPaymentId(paymentId);
 		reservation.setReservationStatus(ReservationStatus.RESERVED.code);
-		reservation.setScheduleId(Integer.parseInt(reservationData.get("scheduleId").toString()));
+		reservation.setReservedCount(Integer.parseInt(reservationData.get("reservedCount").toString()));
+		reservation.setScheduleId(scheduleId);
+		reservation.setEventId(eventId);
 		reservation.setUserId((String) reservationData.get("userId"));
 		reservationMapper.insertReservation(reservation);
 

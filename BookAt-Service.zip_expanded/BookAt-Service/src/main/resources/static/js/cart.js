@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   let debounceTimer;
 
   const updateQuantityOnServer = (cartId, quantity) => {
-    axios
+    window.axiosInstance
       .put(`/cart/api/${cartId}`, { quantity })
       .then((response) => {
         if (response.status !== 200) {
@@ -270,7 +270,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (target.classList.contains("delete-btn")) {
       const cartId = target.dataset.cartId;
       if (confirm("이 상품을 장바구니에서 삭제하시겠습니까?")) {
-        axios
+        window.axiosInstance
           .delete(`/cart/api/${cartId}`)
           .then((response) => {
             if (response.status === 200) {
@@ -350,7 +350,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
 
       // axiosInstance를 사용한 요청으로 주문페이지 접근 (토큰 자동 포함)
-      axiosInstance
+      window.axiosInstance
         .get("/order")
         .then((response) => {
           // URL 변경
