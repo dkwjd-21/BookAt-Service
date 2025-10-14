@@ -61,29 +61,27 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       try {
-        const response = await fetch("/myPage", {
-          method: "GET",
+        const response = await window.axiosInstance.get("/myPage", {
           headers: {
-            Authorization: `Bearer ${token}`,
             "Content-Type": "text/html",
           },
         });
 
-        if (response.ok) {
-          const html = await response.text();
+        if (response.status === 200) {
+          const html = response.data;
           document.open();
           document.write(html);
           document.close();
           window.history.pushState({}, "", "/myPage");
-        } else if (response.status === 401 || response.status === 403) {
-          alert("로그인이 필요합니다.");
-          window.location.href = "/user/login";
-        } else {
-          alert("페이지 로드에 실패했습니다.");
         }
       } catch (error) {
         console.error("마이페이지 로드 오류:", error);
-        alert("페이지 로드 중 오류가 발생했습니다.");
+        if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+          alert("로그인이 필요합니다.");
+          window.location.href = "/user/login";
+        } else {
+          alert("페이지 로드 중 오류가 발생했습니다.");
+        }
       }
     });
   }
