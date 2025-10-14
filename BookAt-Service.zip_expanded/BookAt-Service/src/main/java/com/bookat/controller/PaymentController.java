@@ -231,7 +231,7 @@ public class PaymentController {
                                          @RequestParam(value = "i", required = false) String impUid,
                                          @AuthenticationPrincipal User user) {
       if (user == null) {
-          return Map.of("status", "error", "message", "unauthorized");
+          return Map.of("status","error","message","unauthorized");
       }
 
       PaymentSession ctx = sessionStore.get(token, false);
@@ -241,9 +241,6 @@ public class PaymentController {
       String  title   = ctx.title();
 
       PaymentDto pay = paymentService.findByMerchantUid(merchantUid);
-      String receiptUrl = pay.getReceiptUrl();
-      String pgTid      = pay.getPgTid();
-      Date orderDate = pay.getPaymentDate();
 
       List<OrderItemResponse> items = orderMapper.selectOrderItemsByOrderId(orderId);
 
@@ -255,9 +252,9 @@ public class PaymentController {
       res.put("amount",      amount);
       res.put("title",       title);
       res.put("statusText",  "paid");
-      res.put("receiptUrl",  receiptUrl);
-      res.put("pgTid",       pgTid);
-      res.put("orderDate",   orderDate);
+      res.put("receiptUrl",  pay.getReceiptUrl());
+      res.put("pgTid",       pay.getPgTid());
+      res.put("orderDate",   pay.getPaymentDate());
       res.put("orderId",     orderId);
       res.put("items",       items);
       return res;
