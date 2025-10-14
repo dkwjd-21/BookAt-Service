@@ -36,15 +36,16 @@ public class SecurityConfig {
         		.requestMatchers("/reservation/seat/**").permitAll()
         		.requestMatchers("/css/**", "/js/**", "/images/**").permitAll()			// 정적 리소스 접근 가능
 		.requestMatchers("/", "/user/**", "/auth/**", "/books/**", "/events/**", "/infoPage/**", "/cart/**").permitAll()
-				.requestMatchers("/error/**", "/payment/success", "/reservation/*/cancel", "/payment/dev/**").permitAll()
-        		.requestMatchers("/api/**", "/queue/**", "/reservation/**", "/myPage/**", "/order/**", "/order/direct/**",
+				.requestMatchers("/error/**", "/payment/success", "/reservation/*/cancel", "/payment/dev/**","/myPage").permitAll()
+        		.requestMatchers("/api/**", "/queue/**", "/reservation/**", "/order/**", "/order/direct/**",
         				"/payment/**",
         				"/payment/session/start-event",
         				"/payment/session/start",
         				"/payment/session/start-cart",
                         "/payment/session/context",
                         "/payment/api/complete","/reservation/**",
-						"/myPage/orderList", "/myPage/orderList/**").authenticated()
+						"/myPage/orderList", "/myPage/orderList/**",
+						"/myPage/reservationDetails", "/myPage/ticketDetails", "/myPage/myReview/**").authenticated()
                 .anyRequest().denyAll()
        ).addFilterBefore(accessTokenFilter, UsernamePasswordAuthenticationFilter.class)
         .addFilterAfter(refreshTokenFilter, AccessTokenFilter.class);

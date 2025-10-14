@@ -61,8 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       try {
-        // fetch로 토큰과 함께 요청
-        const response = await fetch("/myPage/", {
+        const response = await fetch("/myPage", {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
