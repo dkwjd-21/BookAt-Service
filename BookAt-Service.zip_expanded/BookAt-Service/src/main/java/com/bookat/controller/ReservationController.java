@@ -163,33 +163,19 @@ public class ReservationController {
 	@PostMapping("/{reservationToken}/step3")
 	public ResponseEntity<Map<String, Object>> inputUserInfo(@PathVariable String reservationToken,
 			@AuthenticationPrincipal User user, @RequestBody UserInfoReqDto userInfoReqDto) {
-
-		log.info("STEP3 start: reservationToken={}, userId={}", reservationToken, user.getUserId());
-		
-		if (user == null) {
-			return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", "로그인이 필요합니다."));
-		}
-		
 		try {
-			 log.info("STEP3: calling reservationService.inputUserInfo()");
 			boolean success = reservationService.inputUserInfo(reservationToken, user.getUserId(), userInfoReqDto);
-			log.info("STEP3: inputUserInfo result={}", success);
 			if(!success) {
 				log.warn("STEP3 abort: 예약 정보 저장 실패");
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "예약 정보 저장 실패"));
 			}
 			
 			// 결제 프레그먼트 연결
-			log.info("STEP3: calling reservationService.getPaymentInfo()");
 			PaymentInfoResDto getPaymentInfo = reservationService.getPaymentInfo(reservationToken);
-			log.info("STEP3: payment info retrieved: {}", getPaymentInfo);
 			
 			String enforcedMethod = "CARD";
-			log.info("STEP3: calling paymentService.createReadyPayment()");
 			PaymentDto pay = paymentService.createReadyPayment(getPaymentInfo.getTotalPrice(), enforcedMethod, getPaymentInfo.getTitle(), user.getUserId(),null);
-			log.info("STEP3: payment created: {}", pay);
-			
-			log.info("STEP3: creating PaymentReservationSession");
+
 			PaymentReservationSession session = PaymentSessionStore.of(
 					reservationToken, 
 					getPaymentInfo.getEventId(),
@@ -200,11 +186,8 @@ public class ReservationController {
 					BigDecimal.valueOf(getPaymentInfo.getTotalPrice()),
 					pay.getMerchantUid(),
 					user.getUserId());
-			log.info("STEP3: session created: {}", session);
 			
-			log.info("STEP3: calling paymentSessionStore.createEventPay()");
 			String paymentToken =  paymentSessionStore.createEventPay(session);
-			log.info("STEP3: paymentToken={}", paymentToken);  
 			
 			String paymentStepUrl = "/payment/" + paymentToken + "/paymentUI";
 			log.info("STEP3 completed successfully: paymentStepUrl={}", paymentStepUrl);
@@ -233,7 +216,7 @@ public class ReservationController {
 		}
 	}
 	
-	// 좌석 취소 : 팝업닫기, 예약 세션 만료, 결제취소(결제 전 브라우저종료 or step4에서 이전단계로 이동) 등
+	// 좌석 취소 : 팝업닫기, 예약 세션 만료, 결제취소(결제 전 브라우저종료 or step4에서 이전단계로 이동)
 	@PostMapping("/{reservationToken}/cancel")
 	public ResponseEntity<Map<String, Object>> cancelReservation(@PathVariable String reservationToken, @RequestBody Map<String, Object> body) {
 

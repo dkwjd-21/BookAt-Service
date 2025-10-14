@@ -97,4 +97,11 @@ public class MyPageController {
 
         return ResponseEntity.ok(response);
     }
+    
+	// [개인 정보 변경 관련]
+	// ===========================================================================================
+    @GetMapping("/profile")
+    public String profileChange() {
+    	return "mypage/";
+    }
 }

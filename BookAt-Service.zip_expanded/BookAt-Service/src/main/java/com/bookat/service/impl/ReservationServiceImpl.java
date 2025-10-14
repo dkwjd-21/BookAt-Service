@@ -66,7 +66,6 @@ public class ReservationServiceImpl implements ReservationService {
 			eventDate = scheduleTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 		}
 
-
 		// person type - 잔여좌석 불러오기
 		if ("PERSON_TYPE".equals(event.getTicketType())) {
 			List<String> scheduleList = eventParts.stream()
