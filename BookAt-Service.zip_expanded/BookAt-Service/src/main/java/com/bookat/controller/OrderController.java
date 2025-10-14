@@ -28,6 +28,7 @@ import com.bookat.entity.User;
 import com.bookat.service.AddressService;
 import com.bookat.service.BookService;
 import com.bookat.service.OrderService;
+import com.bookat.mapper.OrderMapper;
 
 import jakarta.validation.Valid;
 
@@ -38,6 +39,9 @@ public class OrderController {
 
     @Autowired
     private OrderService orderService;
+    
+    @Autowired
+    private OrderMapper orderMapper;
     
     @Autowired
     private AddressService addressService;
@@ -112,6 +116,7 @@ public class OrderController {
             if (defaultAddress == null) {
                 return ResponseEntity.badRequest().body("배송지 정보가 없습니다. 배송지를 먼저 등록해주세요.");
             }
+      
 
             List<CartResponse> orderItems = request.getItems().stream()
                     .map(item -> CartResponse.builder()
@@ -123,7 +128,17 @@ public class OrderController {
                     .collect(Collectors.toList());
 
             orderService.createOrder(user.getUserId(), orderItems, (long) defaultAddress.getAddrId());
-            return ResponseEntity.ok().body("주문 생성 완료되었습니다.");
+            
+           // [지나 추가] 막 생성된 주문의 orderId 조회
+            Long orderId = orderMapper.selectLatestCreatedOrderIdByUser(user.getUserId());
+
+            // 응답에 orderId 포함 (payment.js가 이걸로 결제 세션 시작)
+            Map<String, Object> resp = new HashMap<>();
+            resp.put("status", "ok");
+            resp.put("message", "주문 생성 완료되었습니다.");
+            if (orderId != null) resp.put("orderId", orderId);
+            return ResponseEntity.ok(resp);
+
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().body("주문 처리 중 오류가 발생했습니다: " + e.getMessage());
