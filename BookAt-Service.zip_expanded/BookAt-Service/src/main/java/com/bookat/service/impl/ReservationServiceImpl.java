@@ -306,7 +306,6 @@ public class ReservationServiceImpl implements ReservationService {
 		}
 
 		Map<Object, Object> redisData = redisUtil.getDataAll(reservationToken);
-		System.out.println("redisData : " + redisData);
 
 		int eventId = Integer.parseInt(redisData.get("eventId").toString());
 		int scheduleId = Integer.parseInt(redisData.get("scheduleId").toString());
