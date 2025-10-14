@@ -44,7 +44,6 @@ public class UserLoginServiceImpl implements UserLoginService {
 		if(user.getUserPw().equals(userLoginRequest.getUserPw())) {
 			throw new LoginException("비밀번호가 일치하지 않습니다.");
 		}
-		*/
 		
 		String sid = UUID.randomUUID().toString();
 		jwtRedisUtil.saveSid(user.getUserId(), sid);

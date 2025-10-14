@@ -62,6 +62,7 @@ public class ReservationController {
 		List<Map<String, Object>> existingDataList = null;
 
 		// 예약 변경 로직 추가
+		/*
 		if (reservationId != null && !reservationId.isEmpty()) {
 			try {
 				// 예약 변경에 필요한 데이터 조회 메서드
@@ -79,6 +80,7 @@ public class ReservationController {
 		} else {
 			model.addAttribute("isModification", false);
 		}
+		*/
 
 		ReservationStartDto reservationStartDto = reservationService.startReservation(eventId, user.getUserId());
 		model.addAttribute("event", reservationStartDto.getEvent());
