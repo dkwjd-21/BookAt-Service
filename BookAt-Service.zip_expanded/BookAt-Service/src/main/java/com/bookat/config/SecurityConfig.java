@@ -39,7 +39,6 @@ public class SecurityConfig {
 				.requestMatchers("/error/**", "/payment/success", "/reservation/*/cancel", "/payment/dev/**","/myPage").permitAll()
         		.requestMatchers("/api/**", "/queue/**", "/reservation/**", "/order/**", "/order/direct/**",
         				"/payment/api/**",
-
         				"/payment/session/start-event",
         				"/payment/session/start",
         				"/payment/session/start-cart",
