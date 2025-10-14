@@ -47,7 +47,7 @@
     #{totalPrice,   jdbcType=NUMERIC},
     #{paymentPrice, jdbcType=NUMERIC},
     #{paymentMethod,jdbcType=VARCHAR},
-    #{paymentStatus,jdbcType=VARCHAR},
+    #{paymentStatus,jdbcType=NUMERIC},
     SYSDATE,
     #{paymentInfo,  jdbcType=VARCHAR},
     #{merchantUid,  jdbcType=VARCHAR}
@@ -63,19 +63,37 @@
     WHERE merchant_uid = #{merchantUid}
   </update>
 
-<update id="markFailedByMerchantUid">
-  UPDATE PAYMENT
-  SET payment_status = -1,
-      fail_reason    = #{failReason}
-  WHERE merchant_uid = #{merchantUid}
-</update>
+  <update id="markFailedByMerchantUid">
+    UPDATE PAYMENT
+    SET payment_status = -1,
+        fail_reason    = #{failReason}
+    WHERE merchant_uid = #{merchantUid}
+  </update>
   
- <update id="markCanceledByMerchantUid">
-  UPDATE PAYMENT
-  SET payment_status = #{status},
-      fail_reason    = #{reason},
-      receipt_url    = #{receiptUrl}
-  WHERE merchant_uid = #{merchantUid}
- </update>
+  <update id="markCanceledByMerchantUid">
+    UPDATE PAYMENT
+    SET payment_status = #{status},
+        fail_reason    = #{reason},
+        receipt_url    = #{receiptUrl}
+    WHERE merchant_uid = #{merchantUid}
+  </update>
+ 
+  <select id="findAllByUserId" parameterType="string" resultMap="PaymentMap">
+   SELECT *
+   FROM PAYMENT
+   WHERE user_id = #{userId}
+   ORDER BY payment_date DESC
+  </select>
+
+  <!-- 결제 성공 시 BOOK_ORDER 의 ORDER_STATUS를 1로 동기화 -->
+  <update id="updateOrderStatusPaidByMerchantUid">
+    UPDATE BOOK_ORDER o
+       SET o.ORDER_STATUS = #{status}
+     WHERE o.ORDER_ID = (
+           SELECT p.ORDER_ID
+             FROM PAYMENT p
+            WHERE p.MERCHANT_UID = #{merchantUid}
+          )
+  </update>
   
 </mapper>

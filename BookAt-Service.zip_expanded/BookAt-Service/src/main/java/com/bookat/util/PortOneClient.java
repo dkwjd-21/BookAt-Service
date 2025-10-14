@@ -12,6 +12,7 @@ import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
 
 import java.time.Duration;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Slf4j
@@ -46,4 +47,21 @@ public class PortOneClient {
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {});
     }
+    
+    public Mono<Map<String, Object>> cancelPayment(String accessToken, String impUid, Integer amount, String reason) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("imp_uid", impUid);
+        if (amount != null && amount > 0) body.put("amount", amount);
+        if (reason != null && !reason.isBlank()) body.put("reason", reason);
+
+        return webClient
+            .post()
+            .uri("/payments/cancel")
+            .header("Authorization", accessToken)
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(body)
+            .retrieve()
+            .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+            .retryWhen(Retry.backoff(2, Duration.ofMillis(300)));
+      }
 }

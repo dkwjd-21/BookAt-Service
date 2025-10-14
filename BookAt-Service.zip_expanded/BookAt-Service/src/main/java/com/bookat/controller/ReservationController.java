@@ -186,7 +186,7 @@ public class ReservationController {
 			
 			String enforcedMethod = "CARD";
 			log.info("STEP3: calling paymentService.createReadyPayment()");
-			PaymentDto pay = paymentService.createReadyPayment(getPaymentInfo.getTotalPrice(), enforcedMethod, getPaymentInfo.getTitle(), user.getUserId());
+			PaymentDto pay = paymentService.createReadyPayment(getPaymentInfo.getTotalPrice(), enforcedMethod, getPaymentInfo.getTitle(), user.getUserId(),null);
 			log.info("STEP3: payment created: {}", pay);
 			
 			log.info("STEP3: creating PaymentReservationSession");

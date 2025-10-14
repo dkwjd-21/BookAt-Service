@@ -1,11 +1,11 @@
 package com.bookat.controller;
 
-import java.math.BigDecimal;
-import java.util.Collections;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -24,11 +24,12 @@ import com.bookat.dto.reservation.PaymentReservationSession;
 import com.bookat.entity.User;
 import com.bookat.service.BookService;
 import com.bookat.service.EventService;
-import com.bookat.service.OrderService;
 import com.bookat.service.PaymentService;
 import com.bookat.util.PaymentSessionStore;
 import com.bookat.util.PortOneClient;
 import com.bookat.util.ReservationRedisUtil;
+import com.bookat.mapper.OrderMapper;
+import com.bookat.dto.OrderItemResponse;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -46,91 +47,142 @@ public class PaymentController {
   private final ReservationRedisUtil reservationRedisUtil;
   private final EventService eventService;
   
-  //도서 세션
+  @Autowired
+  private OrderMapper orderMapper;
+  
+
+
+  @PostMapping("/api/cancel")
+  @ResponseBody
+  public Map<String, Object> cancelPayment(@RequestBody Map<String,String> req,
+                                           @AuthenticationPrincipal User user) {
+      if (user == null) {
+          return Map.of("status","error","message","unauthorized");
+      }
+      String merchantUid = req.get("merchantUid");
+      String reason = req.getOrDefault("reason","고객요청 취소");
+
+      var pay = paymentService.findByMerchantUid(merchantUid);
+      if (pay == null || !user.getUserId().equals(pay.getUserId()))
+          return Map.of("status","error","message","not_found");
+      if (pay.getPaymentStatus() != 1)
+          return Map.of("status","error","message","not_paid_or_already_canceled");
+
+      try {
+          String accessToken = portOneClient.getAccessToken().block();
+          String impUid = pay.getImpUid();
+          if (impUid == null || impUid.isBlank()) {
+              return Map.of("status","error","message","imp_uid_missing");
+          }
+          var cancelResp = portOneClient.cancelPayment(accessToken, impUid, pay.getPaymentPrice(), reason).block();
+          String receiptUrl = null;
+          if (cancelResp != null && cancelResp.get("response") instanceof java.util.Map<?,?> r) {
+              receiptUrl = (String) r.get("receipt_url");
+          }
+          paymentService.markCanceled(merchantUid, reason, receiptUrl, false);
+          return Map.of("status","success");
+      } catch (Exception e) {
+          paymentService.markFailed(merchantUid, "사용자 취소 실패: " + e.getMessage());
+          return Map.of("status","error","message","cancel_failed");
+      }
+  }
+  
+  //도서(바로구매) 세션
   @PostMapping("/session/start")
   @ResponseBody
   public Map<String,Object> startBook(@RequestParam String bookId,
-                                      @RequestParam(defaultValue="1") int qty,
-                                      @AuthenticationPrincipal com.bookat.entity.User user) {
+                                      @RequestParam int qty,
+                                      @RequestParam Long orderId,
+                                      @AuthenticationPrincipal User user) {
       if (user == null) return Map.of("status","error","message","unauthorized");
 
-      var book = bookService.selectOne(bookId);                 // title/price 얻기
-      if (book == null) return Map.of("status","error","message","book_not_found");  // BookService.selectOne 사용
+      var book = bookService.selectOne(bookId);
+      if (book == null) return Map.of("status","error","message","book_not_found");
 
       int amount = book.getPrice().intValue() * Math.max(qty, 1);
-      String title = book.getTitle();                           // BookDto.title 사용
+      String title = book.getTitle();
 
-      // READY 생성(merchantUid 발급) → 결제세션 저장(토큰 생성)
-      var pay = paymentService.createReadyPayment(amount, "CARD", title, user.getUserId());
-      var session = new PaymentSession(
+      var pay = paymentService.createReadyPayment(
+          amount, "CARD", title, user.getUserId(), orderId
+      );
+
+      String token = sessionStore.create(PaymentSessionStore.of(
           bookId, qty, "CARD",
           java.math.BigDecimal.valueOf(amount),
-          pay.getMerchantUid(), user.getUserId(),
-          "READY",
-          java.time.OffsetDateTime.now().toString(),
-          title
-      );
-      String token = sessionStore.create(session);
-      return Map.of("status","success","token", token);
+          pay.getMerchantUid(),
+          user.getUserId(),
+          title,
+          orderId
+      ));
+
+      // HASH 구조 사용
+      String redirectUrl = "/order#pay=" + token;
+      return Map.of("status","success","redirectUrl", redirectUrl);
   }
   
+  //도서(장바구니) 세션
   @PostMapping("/session/start-cart")
   @ResponseBody
   public Map<String,Object> startCart(@RequestParam int amount,
                                       @RequestParam String title,
-                                      @AuthenticationPrincipal com.bookat.entity.User user) {
+                                      @RequestParam Long orderId,
+                                      @AuthenticationPrincipal User user) {
       if (user == null) return Map.of("status","error","message","unauthorized");
 
-      var pay = paymentService.createReadyPayment(amount, "CARD", title, user.getUserId());
-      var session = new PaymentSession(
-          null, 0, "CARD",
-          java.math.BigDecimal.valueOf(amount),
-          pay.getMerchantUid(), user.getUserId(),
-          "READY",
-          java.time.OffsetDateTime.now().toString(),
-          title
+      var pay = paymentService.createReadyPayment(
+          amount, "CARD", title, user.getUserId(), orderId
       );
-      String token = sessionStore.create(session);
-      return Map.of("status","success","token", token);
+
+      String token = sessionStore.create(PaymentSessionStore.of(
+              null,
+              0,
+              "CARD",
+              java.math.BigDecimal.valueOf(amount),
+              pay.getMerchantUid(),
+              user.getUserId(),
+              title,
+              orderId
+              )
+      );
+
+      // HASH 구조 사용
+      String redirectUrl = "/order#pay=" + token;
+      return Map.of("status","success","redirectUrl", redirectUrl);
   }
   
   
   @GetMapping("/session/context")
   @ResponseBody
   public Map<String, Object> context(@RequestParam String token,
-                                     @AuthenticationPrincipal(expression = "userId") String userId) {
-      if (userId == null || userId.isBlank()) {
-          return Map.of("status","error","message","unauthorized");
-      }
-      // ★ 중요: 조회 전용이므로 소비하지 말 것(두 번째 인자를 false로)
+                                     @AuthenticationPrincipal User user) {
+      if (user == null) return Map.of("status","error","message","unauthorized");
+
       var ctx = sessionStore.get(token, false);
-      if (ctx == null) {
-          return Map.of("status","error","message","session_not_found");
-      }
-      if (!userId.equals(ctx.userId())) {
-          return Map.of("status","error","message","forbidden");
-      }
+      if (ctx == null) return Map.of("status","error","message","session_not_found");
+      if (!user.getUserId().equals(ctx.userId())) return Map.of("status","error","message","forbidden");
+
       return Map.of(
           "status","success",
           "merchantUid", ctx.merchantUid(),
           "amount", ctx.amount(),
           "title", ctx.title(),
           "method", ctx.method(),
+          "orderId", ctx.orderId(),
           "token", token
       );
   }
   
+  // 도서 결제 완료
   @PostMapping("/api/complete")
   @ResponseBody
-  public Map<String, Object> apiComplete(@RequestBody PaymentCompleteRequest req,
-                                         @AuthenticationPrincipal(expression = "userId") String userId) {
-      if (userId == null || userId.isBlank()) {
+  public Map<String, Object> apiComplete(@RequestBody PaymentCompleteRequest req, @AuthenticationPrincipal User user) {
+      if (user == null) {
           return Map.of("status","error","message","unauthorized");
       }
       try {
           // 1) 세션 토큰 검증(세션은 소비하지 않음)
           var ctx = sessionStore.get(req.getToken(), false);
-          if (ctx == null || !userId.equals(ctx.userId())) {
+          if (ctx == null || !user.getUserId().equals(ctx.userId())) {
               return Map.of("status","error","message","session_invalid");
           }
 
@@ -157,7 +209,7 @@ public class PaymentController {
           // 4) 프런트가 이동할 URL만 내려줌
           return Map.of(
               "status","success",
-              "successRedirect", "/payment/success?m=" + req.getMerchantUid() + "&i=" + req.getImpUid()
+              "successRedirect", "/payment/success?m=" + req.getMerchantUid() + "&i=" + req.getImpUid() + "&t=" + req.getToken()
           );
 
       } catch (Exception e) {
@@ -167,32 +219,45 @@ public class PaymentController {
   }
   
   @GetMapping("/success")
-  public String success(@RequestParam("m") String merchantUid,
-                        @RequestParam(value="i", required = false) String impUid,
-                        @RequestParam(value="t", required = false) String token,
-                        Model model) {
-
-    // 1) 결제 기본 정보
-    PaymentDto pay = paymentService.findByMerchantUid(merchantUid);
-    if (pay == null) return "error/404";
-
-    model.addAttribute("merchantUid", merchantUid);
-    model.addAttribute("impUid", impUid);
-    model.addAttribute("amount", pay.getPaymentPrice());
-    model.addAttribute("method", pay.getPaymentMethod());
-    model.addAttribute("status", pay.getPaymentStatus() == 1 ? "paid" : "ready");
-    model.addAttribute("receiptUrl", pay.getReceiptUrl());
-    model.addAttribute("pgTid", pay.getPgTid());
-
-    // 2) 화면 렌더에 필요한 기본값(나중에 주문 조회 메서드 보고 가져오기)
-    model.addAttribute("items", java.util.Collections.emptyList()); 
-    model.addAttribute("productTotal", 0);
-    model.addAttribute("shippingFee", 0);
-    model.addAttribute("usedPoint", 0);
-    model.addAttribute("earnPoint", 0);
-    model.addAttribute("orderDate", java.time.LocalDate.now());
+  public String success() {
 
     return "payment/success";
+  }
+  
+  @GetMapping("/success/api")
+  @ResponseBody
+  public Map<String, Object> successData(@RequestParam("m") String merchantUid,
+                                         @RequestParam("t") String token,
+                                         @RequestParam(value = "i", required = false) String impUid,
+                                         @AuthenticationPrincipal User user) {
+      if (user == null) {
+          return Map.of("status","error","message","unauthorized");
+      }
+
+      PaymentSession ctx = sessionStore.get(token, false);
+      Long    orderId = ctx.orderId();
+      Integer amount  = ctx.amount().intValue();
+      String  method  = ctx.method();
+      String  title   = ctx.title();
+
+      PaymentDto pay = paymentService.findByMerchantUid(merchantUid);
+
+      List<OrderItemResponse> items = orderMapper.selectOrderItemsByOrderId(orderId);
+
+      Map<String,Object> res = new LinkedHashMap<>();
+      res.put("status",      "success");
+      res.put("merchantUid", merchantUid);
+      res.put("impUid",      impUid);
+      res.put("method",      method);
+      res.put("amount",      amount);
+      res.put("title",       title);
+      res.put("statusText",  "paid");
+      res.put("receiptUrl",  pay.getReceiptUrl());
+      res.put("pgTid",       pay.getPgTid());
+      res.put("orderDate",   pay.getPaymentDate());
+      res.put("orderId",     orderId);
+      res.put("items",       items);
+      return res;
   }
   
   /* 포트원 웹훅 */

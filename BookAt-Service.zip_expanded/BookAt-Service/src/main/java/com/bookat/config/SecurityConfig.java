@@ -38,14 +38,17 @@ public class SecurityConfig {
 		.requestMatchers("/", "/user/**", "/auth/**", "/books/**", "/events/**", "/infoPage/**", "/cart/**").permitAll()
 				.requestMatchers("/error/**", "/payment/success", "/reservation/*/cancel", "/payment/dev/**","/myPage").permitAll()
         		.requestMatchers("/api/**", "/queue/**", "/reservation/**", "/order/**", "/order/direct/**",
-        				"/payment/**",
+        				"/payment/api/**",
+
         				"/payment/session/start-event",
         				"/payment/session/start",
         				"/payment/session/start-cart",
                         "/payment/session/context",
-                        "/payment/api/complete","/reservation/**",
-						"/myPage/orderList", "/myPage/orderList/**",
-						"/myPage/reservationDetails", "/myPage/ticketDetails", "/myPage/myReview/**").authenticated()
+                        "/payment/api/complete",
+                        "/payment/success/api",
+                        "/reservation/**",
+                        "/myPage/orderList", "/myPage/orderList/**",
+                        "/myPage/reservationDetails", "/myPage/ticketDetails", "/myPage/myReview/**").authenticated()
                 .anyRequest().denyAll()
        ).addFilterBefore(accessTokenFilter, UsernamePasswordAuthenticationFilter.class)
         .addFilterAfter(refreshTokenFilter, AccessTokenFilter.class);
