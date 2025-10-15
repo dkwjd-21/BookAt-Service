@@ -311,7 +311,7 @@ public class ReservationRedisUtil {
 			if(!PaymentStatus.PAID.name().equals(paymentStatus)) {
 				paymentSessionStore.consumeEventPay(paymentToken);
 				redisTemplate.opsForHash().delete(key, "paymentToken");
-				log.info("STEP4, 결제세션 {} 삭제, status={})", token, paymentToken, paymentStatus);
+				log.info("STEP4, 부여됐던 결제세션은 결제창 이탈로 인한 삭제");
 			}
 		}
 	}
