@@ -2,12 +2,29 @@
 document.addEventListener("DOMContentLoaded", function () {
   initMyPageNavigation();
 
-  // 초기 로드 시 주문배송조회 데이터 로드
+  // 초기 로드 시 URL 기반 fragment 표시
   const currentPath = window.location.pathname;
   if (currentPath === "/myPage" || currentPath === "/myPage/") {
-    // orderList.js의 초기화 함수가 있다면 호출
-    if (typeof window.initOrderList === "function") {
-      window.initOrderList();
+    // 사용자 정보 로드
+    loadUserInfo();
+
+    // URL 해시 또는 쿼리 파라미터 확인
+    const hash = window.location.hash;
+    const urlParams = new URLSearchParams(window.location.search);
+    const fragment = urlParams.get("tab") || hash.replace("#", "");
+
+    if (fragment === "reservation") {
+      showFragment("reservation");
+      updateActiveNavLink("reservation");
+    } else if (fragment === "review") {
+      showFragment("review");
+      updateActiveNavLink("review");
+    } else {
+      // 기본값: 주문배송조회
+      if (typeof window.initOrderList === "function") {
+        window.initOrderList();
+      }
+      updateActiveNavLink("order");
     }
   }
 });
@@ -28,14 +45,17 @@ function initMyPageNavigation() {
           e.preventDefault();
           showFragment("order");
           updateActiveLink(this, navLinks);
+          updateURL("order");
         } else if (href.includes("/reservation")) {
           e.preventDefault();
           showFragment("reservation");
           updateActiveLink(this, navLinks);
+          updateURL("reservation");
         } else if (href.includes("/myPage/myReview") || this.classList.contains("js-mypage-review-link")) {
           e.preventDefault();
           showFragment("review");
           updateActiveLink(this, navLinks);
+          updateURL("review");
         }
         // 다른 메뉴는 기본 동작 (페이지 이동)
       }
@@ -47,6 +67,62 @@ function initMyPageNavigation() {
 function updateActiveLink(activeLink, allLinks) {
   allLinks.forEach((l) => l.classList.remove("is-active"));
   activeLink.classList.add("is-active");
+}
+
+// 사용자 정보 동적 로드
+async function loadUserInfo() {
+  try {
+    const response = await window.axiosInstance.get("/auth/validate");
+    const userInfo = response.data;
+
+    // 사용자 이름 업데이트
+    const nameElement = document.querySelector(".mypage-profile__name strong");
+    if (nameElement && userInfo.userName) {
+      nameElement.textContent = userInfo.userName;
+    }
+
+    console.log("사용자 정보 로드 완료:", userInfo.userName);
+  } catch (error) {
+    console.log("사용자 정보 로드 실패:", error);
+    // 사용자 정보가 없으면 빈 상태로 유지
+  }
+}
+
+// 네비게이션 링크 활성 상태 업데이트 (fragment 기반)
+function updateActiveNavLink(fragmentType) {
+  const navLinks = document.querySelectorAll(".mypage-nav__link");
+
+  // 모든 링크에서 is-active 클래스 제거
+  navLinks.forEach((link) => link.classList.remove("is-active"));
+
+  // 해당 fragment에 맞는 링크 찾아서 활성화
+  let targetLink = null;
+
+  if (fragmentType === "order") {
+    targetLink = document.querySelector(".js-mypage-order-link");
+  } else if (fragmentType === "reservation") {
+    targetLink = document.querySelector('a[href*="/reservation"]');
+  } else if (fragmentType === "review") {
+    targetLink = document.querySelector(".js-mypage-review-link");
+  }
+
+  if (targetLink) {
+    targetLink.classList.add("is-active");
+  }
+}
+
+// URL 업데이트 (새로고침 시 상태 유지를 위해)
+function updateURL(fragmentType) {
+  const currentPath = window.location.pathname;
+  if (currentPath === "/myPage" || currentPath === "/myPage/") {
+    if (fragmentType === "order") {
+      // 기본 상태이므로 쿼리 파라미터 제거
+      window.history.replaceState({}, "", "/myPage");
+    } else {
+      // 다른 fragment는 쿼리 파라미터로 상태 저장
+      window.history.replaceState({}, "", `/myPage?tab=${fragmentType}`);
+    }
+  }
 }
 
 // fragment 표시

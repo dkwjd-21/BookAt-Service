@@ -1,5 +1,7 @@
 package com.bookat.mapper;
 
+import java.util.List;
+
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -23,8 +25,13 @@ public interface PaymentMapper {
                                 @Param("failReason") String failReason);
     
     int markCanceledByMerchantUid(@Param("merchantUid") String merchantUid,
-            @Param("status") int status,
-            @Param("reason") String reason,
-            @Param("receiptUrl") String receiptUrl);
+                                  @Param("reason") String reason,
+                                  @Param("receiptUrl") String receiptUrl,
+                                  @Param("status") int status);
+    
+    List<PaymentDto> findAllByUserId(String userId);
+    
+    int updateOrderStatusPaidByMerchantUid(@Param("merchantUid") String merchantUid,
+                                           @Param("status") int status);
 
 }

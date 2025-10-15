@@ -60,4 +60,14 @@
         WHERE oi.order_id = #{orderId}
         ORDER BY oi.order_item_id ASC
     </select>
+    
+    <!-- [지나 추가] 사용자 최신 CREATED 주문 1건의 order_id 조회 -->
+    <select id="selectLatestCreatedOrderIdByUser" parameterType="string" resultType="long">
+      SELECT bo.ORDER_ID
+      FROM BOOK_ORDER bo
+      WHERE bo.USER_ID = #{userId}
+        AND bo.ORDER_STATUS = 0
+      ORDER BY bo.ORDER_ID DESC
+      FETCH FIRST 1 ROWS ONLY
+    </select>
 </mapper>

@@ -35,7 +35,7 @@ public class UserAuthController {
     private final UserLoginServiceImpl service;
     private final JwtRedisUtil jwtRedisUtil;
 
-	// access token 검증 후 userId 전달 (로그인 상태 파악)
+	// 로그인 상태 파악
 	@GetMapping("/validate")
 	public ResponseEntity<?> userAuthValidate(Authentication authentication) {
 		
@@ -59,7 +59,7 @@ public class UserAuthController {
 	    return ResponseEntity.ok(userInfo);
 	}
 	
-	// access token 재발급
+	// 엑세스 토큰 재발급
 	@PostMapping("/refresh")
 	public ResponseEntity<?> refresh(HttpServletRequest request, HttpServletResponse response) {
 		
@@ -95,7 +95,7 @@ public class UserAuthController {
 	    // refresh token 이 유효하다면 새로운 access token 발급
 	    String newAccessToken = jwtTokenProvider.generateAccessToken(userId, currentSid);
 	    
-	    log.info("accessToken 재발급 완료: userId={}", userId);
+	    log.info("[ID : {} ] 엑세스 토큰 재발급 완료", userId);
 		
 	    return ResponseEntity.ok(Map.of("accessToken", newAccessToken));
 	}

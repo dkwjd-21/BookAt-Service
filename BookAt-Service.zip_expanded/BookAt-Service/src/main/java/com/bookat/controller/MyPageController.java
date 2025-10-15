@@ -33,7 +33,7 @@ public class MyPageController {
 	@Value("${sweettracker.api.key:}")
 	private String sweetTrackerApiKey;
 	
-	@GetMapping("/")
+	@GetMapping({"/", ""})
 	public String myPage(@AuthenticationPrincipal User user, Model model) {
 		model.addAttribute("user", user);
 		model.addAttribute("sweetTrackerApiKey", sweetTrackerApiKey);
@@ -96,5 +96,12 @@ public class MyPageController {
         );
 
         return ResponseEntity.ok(response);
+    }
+    
+	// [개인 정보 변경 관련]
+	// ===========================================================================================
+    @GetMapping("/profile")
+    public String profileChange() {
+    	return "mypage/";
     }
 }
