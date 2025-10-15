@@ -15,4 +15,7 @@ public interface ReservationMapper {
 	int insertReservation(Reservation reservation);
 
 	List<EventPart> findPartsByEventId(int eventId);
+	
+	int updateReservationStatus(int reservationId, int status);
+	Reservation selectReservationByReservaionId(int reservationId);
 }

@@ -25,6 +25,12 @@ public class QueueServiceImpl implements QueueService{
     }
 
     @Override
+	// 이벤트 대기열에 추가 & heartbeat 업데이트 - 예매변경
+	public Long addUserToQueue(String eventId, String userId, String reservationId) {
+		return queueUtil.addUserToQueue(eventId, userId, reservationId);
+	}
+    
+    @Override
     // 사용자의 대기 순번 조회
     public Long getUserRank(String eventId, String userId) {
         return queueUtil.getUserRank(eventId, userId);
@@ -86,5 +92,7 @@ public class QueueServiceImpl implements QueueService{
             queueUtil.removeInactiveUsersAtomic(eventId, threshold);
         }
     }
+
+	
 
 }

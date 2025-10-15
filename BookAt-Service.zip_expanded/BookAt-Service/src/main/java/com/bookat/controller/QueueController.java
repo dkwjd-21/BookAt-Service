@@ -34,6 +34,7 @@ public class QueueController {
 	// 대기열 진입 API (예매하기 버튼 클릭시)
 	@PostMapping("/enter")
 	public ResponseEntity<Map<String, Object>> enterQueue(@RequestParam String eventId,
+			@RequestParam(required = false) String reservationId,
 			@AuthenticationPrincipal User user) {
 
 		// userId는 클라이언트에서 전달받은 값 사용
@@ -42,8 +43,16 @@ public class QueueController {
 		}
 
 		String userId = user.getUserId();
-		Long rank = queueService.addUserToQueue(eventId, userId);
-
+		Long rank;
+		
+		// 예매번호가 있을 경우, 예매변경 로직 
+		if(reservationId != null && !reservationId.isEmpty()) {
+			rank = queueService.addUserToQueue(eventId, userId, reservationId); 
+		} else {
+			// 신규 예매 로직
+			rank = queueService.addUserToQueue(eventId, userId);
+		}
+		
 		log.info("eventId : {}", eventId);
 		log.info("userId : {}", userId);
 		log.info("rank : {}", rank);

@@ -2,6 +2,9 @@ let queueInterval = null;
 let fetchAbortController = null;
 let isFetching = false;
 
+const EVENT_ID_KEY = "eventId";
+const RESERVATION_ID_KEY = "reservationIdForModify";
+
 // -------------------- 대기열 진입 --------------------
 async function onModal(eventId) {
   try {
@@ -21,7 +24,7 @@ async function onModal(eventId) {
       modal.style.display = "none";
       return;
     }
-    sessionStorage.setItem("eventId", eventId);
+    sessionStorage.setItem(EVENT_ID_KEY, eventId);
 
     try {
       const res = await axiosInstance.post("/queue/enter", null, {
@@ -44,6 +47,53 @@ async function onModal(eventId) {
   }
 }
 
+// -------------------- 대기열 진입 (예약 변경 전용) --------------------
+async function onModifyModal(eventId, reservationId) {
+  try {
+    await window.validateUser();
+  } catch {
+    alert("로그인한 회원님만 예약 변경 가능합니다.");
+    window.location.href = "/user/login";
+    return;
+  }
+
+  const modal = document.querySelector(".queueModal-overlay");
+  if (!modal) return;
+  if (modal.style.display === "none") {
+    modal.style.display = "flex";
+    if (!eventId || !reservationId) {
+      console.error("이벤트 아이디 또는 예약 아이디가 전달되지 않았습니다.");
+      modal.style.display = "none";
+      return;
+    }
+    // 예약 변경 로직에서는 eventId와 reservationId를 저장
+    sessionStorage.setItem(EVENT_ID_KEY, eventId);
+    sessionStorage.setItem(RESERVATION_ID_KEY, reservationId); 
+
+    try {
+      // API 호출 시 reservationId를 함께 전달
+      const res = await axiosInstance.post("/queue/enter", null, {
+        params: { eventId, reservationId }, 
+      });
+      
+      const data = res.data;
+      if (data.status === "success") {
+        const waitingNumEl = document.querySelector(".modal-waitingNum");
+        if (waitingNumEl) waitingNumEl.textContent = data.rank ?? "-";
+        // 폴링 시작 
+        startQueuePolling(true); 
+      } else {
+        alert("대기열 진입 실패");
+        modal.style.display = "none";
+      }
+    } catch (err) {
+      console.error("대기열 진입 에러:", err);
+      modal.style.display = "none";
+    }
+    console.log(`[예약 변경] 이벤트 아이디: ${eventId}, 예약 아이디: ${reservationId}`);
+  }
+}
+
 // -------------------- 대기열 상태 폴링 --------------------
 function startQueuePolling(immediate = false) {
   if (queueInterval !== null) return;
@@ -63,6 +113,8 @@ async function performFetchAndUpdate() {
     const eventId = encodeURIComponent(sessionStorage.getItem("eventId"));
     if (!eventId) return;
 
+	const reservationId = sessionStorage.getItem(RESERVATION_ID_KEY);
+	
     // heartbeat 보내기
     axiosInstance.post("/queue/heartbeat", null, { params: { eventId } });
 
@@ -87,7 +139,7 @@ async function performFetchAndUpdate() {
     if (data.canEnter) {
       stopQueuePolling();
       closeModal();
-      openReservationPopup(eventId);
+      openReservationPopup(eventId, reservationId);
     }
   } catch (err) {
     if (err.name !== "AbortError") console.error("대기열 상태 확인 실패:", err);
@@ -141,10 +193,17 @@ window.addEventListener("beforeunload", leaveQueueOnUnload);
 window.addEventListener("unload", leaveQueueOnUnload);
 
 // -------------------- 예약 팝업 --------------------
-async function openReservationPopup(eventId) {
+async function openReservationPopup(eventId, reservationId = null) {
   try {
+	const params = { eventId };
+	
+	// 예매내역이 있으면 파라미터에 추가하여 API 호출 
+	if(reservationId){
+		params.reservationId = reservationId;
+	}
+	
     const popupRes = await axiosInstance.get("/reservation/start", {
-      params: { eventId },
+      params,
       responseType: "text",
     });
     const popup = window.open("", "_blank", "width=1000,height=700");
