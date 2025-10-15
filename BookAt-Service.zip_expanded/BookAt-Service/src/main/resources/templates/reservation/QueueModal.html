@@ -18,6 +18,40 @@
 		예매하기
 	</button>
 
+	<hr>
+
+	<div>
+		<h3>좌석유형 예매내역</h3>
+		<table>
+			<thead>
+				<tr>
+					<th>예매번호</th>
+					<th>티켓번호</th>
+					<th>티켓상태</th>
+					<th>인원유형</th>
+					<th>좌석번호</th>
+					<th>좌석명</th>
+					<th>이벤트번호</th>
+					<th>회차번호</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr th:each="data : ${existingDataList}">
+					<td th:text="${data['예매번호']}"></td>
+					<td th:text="${data['티켓번호']}"></td>
+					<td th:text="${data['티켓상태']}"></td>
+					<td th:text="${data['인원유형']}"></td>
+					<td th:text="${data['좌석번호']}"></td>
+					<td th:text="${data['좌석명']}"></td>
+					<td th:text="${data['이벤트번호']}"></td>
+					<td th:text="${data['회차번호']}"></td>
+				</tr>
+			</tbody>
+		</table>
+		
+		<button onclick="onModifyModal(100, 102);">예매변경</button>
+	</div>
+	
 	<div class="queueModal-overlay" style="display: none">
 		<div class="modal-content">
 			<h1 class="modal-title">
@@ -36,6 +70,8 @@
 			<p class="modal-totalWaiting">현재 대기 인원 : <span class="modal-watingCount">0</span>명</p>
 		</div>
 	</div>
+
+
 </body>
 
 </html>

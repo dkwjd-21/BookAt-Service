@@ -23,15 +23,6 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 	private final CookieUtil cookieUtil;
 	private final JwtRedisUtil jwtRedisUtil;
 	
-    /**
-     * RefreshToken 및 동시 로그인 검증
-     *
-     * @param request  HttpServletRequest
-     * @param response HttpServletResponse
-     * @param userId   사용자 ID
-     * @return true → 정상, false → 만료/다른 기기 로그인 감지
-     */
-
 	@Override
 	public boolean validateRefreshToken(HttpServletRequest request, HttpServletResponse response, String userId) {
 		
@@ -50,7 +41,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 		
 		// refresh token 만료 여부 체크
 		if(redisRefreshToken != null && !jwtTokenProvider.validateToken(redisRefreshToken)) {
-			log.info("refresh token 만료, redis 삭제 필요");
+			log.info("리프레시 토큰 만료, redis 삭제 필요");
 			return false;
 		}
 		

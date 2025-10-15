@@ -30,4 +30,32 @@
 		)
 	</insert>
 	
+	<select id="findTicketsByReservationId" resultType="java.util.Map">
+    	SELECT 
+      	  	T.TICKET_ID AS "티켓번호",
+        	T.TICKET_STATUS AS "티켓상태",
+        	T.RESERVATION_ID AS "예매번호",
+        	T.TICKET_TYPE AS "티켓유형",
+        	T.PERSON_TYPE AS "인원유형",
+        	-- SEAT_TYPE일 때만 조인해서 정보 가져오기
+        	S.SEAT_ID AS "좌석번호",
+        	S.SEAT_NAME AS "좌석명",
+        	R.EVENT_ID AS "이벤트번호",
+        	R.SCHEDULE_ID AS "회차번호"
+    	FROM TICKET T
+    	LEFT JOIN SEAT_TYPE S 
+        	ON T.TICKET_TYPE = 'SEAT_TYPE' AND T.SEAT_ID = S.SEAT_ID
+    	JOIN RESERVATION R
+    	    ON R.RESERVATION_ID = T.RESERVATION_ID
+    	WHERE T.RESERVATION_ID = #{reservationId}
+      	  AND T.TICKET_STATUS = 1
+	</select>
+	
+	<update id="updateTicketStatusBySeatId">
+    	UPDATE TICKET
+    	SET TICKET_STATUS = #{status}
+    	WHERE SEAT_ID = #{seatId}
+	</update>
+
+	
 </mapper>

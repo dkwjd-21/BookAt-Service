@@ -3,9 +3,6 @@ package com.bookat.service.impl;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-//CartServiceImpl.java
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.bookat.dto.CartResponse;

@@ -42,7 +42,24 @@ public class SeatServiceImpl implements SeatService {
 			seatList.add(seat);
 		}
 
-		seatList.sort((s1, s2) -> s1.getSeatName().compareTo(s2.getSeatName()));
+		seatList.sort((s1, s2) -> {
+		    String name1 = s1.getSeatName();
+		    String name2 = s2.getSeatName();
+
+		    // 첫 글자는 문자
+		    char row1 = name1.charAt(0);
+		    char row2 = name2.charAt(0);
+
+		    if (row1 != row2) {
+		        return row1 - row2; // 행 기준 정렬
+		    }
+
+		    // 숫자 부분 추출
+		    int num1 = Integer.parseInt(name1.substring(1));
+		    int num2 = Integer.parseInt(name2.substring(1));
+
+		    return num1 - num2; // 좌석 번호 기준 정렬
+		});
 		return seatList;
 	}
 

@@ -39,6 +39,11 @@
 				<main class="content-wrapper">
 					<form action="/reservation" method="post" id="reservation-form">
 						<input type="hidden" id="reservation-token" th:value="${reservationToken}">
+						<input type="hidden" id="is-modification" th:value="${isModification}">
+						<div th:if="${isModification}">
+							<input type="hidden" id="modification-id" th:value="${modificationId}">
+							<input type="hidden" id="existing-data-json" th:value='${existingDataJson}' />
+						</div>
 						<section class="selection-area step firstSection active" data-step="1">
 							<input type="hidden" id="eventDate"
 								th:value="${#dates.format(event.eventDate, 'yyyy-MM-dd')}">
@@ -74,7 +79,8 @@
 								<div class="select-day">
 									날짜 선택
 								</div>
-								<div class="option-day" th:text="${#dates.format(event.eventDate, 'M월 d일')}">9월 17일</div>
+								<div class="option-day" th:text="${#dates.format(event.eventDate, 'M월 d일')}">9월 17일
+								</div>
 								<div class="select-part">
 									회차 선택
 								</div>
@@ -227,18 +233,39 @@
 					<p id="selected-date" th:text="${#dates.format(event.eventDate, 'yyyy년 M월 d일')}">이벤트날짜</p>
 					<p id="selected-session">선택회차</p>
 				</div>
-				<div class="person-info" th:if="${event.ticketType == 'PERSON_TYPE'}">
 
+				<!-- 신규 예약 summary -->
+				<div id="new-reservation-summary">
+					<div class="person-info" th:if="${event.ticketType == 'PERSON_TYPE'}"></div>
+					<div class="seat-info" th:if="${event.ticketType == 'SEAT_TYPE'}">
+						<p id="selected-seats-info"></p>
+						<p id="seat-count-info"></p>
+					</div>
+					<div class="pay-info">
+						<p><strong>총 결제금액:</strong> <span id="summaryTotal"></span></p>
+					</div>
 				</div>
-				<div class="seat-info" th:if="${event.ticketType == 'SEAT_TYPE'}">
-					<p id="selected-seats-info"></p>
-					<p id="seat-count-info"></p>
+
+				<!-- 변경 예약 summary -->
+				<div id="modification-summary" style="display: none;">
+					<div class="person-info-mod" th:if="${event.ticketType == 'PERSON_TYPE'}">
+						<p id="mod-selected-schedule-info"></p>
+						<p id="mod-changed-schedule-info"></p>
+					</div>
+					<div class="seat-info-mod" th:if="${event.ticketType == 'SEAT_TYPE'}">
+						<p id="mod-selected-seats-info"></p>
+						<p id="mod-changed-seats-info"></p>
+					</div>
+					<div class="pay-info-mod">
+						<p><strong>총 결제금액:</strong> <span id="mod-summaryTotal"></span></p>
+					</div>
 				</div>
-				<div class="pay-info">
-					<p><strong>총 결제금액:</strong> <span id="summaryTotal"></span></p>
-				</div>
+
+
 				<button id="next-btn" class="next-button">다음 단계</button>
-				<button id="submit-btn" type="submit" class="next-button" form="reservation-form" style="display: none;" disabled>완료</button>
+				<button id="modify-btn" class="next-button" style="display: none;">변경 완료</button>
+				<button id="submit-btn" type="submit" class="next-button" form="reservation-form" style="display: none;"
+					disabled>완료</button>
 			</aside>
 
 		</div>

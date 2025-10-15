@@ -43,7 +43,7 @@ public class AccessTokenFilter extends OncePerRequestFilter {
 				// sidFromToken == null : 잘못된 토큰, 액세스 토큰 재발급 불가
 				// currentSid == null : refresh token 이용해서 재로그인/재발급 가능
 				// sid 불일치 : 액세스 토큰 재발급 불가, 강제 로그아웃
-				log.info("액세스 토큰 sid 검증 실패 (sidFromToken={}, currentSid={}) → 401 반환", sidFromToken, currentSid);
+				log.info("세션 아이디 검증 실패 (sidFromToken={}, currentSid={})", sidFromToken, currentSid);
 				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 				return;
 			}
@@ -53,7 +53,7 @@ public class AccessTokenFilter extends OncePerRequestFilter {
 			if(user != null) {
 				UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(user, null, null);
 				SecurityContextHolder.getContext().setAuthentication(authentication);
-				log.info("access token 인증 성공 : {}", userId);
+				log.info("현재 로그인 사용자 ID : {}", userId);
 			}
 		} else {
 			// 토큰이 없거나 무효라면 비로그인상태로 통과 (401 아님)

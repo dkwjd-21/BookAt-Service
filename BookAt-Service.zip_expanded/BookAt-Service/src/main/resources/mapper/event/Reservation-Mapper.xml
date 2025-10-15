@@ -40,4 +40,15 @@
 		)
 	</insert>
 	
+	<update id="updateReservationStatus">
+    	UPDATE RESERVATION
+    	SET RESERVATION_STATUS = #{status}
+    	WHERE RESERVATION_ID = #{reservationId}
+	</update>
+	
+	<select id="selectReservationByReservaionId">
+		SELECT * FROM RESERVATION
+		WHERE RESERVATION_ID = #{reservationId}
+	</select>
+	
 </mapper>

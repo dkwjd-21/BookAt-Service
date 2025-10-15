@@ -1,6 +1,7 @@
 package com.bookat.service;
 
 import java.util.List;
+import java.util.Map;
 
 import com.bookat.dto.reservation.PaymentInfoResDto;
 import com.bookat.dto.reservation.PersonTypeReqDto;
@@ -27,4 +28,11 @@ public interface ReservationService {
 	
 	void selectSeatType(String reservationToken, SeatTypeReqDto reqDto);
 	void confirmBooking(String reservationToken, SeatTypeReqDto reqDto);
+	
+	// 기존 예매 번호로 예약 변경에 필요한 티켓 및 좌석 정보 조회 
+	List<Map<String, Object>> getExistingReservationData(String reservationId);
+	
+	// 예매 변경
+	public void modifySeats(String reservationToken, int eventId, int scheduleId, int reservationId,
+            List<String> beforeSeats, List<String> afterSeats);
 }
