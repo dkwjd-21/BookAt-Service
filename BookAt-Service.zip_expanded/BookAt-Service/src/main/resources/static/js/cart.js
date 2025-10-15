@@ -99,7 +99,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 <div class="item-actions">
                   <div class="quantity-control">
                     <button type="button" class="quantity-minus">-</button>
-                    <input type="number" class="quantity-input" name="quantity" value="${item.cartQuantity}" min="1" />
+                    <input type="number" class="quantity-input" name="quantity" value="${item.cartQuantity}" min="1" max="99" />
                     <button type="button" class="quantity-plus">+</button>
                   </div>
                   <div class="item-price-delete">
@@ -248,11 +248,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // [+] 버튼
     if (target.classList.contains("quantity-plus")) {
-      quantity++;
-      quantityInput.value = quantity;
-      updateItemPrice(cartItem);
-      updateSummary();
-      debouncedUpdate(cartItem);
+      if (quantity < 99) {
+        quantity++;
+        quantityInput.value = quantity;
+        updateItemPrice(cartItem);
+        updateSummary();
+        debouncedUpdate(cartItem);
+      }
     }
 
     // [-] 버튼
@@ -296,9 +298,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.addEventListener("input", (event) => {
     const target = event.target;
     if (target.classList.contains("quantity-input")) {
+      let qtyValue = parseInt(target.value);
       // 숫자가 아니거나 1보다 작으면 1로 강제
-      if (parseInt(target.value) < 1 || target.value === "" || isNaN(target.value)) {
+      if (isNaN(qtyValue) || qtyValue < 1) {
         target.value = 1;
+      } else if (qtyValue > 99) {
+        // 99보다 크면 99로 강제
+        target.value = 99;
       }
       const cartItem = target.closest(".cart-item");
       updateItemPrice(cartItem);

@@ -45,7 +45,7 @@
                       <div class="item-actions">
                         <div class="quantity-control">
                           <button type="button" class="quantity-minus">-</button>
-                          <input type="number" class="quantity-input" name="quantity" th:value="${item.cartQuantity}" min="1" />
+                          <input type="number" class="quantity-input" name="quantity" th:value="${item.cartQuantity}" min="1" max="99" />
                           <button type="button" class="quantity-plus">+</button>
                         </div>
                         <div class="item-price-delete">
