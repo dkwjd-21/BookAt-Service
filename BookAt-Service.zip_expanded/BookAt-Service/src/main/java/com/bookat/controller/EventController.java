@@ -19,7 +19,6 @@ import com.bookat.dto.EventPartDto;
 import com.bookat.dto.EventResDto;
 import com.bookat.dto.ReviewDto;
 import com.bookat.entity.Book;
-import com.bookat.entity.Review;
 import com.bookat.service.impl.EventServiceImpl;
 import com.bookat.service.impl.ReviewServiceImpl;
 
