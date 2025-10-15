@@ -57,6 +57,9 @@ public class RedisExpirationListener implements MessageListener {
 			log.info("TTL 만료, 좌석 자동 복구 완료: {}석 (eventId={}, scheduleId={})", reservedCount, eventId, scheduleId);
 		}
 		
+		// 원자적 처리 예정
+//		int recovered = redisUtil.rollbackOnCancel(reservationToken, eventId, scheduleId);
+		
 		// TTL 만료 후 metaData도 정리
 		redisTemplate.delete(metaKey);
 	}

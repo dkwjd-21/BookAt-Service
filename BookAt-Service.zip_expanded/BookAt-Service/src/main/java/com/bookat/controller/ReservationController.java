@@ -231,7 +231,7 @@ public class ReservationController {
 			return ResponseEntity.ok(Map.of("valid", true));
 		} catch (IllegalStateException ie) {
 
-			return ResponseEntity.status(HttpStatus.GONE).body(Map.of("error", ie.getMessage()));
+			return ResponseEntity.status(HttpStatus.GONE.value()).body(Map.of("error", ie.getMessage()));
 		}
 	}
 	

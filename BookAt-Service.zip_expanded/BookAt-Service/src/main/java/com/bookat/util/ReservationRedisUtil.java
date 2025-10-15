@@ -283,6 +283,8 @@ public class ReservationRedisUtil {
 		
 		// 예약 세션 만료 (다시 예약 필요)
 		if(!Boolean.TRUE.equals(redisTemplate.hasKey(KEY_PREFIX + token))) {
+			int result = rollbackOnCancel(token);
+			log.info("{} 예약 세션 만료 좌석 복구 완료", result);
 			return false;
 		}
 		
@@ -318,13 +320,24 @@ public class ReservationRedisUtil {
 	
 	// 예약 프로세스 취소 시 좌석 복구와 관련 세션 삭제의 원자적 처리
 	// 예약 취소 시 좌석 복구 + 세션/메타 삭제
-	public int rollbackOnCancel(String token, String eventId, String scheduleId) {
+	public int rollbackOnCancel(String token) {
 		String key = KEY_PREFIX + token;
 		String metaKey = META_PREFIX + token;
+		
+		Map<Object, Object> metaData = redisTemplate.opsForHash().entries(metaKey);
+		
+		if (metaData == null || metaData.isEmpty()) {
+			log.warn("META 데이터 없음, 좌석 복구 없이 세션만 삭제");
+			redisTemplate.delete(key);
+			return 0;
+		}
+		
+		String eventId = metaData.get("eventId").toString();
+		String scheduleId = metaData.get("scheduleId").toString();
 		String availableSeatsKey = getAvailableSeatsKey(eventId, scheduleId);
 		
 		String luaScript = 
-					"local reservedCount = redis.call('HGET', KEYS[1], ARGV[1]) " +
+					"local reservedCount = redis.call('HGET', KEYS[3], ARGV[1]) " +
 					"if reservedCount then " +
 					"   local count = tonumber(reservedCount) " +
 					"   if count > 0 then " +

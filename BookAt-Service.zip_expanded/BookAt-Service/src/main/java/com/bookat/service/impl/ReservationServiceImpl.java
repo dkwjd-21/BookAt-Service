@@ -287,7 +287,7 @@ public class ReservationServiceImpl implements ReservationService {
 
 		} else {
 			// 좌석 정보가 없으면 PERSON_TYPE 처리
-			int restored = redisUtil.rollbackOnCancel(reservationToken, eventId, scheduleId);
+			int restored = redisUtil.rollbackOnCancel(reservationToken);
 			log.info("예약 취소 완료: eventId={}, scheduleId={}, 복구좌석={}", eventId, scheduleId, restored);
 		}
 	}
