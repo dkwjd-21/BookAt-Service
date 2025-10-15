@@ -124,6 +124,7 @@ public class ReservationServiceImpl implements ReservationService {
 
 		String eventId = redisUtil.getDataField(reservationToken, "eventId");
 		String scheduleId = redisUtil.getDataField(reservationToken, "scheduleId");
+		String userId = redisUtil.getDataField(reservationToken, "userId");
 
 		if (eventId == null || scheduleId == null) {
 			throw new IllegalStateException("예약 토큰에 회차 정보가 없습니다.");
@@ -151,7 +152,7 @@ public class ReservationServiceImpl implements ReservationService {
 
 		// TTL 만료 시 복구용 METADATA 생성
 		redisUtil.createMetaDataForSessionExpired(reservationToken, Integer.parseInt(eventId),
-				Integer.parseInt(scheduleId), totalPersonCount);
+				Integer.parseInt(scheduleId), totalPersonCount, userId);
 	}
 
 	// step2 : 좌석 선택

@@ -30,11 +30,13 @@ public class ReservationRedisUtil {
 
 	// redis 예약 세션 CRUD
 	private final StringRedisTemplate redisTemplate;
+	private final QueueUtil queueUtil;
+	private final PaymentSessionStore paymentSessionStore;
 	private static final String KEY_PREFIX = "RESERVATION:";			// 데이터 본문
 	private static final String META_PREFIX = "RESERVATION_META:";		// TTL 만료 시 좌석 복구용
 	private static final long TTL_SECONDS = 900;						// 만료 15분
 	private static final ObjectMapper OM = new ObjectMapper();
-	private final PaymentSessionStore paymentSessionStore;
+
 
 	// 예약 세션 생성 (예매 진입 초기값 세팅)
 	public String createInit(int eventId, String eventName, String userId, String eventDate) {
@@ -50,7 +52,8 @@ public class ReservationRedisUtil {
 			initData.put("status", "STEP1");
 			
 			redisTemplate.opsForHash().putAll(key, initData);
-			redisTemplate.expire(key, TTL_SECONDS, TimeUnit.SECONDS);
+//			redisTemplate.expire(key, TTL_SECONDS, TimeUnit.SECONDS);
+			redisTemplate.expire(key, 20*1000, TimeUnit.MILLISECONDS);
 			
 			return token;
 		} catch(Exception e) {
@@ -245,13 +248,14 @@ public class ReservationRedisUtil {
 	}
 	
 	// TTL 만료 시 좌석 복구용 메타데이터 (인원유형)
-	public void createMetaDataForSessionExpired(String token, int eventId, int scheduleId, int reservedCount) {
+	public void createMetaDataForSessionExpired(String token, int eventId, int scheduleId, int reservedCount, String userId) {
 		String metaKey = META_PREFIX + token;
 		
 		Map<String, String> mataData = new LinkedHashMap<>();
 		mataData.put("eventId", String.valueOf(eventId));
 		mataData.put("scheduleId", String.valueOf(scheduleId));
 		mataData.put("reservedCount", String.valueOf(reservedCount));
+		mataData.put("userId", userId);
 		
 		redisTemplate.opsForHash().putAll(metaKey, mataData);
 	}
@@ -334,7 +338,11 @@ public class ReservationRedisUtil {
 		
 		String eventId = metaData.get("eventId").toString();
 		String scheduleId = metaData.get("scheduleId").toString();
+		String userId = metaData.get("userId").toString();
 		String availableSeatsKey = getAvailableSeatsKey(eventId, scheduleId);
+		
+		// Active Set 에서 사용자 제거
+		queueUtil.leaveActive(eventId, userId);
 		
 		String luaScript = 
 					"local reservedCount = redis.call('HGET', KEYS[3], ARGV[1]) " +
