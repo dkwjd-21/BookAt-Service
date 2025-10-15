@@ -251,22 +251,22 @@ public class PaymentController {
   	// 이벤트 예약 결제창 진입
 	@GetMapping("/{paymentToken}/paymentUI")
 
-	public ResponseEntity<Map<String, Object>> renderPaymentFrag(@PathVariable String paymentToken, @RequestParam(name = "method", required = false) String requestMetohd, @RequestParam(name = "token", required = false) String reservationToken, @AuthenticationPrincipal User user, Model model) {
+	public String renderPaymentFrag(@PathVariable String paymentToken, @RequestParam(name = "method", required = false) String requestMetohd, @RequestParam(name = "token", required = false) String reservationToken, @AuthenticationPrincipal User user, Model model) {
 		String token = paymentToken.startsWith("payment:") ? paymentToken.substring("payment:".length()) : paymentToken;
 		
 		PaymentReservationSession session = sessionStore.getEventPay(token);
 		
 		if (session == null) {
 			// 세션없음 : 만료/오류 페이지 -> 현재 페이지가 없어서 여기 진입하면 템플릿에러남
-//			return "error/404";
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "세션없음"));
+			return "error/404";
+//			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "세션없음"));
 		}
 		
 		String userId = (user == null) ? null : user.getUserId();
 		if (userId == null || !userId.equals(session.userId())) {
 			// 세션없음 : 권한 없음 -> 현재 페이지가 없어서 여기 진입하면 템플릿에러남
-//			return "error/403";
-			return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "권한없음"));
+			return "error/403";
+//			return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "권한없음"));
 		}
 
 		// 예약 세션 토큰 값
@@ -288,7 +288,8 @@ public class PaymentController {
 	    model.addAttribute("eventId", session.eventId());
 	    model.addAttribute("scheduleId", session.scheduleId());
 		
-//	    return "fragments/payFragment :: payFragment";
+	    return "fragments/payFragment :: payFragment";
+	    /*
 	    return ResponseEntity.ok(Map.of("merchantUid", session.merchantUid(),
                 "amount", session.amount().intValue(),
                 "title", session.title(),
@@ -297,6 +298,7 @@ public class PaymentController {
                 "eventId", session.eventId(),
                 "scheduleId", session.scheduleId()
                 ));
+        */
 	}
 	
 	// 이벤트 결제 성공 or 실패 응답
