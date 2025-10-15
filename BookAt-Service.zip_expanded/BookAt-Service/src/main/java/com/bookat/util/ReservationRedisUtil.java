@@ -52,8 +52,7 @@ public class ReservationRedisUtil {
 			initData.put("status", "STEP1");
 			
 			redisTemplate.opsForHash().putAll(key, initData);
-//			redisTemplate.expire(key, TTL_SECONDS, TimeUnit.SECONDS);
-			redisTemplate.expire(key, 20*1000, TimeUnit.MILLISECONDS);
+			redisTemplate.expire(key, TTL_SECONDS, TimeUnit.SECONDS);
 			
 			return token;
 		} catch(Exception e) {
@@ -332,6 +331,8 @@ public class ReservationRedisUtil {
 		
 		if (metaData == null || metaData.isEmpty()) {
 			log.warn("META 데이터 없음, 좌석 복구 없이 세션만 삭제");
+			// Active Set 에서 사용자 제거
+//			queueUtil.leaveActive(eventId, userId);
 			redisTemplate.delete(key);
 			return 0;
 		}
