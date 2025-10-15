@@ -95,7 +95,7 @@ public class UserAuthController {
 	    // refresh token 이 유효하다면 새로운 access token 발급
 	    String newAccessToken = jwtTokenProvider.generateAccessToken(userId, currentSid);
 	    
-	    log.info("accessToken 재발급 완료: userId={}", userId);
+	    log.info("[ID : {} ] 엑세스 토큰 재발급 완료", userId);
 		
 	    return ResponseEntity.ok(Map.of("accessToken", newAccessToken));
 	}
