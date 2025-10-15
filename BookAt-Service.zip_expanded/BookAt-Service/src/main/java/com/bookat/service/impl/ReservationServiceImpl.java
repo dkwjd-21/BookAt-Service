@@ -66,7 +66,6 @@ public class ReservationServiceImpl implements ReservationService {
 			eventDate = scheduleTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 		}
 
-
 		// person type - 잔여좌석 불러오기
 		if ("PERSON_TYPE".equals(event.getTicketType())) {
 			List<String> scheduleList = eventParts.stream()
@@ -307,7 +306,6 @@ public class ReservationServiceImpl implements ReservationService {
 		}
 
 		Map<Object, Object> redisData = redisUtil.getDataAll(reservationToken);
-		System.out.println("redisData : " + redisData);
 
 		int eventId = Integer.parseInt(redisData.get("eventId").toString());
 		int scheduleId = Integer.parseInt(redisData.get("scheduleId").toString());

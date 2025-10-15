@@ -53,7 +53,7 @@ public class AccessTokenFilter extends OncePerRequestFilter {
 			if(user != null) {
 				UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(user, null, null);
 				SecurityContextHolder.getContext().setAuthentication(authentication);
-				log.info("access token 인증 성공 : {}", userId);
+				log.info("현재 로그인 사용자 ID : {}", userId);
 			}
 		} else {
 			// 토큰이 없거나 무효라면 비로그인상태로 통과 (401 아님)

@@ -52,7 +52,7 @@
 			return;
 		}
 	  
-		console.log("곧 access token 재발급");
+		console.log("곧 엑세스 토큰 재발급");
 		
 		// refreshTime 후에 tryRefreshImmediately() 실행되도록 예약
 		refreshTimer = setTimeout(tryRefreshImmediately, refreshTime);
@@ -65,7 +65,7 @@
 			if (!newToken) throw new Error("서버에서 access token 누락");
 			
 			localStorage.setItem(window.accessTokenKey, newToken);
-			console.log('access token 갱신 성공');
+			console.log('엑세스 토큰 갱신 성공');
 			scheduleTokenRefresh(newToken);
 			
 			if (typeof window.updateAuthUI === 'function') {
