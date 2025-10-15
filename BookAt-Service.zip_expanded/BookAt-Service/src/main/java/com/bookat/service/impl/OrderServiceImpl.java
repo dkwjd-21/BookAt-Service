@@ -156,7 +156,6 @@ public class OrderServiceImpl implements OrderService {
 
             orderMapper.insertOrderItem(orderItemRequest);
         }
-
         List<String> cartIds = items.stream()
                 .map(CartResponse::getCartId)
                 .filter(id -> id != null && !id.isBlank())
@@ -165,5 +164,6 @@ public class OrderServiceImpl implements OrderService {
         if (!cartIds.isEmpty()) {
             cartMapper.deleteCartItems(cartIds);
         }
+
     }
 }

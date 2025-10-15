@@ -209,7 +209,6 @@ public class ReservationController {
 			}
 
 			// 결제 프레그먼트 연결
-			log.info("STEP3: calling reservationService.getPaymentInfo()");
 			PaymentInfoResDto getPaymentInfo = reservationService.getPaymentInfo(reservationToken);
 			log.info("STEP3: payment info retrieved: {}", getPaymentInfo);
 
@@ -259,8 +258,8 @@ public class ReservationController {
 			return ResponseEntity.status(HttpStatus.GONE).body(Map.of("error", ie.getMessage()));
 		}
 	}
-
-	// 좌석 취소 : 팝업닫기, 예약 세션 만료, 결제취소(결제 전 브라우저종료 or step4에서 이전단계로 이동) 등
+	
+	// 좌석 취소 : 팝업닫기, 예약 세션 만료, 결제취소(결제 전 브라우저종료 or step4에서 이전단계로 이동)
 	@PostMapping("/{reservationToken}/cancel")
 	public ResponseEntity<Map<String, Object>> cancelReservation(@PathVariable String reservationToken,
 			@RequestBody Map<String, Object> body) {

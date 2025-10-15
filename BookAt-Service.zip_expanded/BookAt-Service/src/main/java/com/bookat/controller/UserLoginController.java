@@ -94,8 +94,6 @@ public class UserLoginController {
 	// 로그아웃
 	@PostMapping("/logout")
 	public ResponseEntity<?> logout(@RequestHeader(value="Authorization", required=false) String accessToken, @CookieValue(value = "loginTime", required = false) String loginTimeCookie, HttpServletResponse response) {
-		log.warn("로그아웃 시작");
-		
 		String userId = null;
 		
 		if(accessToken != null && accessToken.startsWith("Bearer ")) {
@@ -120,7 +118,6 @@ public class UserLoginController {
 	    
 	    SecurityContextHolder.clearContext();
 	    
-		log.warn("로그아웃 끝");
 	    return ResponseEntity.ok(Map.of("message", "로그아웃 완료"));
 	}
 	

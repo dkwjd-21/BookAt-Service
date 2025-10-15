@@ -2,11 +2,11 @@ package com.bookat.service.impl;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.bookat.controller.PaymentController;
 import com.bookat.domain.PaymentStatus;
 import com.bookat.dto.PaymentDto;
 import com.bookat.dto.reservation.PaymentReservationSession;
@@ -27,7 +27,6 @@ public class PaymentServiceImpl implements PaymentService {
   private final ReservationService reservationService;
   private final PaymentSessionStore sessionStore;
 
-
   private String normalizeMethod(String method) {
     if (method == null) return "CARD";
     String m = method.trim().toUpperCase().replace("-", "").replace("_", "");
@@ -40,42 +39,47 @@ public class PaymentServiceImpl implements PaymentService {
   }
 
   @Override
-  public PaymentDto createReadyPayment(Integer amount, String method, String info, String userId){
+  public PaymentDto createReadyPayment(Integer amount, String method, String info, String userId, Long orderId){
 	//서버에서 merchantUid 생성
     String merchantUid = "PAY-" + userId + DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS")
                           .format(LocalDateTime.now());
     
     PaymentDto dto = new PaymentDto();
+    if (orderId != null) dto.setOrderId(orderId);
+    dto.setUserId(userId);
     dto.setTotalPrice(amount);
     dto.setPaymentPrice(amount);
-    dto.setPaymentMethod(normalizeMethod(method)); // 정규화
+    dto.setPaymentMethod(normalizeMethod(method));
     dto.setPaymentStatus(PaymentStatus.READY.code);
     dto.setPaymentInfo(info);
     dto.setMerchantUid(merchantUid);
     
     paymentMapper.insert(dto);
-
     return dto;
   }
 
   @Override
   public void markPaid(String merchantUid, String impUid, String pgTid, String receiptUrl){
-    paymentMapper.markPaidByMerchantUid(merchantUid, impUid, pgTid, receiptUrl);
+    // 1) PAYMENT -> PAID
+    int updatedPay = paymentMapper.markPaidByMerchantUid(merchantUid, impUid, pgTid, receiptUrl);
+    log.info("[PAYMENT] markPaid payment updated={}, merchantUid={}", updatedPay, merchantUid);
+
+    // 2) BOOK_ORDER -> PAID(1) 동기화
+    int updatedOrder = paymentMapper.updateOrderStatusPaidByMerchantUid(merchantUid, PaymentStatus.PAID.code);
+    log.info("[PAYMENT] order status sync updated={}, merchantUid={}", updatedOrder, merchantUid);
   }
 
   @Override
   public void markFailed(String merchantUid, String failReason){
-	  int updated = paymentMapper.markFailedByMerchantUid(merchantUid, failReason);
-	  log.info("[PAYMENT] markFailed merchantUid={}, updated={}", merchantUid, updated);
+    int updated = paymentMapper.markFailedByMerchantUid(merchantUid, failReason);
+    log.info("[PAYMENT] markFailed merchantUid={}, updated={}", merchantUid, updated);
   }
-  
+
   @Override
-  public void markCanceled(String merchantUid, String reason, String cancelReceiptUrl, boolean partial) {
-	int status = partial ? PaymentStatus.PART_CANCELED.code : PaymentStatus.CANCELED.code;
-	int updated = paymentMapper.markCanceledByMerchantUid(merchantUid, status, reason, cancelReceiptUrl);
-	
-	//추후 주문 상태도 업데이트 구문 필요
-	
+  public void markCanceled(String merchantUid, String reason, String receiptUrl, boolean partial) {
+    int status = partial ? PaymentStatus.PART_CANCELED.code : PaymentStatus.CANCELED.code;
+    int updated = paymentMapper.markCanceledByMerchantUid(merchantUid, reason, receiptUrl, status);
+    log.info("[PAYMENT] cancel merchantUid={}, updated={}, partial={}", merchantUid, updated, partial);
   }
 
   @Override
@@ -83,7 +87,6 @@ public class PaymentServiceImpl implements PaymentService {
     return paymentMapper.findByMerchantUid(merchantUid);
   }
   
-
   // 결제 완료 후
   public void completeEventPayment(String paymentToken, PaymentReservationSession session) {
 	  String reservationToken = session.reservationToken();
@@ -101,4 +104,9 @@ public class PaymentServiceImpl implements PaymentService {
 	  sessionStore.consumeEventPay(paymentToken);
   }
   
+  // 결제 조회
+  @Override
+  public List<PaymentDto> findAllByUserId(String userId) {
+      return paymentMapper.findAllByUserId(userId);
+  }
 }

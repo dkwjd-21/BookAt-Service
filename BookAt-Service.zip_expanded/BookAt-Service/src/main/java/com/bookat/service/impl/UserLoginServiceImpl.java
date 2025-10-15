@@ -51,14 +51,6 @@ public class UserLoginServiceImpl implements UserLoginService {
 		String accessToken = jwtTokenProvider.generateAccessToken(user.getUserId(), sid);
 		String refreshToken = jwtTokenProvider.generateRefreshToken(user.getUserId());
 		
-//		user.setRefreshToken(refreshToken);
-		
-		// 리프레시토큰 디비 저장
-//		Map<String, String> values = new HashMap<>();
-//		values.put("refreshToken", user.getRefreshToken());
-//		values.put("userId", user.getUserId());
-//		userMapper.updateUserRefreshToken(values);
-		
 		return new UserLoginResponse(accessToken, refreshToken);
 	}
 	

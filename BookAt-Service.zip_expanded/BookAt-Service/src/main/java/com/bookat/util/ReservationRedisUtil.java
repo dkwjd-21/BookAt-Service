@@ -29,8 +29,6 @@ import lombok.extern.slf4j.Slf4j;
 public class ReservationRedisUtil {
 
 	// redis 예약 세션 CRUD
-	// ReservationSessionStore 삭제하고 이 클래스로 바꾸기 작업 시작
-	
 	private final StringRedisTemplate redisTemplate;
 	private static final String KEY_PREFIX = "RESERVATION:";			// 데이터 본문
 	private static final String META_PREFIX = "RESERVATION_META:";		// TTL 만료 시 좌석 복구용
@@ -313,7 +311,7 @@ public class ReservationRedisUtil {
 			if(!PaymentStatus.PAID.name().equals(paymentStatus)) {
 				paymentSessionStore.consumeEventPay(paymentToken);
 				redisTemplate.opsForHash().delete(key, "paymentToken");
-				log.info("STEP4, 결제세션 {} 삭제, status={})", token, paymentToken, paymentStatus);
+				log.info("STEP4, 부여됐던 결제세션은 결제창 이탈로 인한 삭제");
 			}
 		}
 	}
