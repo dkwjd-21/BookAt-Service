@@ -88,10 +88,14 @@ public class BookController{
 		
         List<ReviewDto> reviews = reviewService.findByBookId(bookId);
         int reviewCount = reviewService.countByBookId(bookId);
+        double avgRating = reviewService.avgRatingByBookId(bookId);
+        int avgRatingRounded = (int) Math.round(avgRating);   
 		
 	    
 	    model.addAttribute("reviews", reviews);
 	    model.addAttribute("reviewCount", reviewCount);
+	    model.addAttribute("avgRating", avgRating);
+	    model.addAttribute("avgRatingRounded", avgRatingRounded);
 		
 		return "mainpage/bookdetail";
 	}

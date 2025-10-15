@@ -58,7 +58,25 @@
             <br />
             <span>출간일</span>&nbsp;&nbsp;|&nbsp;&nbsp;<span th:text="${book.pubdate != null ? #temporals.format(book.pubdate, 'yyyy년 MM월 dd일') : '-'}">2025년 09월 01일</span>
             <br />
-            <span>리뷰()</span>
+            
+            <div class="detail-rating">
+              <span>리뷰</span>&nbsp;|&nbsp;
+
+              <!-- 평균 별점 -->
+              <span class="stars">
+                <span th:each="i : ${#numbers.sequence(1,5)}"
+                      th:text="${i <= avgRatingRounded} ? '★' : '☆'"
+                      th:classappend="${i <= avgRatingRounded} ? 'on' : ''">★</span>
+              </span>
+
+              <!-- 평균값 숫자 -->
+              <span class="meta"
+                    th:text="${#numbers.formatDecimal(avgRating, 1, 'POINT', 1, 'POINT')} + ' / 5.0'">0.0 / 5.0</span>
+
+              <!-- 총 리뷰 개수 -->
+              <span class="meta" th:text="'(' + ${reviewCount} + ')'">(0)</span>
+            </div>
+            
             <br />
           </div>
 
