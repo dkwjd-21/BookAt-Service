@@ -46,7 +46,6 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 		}
 		
 		// 동시 로그인 체크
-//		테스트시에는 쿠키 저장값이 없어서 주석
 		if(!Objects.equals(refreshToken, redisRefreshToken) || !Objects.equals(loginTime, redisLoginTime)) {
 			log.info("다른 기기에서 로그인, 현재 기기 강제 로그아웃 필요");
 			return false;

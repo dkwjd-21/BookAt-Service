@@ -30,11 +30,9 @@ import com.bookat.dto.reservation.UserInfoReqDto;
 import com.bookat.entity.User;
 import com.bookat.enums.PersonType;
 import com.bookat.service.PaymentService;
-import com.bookat.service.QueueService;
 import com.bookat.service.ReservationService;
 import com.bookat.service.SeatService;
 import com.bookat.util.PaymentSessionStore;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,7 +46,6 @@ public class ReservationController {
 	private final ReservationService reservationService;
 	private final PaymentService paymentService;
 	private final SeatService seatService;
-	private final QueueService queueService;
 	private final PaymentSessionStore paymentSessionStore;
 
 	// 티켓팅 팝업 오픈
@@ -89,7 +86,6 @@ public class ReservationController {
 		model.addAttribute("reservationToken", reservationStartDto.getReservationToken());
 
 		return "reservation/ReservationPopup";
-//		return ResponseEntity.ok(Map.of("event", reservationStartDto.getEvent(), "eventParts", reservationStartDto.getEventParts(), "reservationToken", reservationStartDto.getReservationToken()));
 	}
 
 	// step1: 날짜/회차 선택
@@ -106,9 +102,6 @@ public class ReservationController {
 		response.put("scheduleId", scheduleId);
 		
 		response.put("reservationToken", reservationToken);
-
-		// 테스트용 코드 추가
-//		response.put("reservationToken", reservationToken);
 
 		return ResponseEntity.ok(response);
 	}
@@ -145,8 +138,6 @@ public class ReservationController {
 
 				response.put("message", "인원 선택 완료");
 	            response.put("totalPrice", totalPrice);
-	            
-	            response.put("reservationToken", reservationToken);
 				
 			} else if ("SEAT_TYPE".equals(ticketType)) {
 				// 좌석 선택 유형 처리
@@ -194,12 +185,6 @@ public class ReservationController {
 	public ResponseEntity<Map<String, Object>> inputUserInfo(@PathVariable String reservationToken,
 			@AuthenticationPrincipal User user, @RequestBody UserInfoReqDto userInfoReqDto) {
 
-		log.info("STEP3 start: reservationToken={}, userId={}", reservationToken, user.getUserId());
-
-		if (user == null) {
-			return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", "로그인이 필요합니다."));
-		}
-
 		try {
 			log.info("STEP3: calling reservationService.inputUserInfo()");
 			boolean success = reservationService.inputUserInfo(reservationToken, user.getUserId(), userInfoReqDto);
@@ -211,30 +196,20 @@ public class ReservationController {
 
 			// 결제 프레그먼트 연결
 			PaymentInfoResDto getPaymentInfo = reservationService.getPaymentInfo(reservationToken);
-			log.info("STEP3: payment info retrieved: {}", getPaymentInfo);
 
 			String enforcedMethod = "CARD";
-			log.info("STEP3: calling paymentService.createReadyPayment()");
-			PaymentDto pay = paymentService.createReadyPayment(getPaymentInfo.getTotalPrice(), enforcedMethod,
-					getPaymentInfo.getTitle(), user.getUserId());
-			log.info("STEP3: payment created: {}", pay);
-
-			log.info("STEP3: creating PaymentReservationSession");
+			PaymentDto pay = paymentService.createReadyPayment(getPaymentInfo.getTotalPrice(), enforcedMethod,getPaymentInfo.getTitle(), user.getUserId(), null);
+			
 			PaymentReservationSession session = PaymentSessionStore.of(reservationToken, getPaymentInfo.getEventId(),
 					getPaymentInfo.getScheduleId(), getPaymentInfo.getTitle(), getPaymentInfo.getReservedCount(),
 					enforcedMethod, BigDecimal.valueOf(getPaymentInfo.getTotalPrice()), pay.getMerchantUid(),
 					user.getUserId());
-			log.info("STEP3: session created: {}", session);
 
-			log.info("STEP3: calling paymentSessionStore.createEventPay()");
 			String paymentToken = paymentSessionStore.createEventPay(session);
-			log.info("STEP3: paymentToken={}", paymentToken);
 
 			String paymentStepUrl = "/payment/" + paymentToken + "/paymentUI";
-			log.info("STEP3 completed successfully: paymentStepUrl={}", paymentStepUrl);
 			
 			return ResponseEntity.ok(Map.of("message", "사용자 정보 저장 완료", "status", "STEP4", "paymentStepUrl", paymentStepUrl));
-//			return ResponseEntity.ok(Map.of("message", "사용자 정보 저장 완료", "status", "STEP4", "paymentToken", paymentToken, "reservationToken", reservationToken));
 			
 		} catch (IllegalStateException ise) {
 			log.error("STEP3 IllegalStateException: {}", ise.getMessage(), ise);
