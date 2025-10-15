@@ -20,6 +20,7 @@
 		JOIN event_part s on s.schedule_id = r.schedule_id
 		JOIN payment p on p.payment_id = r.payment_id
 		WHERE r.user_id = #{userId}
+		ORDER BY r.reservation_date DESC
 	</select>
 	
 	<select id="getTicketDetails" resultType="com.bookat.dto.myPage.TicketDetailDto">

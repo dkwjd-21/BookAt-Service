@@ -41,7 +41,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 		
 		// refresh token 만료 여부 체크
 		if(redisRefreshToken != null && !jwtTokenProvider.validateToken(redisRefreshToken)) {
-			log.info("refresh token 만료, redis 삭제 필요");
+			log.info("리프레시 토큰 만료, redis 삭제 필요");
 			return false;
 		}
 		

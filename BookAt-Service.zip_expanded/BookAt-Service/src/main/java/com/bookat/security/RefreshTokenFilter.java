@@ -36,7 +36,7 @@ public class RefreshTokenFilter extends OncePerRequestFilter {
 			boolean valid = refreshTokenService.validateRefreshToken(request, response, userId);
 			
 			if(!valid) {
-				log.info("refresh token 검증 실패, 만료 or 동시 로그인");
+				log.info("리프레시 토큰 검증 실패, 만료 or 동시 로그인");
 				// 401 에러
 				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 				return;
