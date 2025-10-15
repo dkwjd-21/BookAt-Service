@@ -33,7 +33,7 @@ public class MyPageController {
 	@Value("${sweettracker.api.key:}")
 	private String sweetTrackerApiKey;
 	
-	@GetMapping("/")
+	@GetMapping({"/", ""})
 	public String myPage(@AuthenticationPrincipal User user, Model model) {
 		model.addAttribute("user", user);
 		model.addAttribute("sweetTrackerApiKey", sweetTrackerApiKey);
