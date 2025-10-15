@@ -30,11 +30,13 @@ public class ReservationRedisUtil {
 
 	// redis 예약 세션 CRUD
 	private final StringRedisTemplate redisTemplate;
+	private final QueueUtil queueUtil;
+	private final PaymentSessionStore paymentSessionStore;
 	private static final String KEY_PREFIX = "RESERVATION:";			// 데이터 본문
 	private static final String META_PREFIX = "RESERVATION_META:";		// TTL 만료 시 좌석 복구용
 	private static final long TTL_SECONDS = 900;						// 만료 15분
 	private static final ObjectMapper OM = new ObjectMapper();
-	private final PaymentSessionStore paymentSessionStore;
+
 
 	// 예약 세션 생성 (예매 진입 초기값 세팅)
 	public String createInit(int eventId, String eventName, String userId, String eventDate) {
@@ -245,13 +247,14 @@ public class ReservationRedisUtil {
 	}
 	
 	// TTL 만료 시 좌석 복구용 메타데이터 (인원유형)
-	public void createMetaDataForSessionExpired(String token, int eventId, int scheduleId, int reservedCount) {
+	public void createMetaDataForSessionExpired(String token, int eventId, int scheduleId, int reservedCount, String userId) {
 		String metaKey = META_PREFIX + token;
 		
 		Map<String, String> mataData = new LinkedHashMap<>();
 		mataData.put("eventId", String.valueOf(eventId));
 		mataData.put("scheduleId", String.valueOf(scheduleId));
 		mataData.put("reservedCount", String.valueOf(reservedCount));
+		mataData.put("userId", userId);
 		
 		redisTemplate.opsForHash().putAll(metaKey, mataData);
 	}
@@ -283,6 +286,8 @@ public class ReservationRedisUtil {
 		
 		// 예약 세션 만료 (다시 예약 필요)
 		if(!Boolean.TRUE.equals(redisTemplate.hasKey(KEY_PREFIX + token))) {
+			int result = rollbackOnCancel(token);
+			log.info("{} 예약 세션 만료 좌석 복구 완료", result);
 			return false;
 		}
 		
@@ -318,13 +323,30 @@ public class ReservationRedisUtil {
 	
 	// 예약 프로세스 취소 시 좌석 복구와 관련 세션 삭제의 원자적 처리
 	// 예약 취소 시 좌석 복구 + 세션/메타 삭제
-	public int rollbackOnCancel(String token, String eventId, String scheduleId) {
+	public int rollbackOnCancel(String token) {
 		String key = KEY_PREFIX + token;
 		String metaKey = META_PREFIX + token;
+		
+		Map<Object, Object> metaData = redisTemplate.opsForHash().entries(metaKey);
+		
+		if (metaData == null || metaData.isEmpty()) {
+			log.warn("META 데이터 없음, 좌석 복구 없이 세션만 삭제");
+			// Active Set 에서 사용자 제거
+//			queueUtil.leaveActive(eventId, userId);
+			redisTemplate.delete(key);
+			return 0;
+		}
+		
+		String eventId = metaData.get("eventId").toString();
+		String scheduleId = metaData.get("scheduleId").toString();
+		String userId = metaData.get("userId").toString();
 		String availableSeatsKey = getAvailableSeatsKey(eventId, scheduleId);
 		
+		// Active Set 에서 사용자 제거
+		queueUtil.leaveActive(eventId, userId);
+		
 		String luaScript = 
-					"local reservedCount = redis.call('HGET', KEYS[1], ARGV[1]) " +
+					"local reservedCount = redis.call('HGET', KEYS[3], ARGV[1]) " +
 					"if reservedCount then " +
 					"   local count = tonumber(reservedCount) " +
 					"   if count > 0 then " +
