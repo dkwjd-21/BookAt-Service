@@ -85,41 +85,96 @@ window.initMyReview = async function () {
   function renderReviews(reviews) {
     const reviewListElement = document.getElementById("reviewList");
 
-    reviewListElement.innerHTML = reviews
-      .map(
-        (review) => `
-      <div class="review-item" data-review-id="${review.reviewId}" data-book-id="${review.bookId || ""}" data-event-id="${review.eventId || ""}">
-        <div class="review-item-header">
-          <span class="review-type-badge ${review.targetType === "도서" ? "book-type" : "event-type"}">
-            ${review.targetType}
-          </span>
-          <div class="review-actions">
-            <button class="review-action-btn edit-btn" data-review-id="${review.reviewId}">수정</button>
-            <button class="review-action-btn delete-btn" data-review-id="${review.reviewId}">삭제</button>
-          </div>
-        </div>
-        
-        <div class="review-item-content">
-          <div class="target-info">
-            <h3 class="target-title">${review.targetTitle}</h3>
-          </div>
-          
-          <div class="review-content">
-            <div class="review-rating">
-              ${generateStars(review.rating)}
-            </div>
-            <h4 class="review-title">${review.title}</h4>
-            <p class="review-text">${review.content}</p>
-            <div class="review-meta">
-              <span class="review-author">작성일</span>
-              <span class="review-date">${formatDate(review.createdAt)}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    `
-      )
-      .join("");
+    reviewListElement.innerHTML = "";
+
+    reviews.forEach((review) => {
+      const reviewItem = document.createElement("div");
+      reviewItem.className = "review-item";
+      reviewItem.setAttribute("data-review-id", review.reviewId);
+      reviewItem.setAttribute("data-book-id", review.bookId || "");
+      reviewItem.setAttribute("data-event-id", review.eventId || "");
+
+      // 리뷰 헤더
+      const header = document.createElement("div");
+      header.className = "review-item-header";
+
+      const typeBadge = document.createElement("span");
+      typeBadge.className = `review-type-badge ${review.targetType === "도서" ? "book-type" : "event-type"}`;
+      typeBadge.textContent = review.targetType;
+
+      const actions = document.createElement("div");
+      actions.className = "review-actions";
+
+      const editBtn = document.createElement("button");
+      editBtn.className = "review-action-btn edit-btn";
+      editBtn.setAttribute("data-review-id", review.reviewId);
+      editBtn.textContent = "수정";
+
+      const deleteBtn = document.createElement("button");
+      deleteBtn.className = "review-action-btn delete-btn";
+      deleteBtn.setAttribute("data-review-id", review.reviewId);
+      deleteBtn.textContent = "삭제";
+
+      actions.appendChild(editBtn);
+      actions.appendChild(deleteBtn);
+      header.appendChild(typeBadge);
+      header.appendChild(actions);
+
+      // 리뷰 콘텐츠
+      const content = document.createElement("div");
+      content.className = "review-item-content";
+
+      const targetInfo = document.createElement("div");
+      targetInfo.className = "target-info";
+
+      const targetTitle = document.createElement("h3");
+      targetTitle.className = "target-title";
+      targetTitle.textContent = review.targetTitle;
+
+      targetInfo.appendChild(targetTitle);
+
+      const reviewContent = document.createElement("div");
+      reviewContent.className = "review-content";
+
+      const rating = document.createElement("div");
+      rating.className = "review-rating";
+      rating.innerHTML = generateStars(review.rating); 
+
+      const reviewTitle = document.createElement("h4");
+      reviewTitle.className = "review-title";
+      reviewTitle.textContent = review.title;
+
+      const reviewText = document.createElement("p");
+      reviewText.className = "review-text";
+      reviewText.textContent = review.content; 
+
+      const meta = document.createElement("div");
+      meta.className = "review-meta";
+
+      const author = document.createElement("span");
+      author.className = "review-author";
+      author.textContent = "작성일";
+
+      const date = document.createElement("span");
+      date.className = "review-date";
+      date.textContent = formatDate(review.createdAt);
+
+      meta.appendChild(author);
+      meta.appendChild(date);
+
+      reviewContent.appendChild(rating);
+      reviewContent.appendChild(reviewTitle);
+      reviewContent.appendChild(reviewText);
+      reviewContent.appendChild(meta);
+
+      content.appendChild(targetInfo);
+      content.appendChild(reviewContent);
+
+      reviewItem.appendChild(header);
+      reviewItem.appendChild(content);
+
+      reviewListElement.appendChild(reviewItem);
+    });
 
     // 섹션 표시
     loginSection.style.display = "none";

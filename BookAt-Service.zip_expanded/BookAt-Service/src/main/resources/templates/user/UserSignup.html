@@ -4,28 +4,22 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" th:href="@{/css/UserSignup.css}" />
-	<link rel="stylesheet" th:href="@{/css/header.css}" />
-	  <link rel="stylesheet" th:href="@{/css/footer.css}" />
-	  	<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-		<script th:src="@{/js/utils/axiosIntercepter.js}"></script>
-		<script th:src="@{/js/utils/logout.js}"></script>
-		<script th:src="@{/js/utils/userAuth.js}"></script>
-		<script th:src="@{/js/utils/header.js}"></script>
-        <script th:src="@{/js/user/UserSignup.js}"></script>
-        <script src="https://cdn.portone.io/v2/browser-sdk.js"></script>
+    <link rel="stylesheet" th:href="@{/css/header.css}" />
+    <link rel="stylesheet" th:href="@{/css/footer.css}" />
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script th:src="@{/js/utils/axiosIntercepter.js}"></script>
+    <script th:src="@{/js/utils/logout.js}"></script>
+    <script th:src="@{/js/utils/userAuth.js}"></script>
+    <script th:src="@{/js/utils/header.js}"></script>
+    <script th:src="@{/js/user/UserSignup.js}"></script>
+    <script src="https://cdn.portone.io/v2/browser-sdk.js"></script>
     <title>BookAt 회원가입</title>
-    <link
-      rel="stylesheet"
-      as="style"
-      crossorigin
-      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
-    />
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <!-- 모델 값을 JavaScript 변수로 만든다. -->
     <script th:inline="javascript">
       /*<![CDATA[*/
       const PORTONE_STORE_ID = /*[[${portoneStoreId}]]*/ "default-store-id";
-      const PORTONE_CHANNEL_KEY =
-        /*[[${portoneChannelKey}]]*/ "default-channel-key";
+      const PORTONE_CHANNEL_KEY = /*[[${portoneChannelKey}]]*/ "default-channel-key";
       /*]]>*/
     </script>
   </head>
@@ -50,9 +44,7 @@
           </div>
         </div>
         <div class="signup-verification">
-          <a href="#" class="verification-btn" onclick="verification();"
-            >간편 본인인증</a
-          >
+          <a href="#" class="verification-btn" onclick="verification();">간편 본인인증</a>
         </div>
         <div class="signup-form" style="display: none">
           <form th:action="@{/user/signup/form}" method="post" id="signup-form">
@@ -61,56 +53,29 @@
             <div class="form-group">
               <label for="userName">이름</label>
               <div class="form-input">
-                <input
-                  type="text"
-                  id="userName"
-                  name="userName"
-                  value="김북캣"
-                  readonly
-                />
+                <input type="text" id="userName" name="userName" value="김북캣" readonly />
               </div>
             </div>
             <div class="form-group">
               <label for="userId">아이디</label>
               <div class="form-input-btn">
-                <input
-                  type="text"
-                  id="userId"
-                  name="userId"
-                  placeholder="아이디를 입력해 주세요."
-                />
-                <button type="button" class="check-btn" onclick="chkId();">
-                  중복확인
-                </button>
+                <input type="text" id="userId" name="userId" placeholder="아이디를 입력해 주세요." />
+                <button type="button" class="check-btn" onclick="chkId();">중복확인</button>
               </div>
             </div>
             <p id="idMessage" class="validation-message"></p>
             <div class="form-group">
               <label for="userPw">비밀번호</label>
               <div class="form-input">
-                <input
-                  type="password"
-                  id="userPw"
-                  name="userPw"
-                  placeholder="비밀번호를 입력해 주세요."
-                  disabled="true"
-                />
+                <input type="password" id="userPw" name="userPw" placeholder="비밀번호를 입력해 주세요." disabled="true" />
               </div>
             </div>
             <p id="pwMessage" class="validation-message"></p>
             <div class="form-group">
               <label for="email">이메일</label>
               <div class="form-input-btn">
-                <input
-                  type="text"
-                  id="email"
-                  name="email"
-                  placeholder="이메일을 입력해 주세요."
-                  disabled="true"
-                />
-                <button type="button" class="check-btn" onclick="chkEmail();">
-                  중복확인
-                </button>
+                <input type="text" id="email" name="email" placeholder="이메일을 입력해 주세요." disabled="true" />
+                <button type="button" class="check-btn" onclick="chkEmail();">중복확인</button>
               </div>
             </div>
             <p id="emailMessage" class="validation-message"></p>
@@ -120,11 +85,7 @@
                 <label><a href="#">BookAt 이용 약관</a>에 동의합니다.</label>
               </div>
               <div class="agree-item">
-                <input
-                  type="checkbox"
-                  id="agree-privacy"
-                  name="agree-privacy"
-                />
+                <input type="checkbox" id="agree-privacy" name="agree-privacy" />
                 <label>
                   <a href="#">개인정보처리방침</a>
                   에 따라 개인정보를 수집하고 사용하는 데 동의합니다.
@@ -141,7 +102,7 @@
           </div>
           <div class="complete-buttons">
             <a th:href="@{/user/login}" class="action-btn">로그인</a>
-            <a th:href="@{/mainpage}" class="action-btn">메인페이지</a>
+            <a th:href="@{/books}" class="action-btn">메인페이지</a>
           </div>
         </div>
       </div>
