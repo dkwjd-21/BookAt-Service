@@ -32,7 +32,8 @@ public class JwtRedisUtil {
 		redisScript.setScriptText(luaScript);
 		redisScript.setResultType(String.class);
 		
-		redisTemplate.execute(redisScript, List.of(sidKey), sid, String.valueOf(JwtTokenProvider.EXPIRATION_1D));
+//		redisTemplate.execute(redisScript, List.of(sidKey), sid, String.valueOf(JwtTokenProvider.EXPIRATION_1D));
+		redisTemplate.execute(redisScript, List.of(sidKey), sid, String.valueOf(70*1000));
 	}
 	
 	// 현재 session id 조회
@@ -54,7 +55,8 @@ public class JwtRedisUtil {
 		values.put("loginTime", loginTime);
 		
 		redisTemplate.opsForHash().putAll(userId, values);
-		redisTemplate.expire(userId, JwtTokenProvider.EXPIRATION_1D, TimeUnit.MILLISECONDS);
+//		redisTemplate.expire(userId, JwtTokenProvider.EXPIRATION_1D, TimeUnit.MILLISECONDS);
+		redisTemplate.expire(userId, 70*1000, TimeUnit.MILLISECONDS);
 	}
 	
 	// refresh token + loginTime 조회

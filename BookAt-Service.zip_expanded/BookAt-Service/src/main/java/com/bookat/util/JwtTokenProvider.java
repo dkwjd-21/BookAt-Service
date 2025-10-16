@@ -35,7 +35,8 @@ public class JwtTokenProvider {
 				.setSubject(userId)
 				.claim("sid", sid)		// sid : Session Id -> 세션 식별자 값
 				.setIssuedAt(new Date())
-				.setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_30M))
+//				.setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_30M))
+				.setExpiration(new Date(System.currentTimeMillis() + 30*1000))
 				.signWith(key, SignatureAlgorithm.HS256)
 				.compact();
 	}
@@ -45,7 +46,8 @@ public class JwtTokenProvider {
 		return Jwts.builder()
 				.setSubject(userId)
 				.setIssuedAt(new Date())
-				.setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_1D))
+//				.setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_1D))
+				.setExpiration(new Date(System.currentTimeMillis() + 70*1000))
 				.signWith(key, SignatureAlgorithm.HS256)
 				.compact();
 	}

@@ -3,7 +3,9 @@ async function verificationFindIdPw(storeId, channelKey, onSuccess, onError) {
 		// 1. 포트원 본인인증 호출
 		const portoneResponse = await PortOne.requestIdentityVerification({
 			storeId: storeId,
-			identityVerificationId: `identity-verification-${crypto.randomUUID()}`,
+			// identityVerificationId: `identity-verification-${crypto.randomUUID()}`,
+			// AWS 배포 환경에서 UUID 생성이 안되는 이슈 수정
+			identityVerificationId: `identity-verification-${generateUUID()}`,
 			channelKey: channelKey,
 		});
 
@@ -36,3 +38,10 @@ async function verificationFindIdPw(storeId, channelKey, onSuccess, onError) {
 	}
 }
 
+function generateUUID() {
+	  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+	    const r = (Math.random() * 16) | 0;
+	    const v = c === "x" ? r : (r & 0x3) | 0x8;
+	    return v.toString(16);
+	});
+}
