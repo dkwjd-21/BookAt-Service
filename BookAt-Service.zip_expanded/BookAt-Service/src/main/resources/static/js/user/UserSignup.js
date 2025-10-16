@@ -1,11 +1,12 @@
 // 본인인증 버튼 클릭
 async function verification() {
-
   try {
     // 1. 포트원 본인인증을 호출 & 사용자가 완료할 때까지 기다림
     const portoneResponse = await PortOne.requestIdentityVerification({
       storeId: PORTONE_STORE_ID,
-      identityVerificationId: `identity-verification-${crypto.randomUUID()}`,
+      // identityVerificationId: `identity-verification-${crypto.randomUUID()}`,
+      // AWS 배포 환경에서 UUID 생성이 안되는 이슈 수정
+      identityVerificationId: `identity-verification-${generateUUID()}`,
       channelKey: PORTONE_CHANNEL_KEY,
     });
 
@@ -30,27 +31,28 @@ async function verification() {
     // 4. [핵심] 백엔드가 보낸 JSON 응답을 객체로 변환
     const userInfo = await backendResponse.json();
 
-	console.log(userInfo);
-	
+    console.log(userInfo);
+
     // 5. 백엔드로부터 받은 상태가 'success'가 아니면 에러를 발생시켜 중단
     if (userInfo.status !== "success") {
       throw new Error(userInfo.message || "서버에서 인증 처리에 실패했습니다.");
     }
 
-	// [로직추가] 이미 가입된 유저인지 확인
-	const existsResponse = await fetch(`/user/signup/userExists?phone=${userInfo.phone}`);
-	if(!existsResponse.ok){
-		throw new Error("서버에서 유저 존재 여부 확인 실패");
-	}
-	
-	const exists = await existsResponse.json();
-	if(exists){
-		alert("이미 가입된 사용자입니다. 로그인 페이지로 이동합니다.");
-		window.location.href = "/user/login";
-		return;
-	}
-	
-	
+    // [로직추가] 이미 가입된 유저인지 확인
+    const existsResponse = await fetch(
+      `/user/signup/userExists?phone=${userInfo.phone}`
+    );
+    if (!existsResponse.ok) {
+      throw new Error("서버에서 유저 존재 여부 확인 실패");
+    }
+
+    const exists = await existsResponse.json();
+    if (exists) {
+      alert("이미 가입된 사용자입니다. 로그인 페이지로 이동합니다.");
+      window.location.href = "/user/login";
+      return;
+    }
+
     // 6. [성공] 모든 검증 완료 -> 화면 전환
     // 단계 표시 변경
     document.getElementById("step-fir").className = "step";
@@ -351,4 +353,13 @@ function chkEmail() {
       // 오류 발생 시 사용자에게 알리기
       console.error("요청 중 오류 발생 : " + error);
     });
+}
+
+// 본인인증을 위한 UUID 생성 메서드
+function generateUUID() {
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
 }
