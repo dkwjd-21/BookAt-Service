@@ -145,5 +145,12 @@
     WHERE r.user_id = #{userId}
     ORDER BY r.review_date DESC
   </select>
+  
+  <!-- 평균 별점 (도서 기준, 소수 1자리) -->
+  <select id="avgRatingByBookId" parameterType="string" resultType="double">
+    SELECT NVL(ROUND(AVG(rating), 1), 0)
+    FROM review
+    WHERE review_type = 'B' AND book_id = #{bookId}
+  </select>
 
 </mapper>

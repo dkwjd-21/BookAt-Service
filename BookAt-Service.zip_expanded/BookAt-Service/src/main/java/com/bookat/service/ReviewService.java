@@ -33,6 +33,9 @@ public interface ReviewService {
     
     // 사용자가 작성한 모든 리뷰 조회 (도서/이벤트 정보 포함)
     List<ReviewDto> findByUserId(String userId);
+    
+    // 별점 평균
+    double avgRatingByBookId(String bookId);
 }
 
 
