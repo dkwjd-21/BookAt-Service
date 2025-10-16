@@ -80,6 +80,12 @@ a.btn:active {
   font-size: 20px;
   line-height: 1.8;
 }
+.detail-rating {
+  display:flex; align-items:center; gap:8px; 
+}
+.meta {
+  font-size: 20px;
+}
 
 /* 가격 줄 */
 .detail-price-row {

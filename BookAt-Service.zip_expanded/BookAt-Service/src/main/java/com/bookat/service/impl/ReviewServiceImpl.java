@@ -58,5 +58,11 @@ public class ReviewServiceImpl implements ReviewService {
 	public List<ReviewDto> findByUserId(String userId) {
 		return reviewMapper.findByUserId(userId);
 	}
+	
+    @Override
+    public double avgRatingByBookId(String bookId) {
+        Double v = reviewMapper.avgRatingByBookId(bookId);
+        return v != null ? v : 0.0;
+    }
 
 }
