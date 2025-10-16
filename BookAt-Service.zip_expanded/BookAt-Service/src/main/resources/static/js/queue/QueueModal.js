@@ -43,7 +43,6 @@ async function onModal(eventId) {
       console.error("대기열 진입 에러:", err);
       modal.style.display = "none";
     }
-    console.log("이벤트 아이디:", eventId);
   }
 }
 
@@ -68,20 +67,20 @@ async function onModifyModal(eventId, reservationId) {
     }
     // 예약 변경 로직에서는 eventId와 reservationId를 저장
     sessionStorage.setItem(EVENT_ID_KEY, eventId);
-    sessionStorage.setItem(RESERVATION_ID_KEY, reservationId); 
+    sessionStorage.setItem(RESERVATION_ID_KEY, reservationId);
 
     try {
       // API 호출 시 reservationId를 함께 전달
       const res = await axiosInstance.post("/queue/enter", null, {
-        params: { eventId, reservationId }, 
+        params: { eventId, reservationId },
       });
-      
+
       const data = res.data;
       if (data.status === "success") {
         const waitingNumEl = document.querySelector(".modal-waitingNum");
         if (waitingNumEl) waitingNumEl.textContent = data.rank ?? "-";
-        // 폴링 시작 
-        startQueuePolling(true); 
+        // 폴링 시작
+        startQueuePolling(true);
       } else {
         alert("대기열 진입 실패");
         modal.style.display = "none";
@@ -113,8 +112,8 @@ async function performFetchAndUpdate() {
     const eventId = encodeURIComponent(sessionStorage.getItem("eventId"));
     if (!eventId) return;
 
-	const reservationId = sessionStorage.getItem(RESERVATION_ID_KEY);
-	
+    const reservationId = sessionStorage.getItem(RESERVATION_ID_KEY);
+
     // heartbeat 보내기
     axiosInstance.post("/queue/heartbeat", null, { params: { eventId } });
 
@@ -126,10 +125,7 @@ async function performFetchAndUpdate() {
 
     const waitingNumEl = document.querySelector(".modal-waitingNum");
     if (waitingNumEl) {
-      const parsedRank =
-        data.rank !== undefined && data.rank !== null
-          ? Number(data.rank)
-          : null;
+      const parsedRank = data.rank !== undefined && data.rank !== null ? Number(data.rank) : null;
       waitingNumEl.textContent = parsedRank !== null ? parsedRank : "-";
     }
 
@@ -195,13 +191,13 @@ window.addEventListener("unload", leaveQueueOnUnload);
 // -------------------- 예약 팝업 --------------------
 async function openReservationPopup(eventId, reservationId = null) {
   try {
-	const params = { eventId };
-	
-	// 예매내역이 있으면 파라미터에 추가하여 API 호출 
-	if(reservationId){
-		params.reservationId = reservationId;
-	}
-	
+    const params = { eventId };
+
+    // 예매내역이 있으면 파라미터에 추가하여 API 호출
+    if (reservationId) {
+      params.reservationId = reservationId;
+    }
+
     const popupRes = await axiosInstance.get("/reservation/start", {
       params,
       responseType: "text",

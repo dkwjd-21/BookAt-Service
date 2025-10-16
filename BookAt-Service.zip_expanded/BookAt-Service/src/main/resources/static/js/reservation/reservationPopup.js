@@ -71,7 +71,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	updateSummary();
 
 	// 캡챠가 필요하면 호출 (사용하지 않으면 주석 처리)
-	//showCaptchaModal();
+	showCaptchaModal();
 
 	// ====== 회차 클릭 이벤트 처리 ======
 	// 회차를 선택하면 회차 UI highlight, selectedSession 갱신, (좌석 타입이면) 좌석 데이터 로드
