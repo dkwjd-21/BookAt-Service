@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.bookat.mapper.EventMapper">
+
+    <select id="selectEventList" resultType="com.bookat.dto.EventResDto">
+        SELECT * FROM EVENT ORDER BY EVENT_ID ASC
+    </select>
+
+    <select id="selectEventOne" resultType="com.bookat.dto.EventResDto">
+        SELECT * FROM EVENT WHERE EVENT_ID =#{event_id}
+    </select>
+    
+    <select id="selectByLocalCode" resultType="com.bookat.dto.EventResDto">
+        SELECT * FROM EVENT WHERE LOCAL_CODE=#{local_code} ORDER BY EVENT_ID ASC
+    </select>
+
+    <select id="selectByLocalCodeAndStartTime" resultType="com.bookat.dto.EventResDto">
+       SELECT * FROM (SELECT * FROM EVENT WHERE LOCAL_CODE=#{local_code} AND EVENT_DATE > SYSDATE + 30 ORDER BY EVENT_DATE ASC) WHERE ROWNUM &lt;= 12
+    </select>
+
+    <select id="selectByLocalCodeAndCloseTime" resultType="com.bookat.dto.EventResDto">
+        SELECT * FROM (SELECT * FROM EVENT WHERE LOCAL_CODE=#{local_code} AND EVENT_DATE > SYSDATE ORDER BY EVENT_DATE ASC) WHERE ROWNUM &lt;= 12
+    </select>
+    
+    <select id="selectForMain" resultType="com.bookat.dto.EventResDto">
+    	SELECT * FROM (SELECT * FROM EVENT ORDER BY EVENT_DATE DESC, EVENT_ID DESC) WHERE ROWNUM &lt;= 12
+    </select>
+    
+    <select id="selectByStartTime" resultType="com.bookat.dto.EventResDto">
+    	SELECT * FROM (SELECT * FROM EVENT WHERE EVENT_DATE > SYSDATE + 30 ORDER BY EVENT_DATE ASC) WHERE ROWNUM &lt;= 12
+    </select>
+    
+    <select id="selectByCloseTime" resultType="com.bookat.dto.EventResDto">
+        SELECT * FROM (SELECT * FROM EVENT WHERE EVENT_DATE > SYSDATE ORDER BY EVENT_DATE ASC) WHERE ROWNUM &lt;= 12
+    </select>
+
+	<select id="selectBookOne"  parameterType="string" resultType="Book">
+		SELECT * FROM BOOK WHERE BOOK_ID = #{book_id}
+	</select>
+  
+    <!-- bookId로 이벤트 조회 -->
+    <select id="selectByBookId" parameterType="string"
+          resultType="com.bookat.dto.EventResDto">
+    SELECT
+      e.EVENT_ID           AS eventId,
+      e.BOOK_ID            AS bookId,
+      e.TICKET_TYPE        AS ticketType,
+      e.EVENT_NAME         AS eventName,
+      e.EVENT_DESCRIPTION  AS eventDescription,
+      e.EVENT_PRICE        AS eventPrice,
+      e.EVENT_IMAGE        AS eventImage,
+      e.LOCAL_CODE         AS localCode,
+      e.ADDRESS            AS address,
+      e.EVENT_DATE         AS eventDate
+    FROM EVENT e
+    WHERE e.BOOK_ID = #{bookId}
+  </select>
+
+	<select id="selectByEventDate" parameterType="Date" resultType="com.bookat.dto.EventResDto">
+		SELECT * FROM EVENT 
+		WHERE EVENT_DATE = #{eventDate}
+	</select>
+
+	<select id="selectPartByEventId" parameterType="int" resultType="com.bookat.dto.EventPartDto">
+		SELECT * FROM EVENT_PART
+		WHERE EVENT_ID = #{eventId}
+	</select>
+	
+	<insert id="insertSeat" parameterType="com.bookat.dto.EventSeatDto">
+		INSERT INTO SEAT_TYPE 
+		VALUES(SEQ_SEAT_TYPE.NEXTVAL, #{seatName}, #{seatStatus},
+			   #{seatGradeType}, #{eventId}, #{scheduleId})
+	</insert>
+	
+	<select id="selectPartByScheduleId" parameterType="int" resultType="com.bookat.dto.EventPartDto">
+		SELECT * FROM EVENT_PART
+		WHERE SCHEDULE_ID = #{scheduleId}
+	</select>
+	
+</mapper>

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.bookat.mapper.ReservationMapper">
+	
+	<select id="findEventByEventId" resultType="Event">
+		SELECT * FROM EVENT WHERE EVENT_ID = #{eventId}
+	</select>
+	
+	<select id="findPartsByEventId" resultType="EventPart">
+		SELECT * FROM EVENT_PART 
+		WHERE EVENT_ID = #{eventId}
+		ORDER BY SCHEDULE_ID
+	</select>
+	
+	<insert id="insertReservation" parameterType="Reservation">
+		<selectKey keyProperty="reservationId" resultType="long" order="BEFORE">
+			SELECT SEQ_RESERVATION.NEXTVAL FROM DUAL
+		</selectKey>
+		INSERT INTO RESERVATION (
+			RESERVATION_ID,
+			PAYMENT_ID,
+			RESERVATION_DATE,
+			RESERVATION_STATUS,
+			SCHEDULE_ID,
+			USER_ID,
+			EVENT_ID,
+			RESERVED_COUNT
+		) VALUES (
+			#{reservationId},
+			#{paymentId},
+			SYSDATE,
+			#{reservationStatus},
+			#{scheduleId},
+			#{userId},
+			#{eventId},
+			#{reservedCount}
+		)
+	</insert>
+	
+	<update id="updateReservationStatus">
+    	UPDATE RESERVATION
+    	SET RESERVATION_STATUS = #{status}
+    	WHERE RESERVATION_ID = #{reservationId}
+	</update>
+	
+	<select id="selectReservationByReservaionId">
+		SELECT * FROM RESERVATION
+		WHERE RESERVATION_ID = #{reservationId}
+	</select>
+	
+</mapper>

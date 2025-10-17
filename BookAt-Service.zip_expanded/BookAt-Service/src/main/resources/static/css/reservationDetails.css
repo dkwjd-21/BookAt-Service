@@ -1,0 +1,143 @@
+@charset "UTF-8";
+html {
+  font-size: 100%;
+}
+body {
+  color: #949087;
+  font-family: sans-serif;
+}
+
+/*
+RESERVATION
+================================================ */
+p {
+  line-height: 1.6;
+}
+
+#reservation-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  background: #fff;
+  border-radius: 0 0 10px 10px;
+}
+
+#reservation-container.reservation-hidden {
+  display: none;
+}
+
+.reservation-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #ddd;
+}
+
+.reservation-title h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #333;
+}
+
+.reservation-title select {
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: #fff;
+  cursor: pointer;
+}
+
+.no-reservation-info {
+  text-align: center;
+  padding: 3rem;
+  color: #999;
+  font-size: 1.1rem;
+}
+
+/*
+RESERVATION_DETAILS
+================================================ */
+main {
+  margin-bottom: 3rem;
+  background: #fff;
+  border-radius: 10px;
+}
+
+#reservation-template {
+  display: flex;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 16px;
+  max-width: 800px;
+  background: #fff;
+  margin: 3rem 0;
+
+  align-items: stretch;
+}
+
+.event-post {
+  margin: 2rem;
+  display: flex;
+  flex: 2;
+  background: #f0f0f0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+}
+
+.event-post img {
+  max-width: 100%;
+}
+
+.reservation-box {
+  flex: 8;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding-left: 0.5rem;
+}
+
+.reservation-info {
+  justify-content: flex-start;
+}
+
+.reservation-info p {
+  display: flex;
+  margin: 0.25rem 0;
+}
+
+.reservation-label {
+  width: 6rem;
+  font-weight: bold;
+}
+
+/*
+BUTTONS
+================================================ */
+.reservation-actions {
+  margin-top: auto;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.reservation-actions button {
+  min-width: 6rem;
+  margin: 0 0.2rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  font-weight: bold;
+  background-color: #00007b;
+  color: white;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.2s, box-shadow 0.2s ease-in-out;
+}
+
+.reservation-actions button:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  font-weight: bold;
+}

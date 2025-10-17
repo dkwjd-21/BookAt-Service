@@ -1,0 +1,703 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+hr {
+  border: none;
+  border-top: 2px solid #eee;
+  height: 0;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  line-height: 1.6;
+  margin: 0;
+  padding: 0;
+  color: #333;
+  background-color: #f7f8fa;
+}
+
+.main-header {
+  font-family: Arial, sans-serif;
+}
+
+/* 상단 섹션 스타일 */
+.header-top {
+  background: var(--Navy-100, #003274);
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 5%;
+}
+
+.search-bar {
+  padding-right: 0px;
+}
+
+.main-logo-img {
+  width: 150px;
+}
+
+.auth-links {
+  display: flex;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.auth-links a {
+  text-decoration: none;
+  color: #003274;
+  border: 1px solid #003274;
+  border-radius: 20px;
+  padding: 5px 15px;
+  font-size: 14px;
+  background-color: white;
+  height: 20px;
+}
+
+/* 하단 섹션 스타일 */
+.header-bottom {
+  background-color: #003274;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 5%;
+}
+
+.nav-links {
+  display: flex;
+  gap: 20px;
+}
+
+.nav-item {
+  color: white;
+  text-decoration: none;
+  font-size: 16px;
+  padding: 10px 20px;
+  border-radius: 25px;
+  transition: background-color 0.3s;
+  border-radius: 15px 15px 0px 0px;
+  transform: translateY(10px);
+  cursor: pointer;
+}
+
+.nav-item.active {
+  background-color: white;
+  color: #003274;
+  border-radius: 15px 15px 0px 0px;
+  transform: translateY(10px);
+}
+
+/* 검색창 스타일 */
+.search-bar {
+  position: relative;
+  width: 300px;
+  padding-right: 50px;
+}
+
+.search-bar input {
+  width: 100%;
+  border: none;
+  border-radius: 20px;
+  padding: 10px 40px 10px 15px;
+  background-color: white;
+  outline: none;
+  font-size: 14px;
+}
+
+.search-icon {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23888"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16a6.471 6.471 0 0 0 3.23-.88l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>') no-repeat center center;
+  background-size: contain;
+  cursor: pointer;
+}
+.main_container {
+  width: 1200px;
+  max-width: 1200px;
+  margin: 20px auto;
+  margin-top: 0;
+  background-color: #f7f8fa;
+  padding: 20px;
+
+  /* padding-right: 30px; */
+}
+
+.container {
+  max-width: 1200px;
+  margin: 20px auto;
+  background-color: white;
+  padding: 20px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  /* padding-right: 30px; */
+  position: relative;
+}
+
+.breadcrumb {
+  font-size: 16px;
+  font-weight: 600;
+  color: #6b7280;
+  text-decoration: none;
+  gap: 10px;
+}
+
+.crumb-label {
+  font-size: 18px;
+  font-weight: 700;
+  color: #222;
+  padding-right: 10px;
+}
+.crumb-link {
+  text-decoration: none !important;
+}
+.event-header {
+  display: flex;
+  gap: 30px;
+  /* border-bottom: 1px solid #e0e0e0; */
+  padding-bottom: 20px;
+  margin-bottom: 20px;
+}
+
+.event-image-container {
+  width: 300px;
+  height: 400px;
+}
+
+.event-main-image {
+  width: 100%;
+  height: 100%;
+  background-color: #ccc;
+  border-radius: 10px;
+}
+
+.event-info {
+  flex-grow: 1;
+  position: relative;
+}
+
+.event-title {
+  font-size: 30px;
+  font-weight: bold;
+  margin-top: 0;
+}
+
+.meta p {
+  margin: 5px 0;
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: 500;
+  font-size: 20px;
+  line-height: normal;
+}
+.price-info {
+  gap: 30px;
+  display: flex;
+  position: absolute;
+  bottom: 40px;
+  width: 100%;
+}
+.price {
+  font-size: 30px;
+  font-weight: bold;
+  color: #f9d849;
+  margin: 15px 0;
+  width: 20%;
+}
+.price-inform {
+  width: 80%;
+  margin: 15px 0;
+  color: #8b8b8b;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  position: absolute;
+  bottom: 0;
+}
+
+.wishlist-btn,
+.reserve-btn {
+  padding: 10px 20px;
+  cursor: pointer;
+  font-size: 16px;
+  border-radius: 5px;
+  color: rgb(0, 0, 0);
+  border: 1px solid #d1d5db;
+  background-color: white;
+  transition: all 0.2s ease;
+}
+
+.reserve-btn {
+  background-color: #f9d849;
+  border: none;
+  color: #000;
+  font-weight: bold;
+}
+
+.reserve-btn:hover {
+  background-color: #fdd835;
+}
+
+.reserve-btn:focus {
+  outline: none;
+}
+
+.wishlist-btn:hover {
+  background-color: #f9d849;
+}
+
+.related-books {
+  width: 100%;
+  /* margin-top: 40px; */
+}
+.related-books h2 {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 20px; /* 제목과 카드 사이 여백 */
+  color: #333;
+}
+
+/* 여러 도서를 가로로 나열하기 위한 리스트 (선택 사항) */
+.related-book-list {
+  display: flex;
+  gap: 24px; /* 카드 사이의 간격 */
+  flex-wrap: wrap; /* 화면이 작아지면 다음 줄로 넘김 */
+}
+
+.related-book-list a {
+  text-decoration: none;
+  color: inherit;
+}
+
+.related-book-item {
+  width: 180px;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  padding: 16px;
+  text-align: left;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; /* 부드러운 전환 효과 */
+}
+
+/* 마우스를 올렸을 때 카드에 생기는 효과 */
+.related-book-item:hover {
+  transform: translateY(-5px); /* 살짝 위로 이동 */
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+.related-book-image {
+  width: 100%;
+  aspect-ratio: 1 / 1.2; /*이미지 비율 (세로로 약간 길게)*/
+  object-fit: contain; /* 이미지가 잘리지 않고 채워지도록 */
+  border-radius: 8px; /* 이미지 모서리 둥글게 */
+  margin-bottom: 16px; /* 이미지와 텍스트 사이 여백 */
+}
+/* 도서 정보 텍스트 컨테이너 */
+.book-info {
+  display: flex;
+  flex-direction: column; /* 세로로 정렬 */
+}
+
+/* 도서 카테고리 (예: 강원) */
+.book-category {
+  font-size: 13px;
+  color: #888;
+  margin-bottom: 8px;
+}
+
+/* 도서 제목 */
+.book-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #374151;
+  line-height: 1.5;
+
+  /* 두 줄 이상 넘어갈 경우 말줄임표(...) 처리 */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.event-details {
+  display: flex;
+  gap: 30px;
+}
+
+.event-description {
+  flex: 1;
+}
+
+.event-map {
+  width: 400px;
+  height: 100%;
+}
+
+.map-placeholder {
+  width: 100%;
+  height: 100%;
+}
+
+.review-item {
+  padding: 12px 0;
+  border-top: 1px solid #eee;
+}
+.stars span {
+  color: #d1d5db;
+}
+.stars span.on {
+  color: #f9d849;
+}
+
+.review-list {
+  margin-top: 20px;
+}
+
+.review-item {
+  border: 1px solid #e0e0e0;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 5px;
+}
+
+.info_text {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+#map {
+  /* 지도의 크기를 설정 */
+  width: 400px;
+  height: 280px;
+  border-radius: 10px;
+  position: relative;
+}
+
+/* 지도 오버레이 - 큐모달이 열릴 때 지도 위에 회색 배경 표시 */
+.map-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  border-radius: 10px;
+  display: none;
+  z-index: 1;
+}
+/* ========== 리뷰 모달 스타일 ========== */
+.review-modal-overlay {
+  display: none !important; /* 평소에는 숨김 */
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  background-color: rgba(0, 0, 0, 0.6) !important;
+  justify-content: center !important;
+  align-items: center !important;
+  z-index: 1000 !important;
+}
+
+/* 리뷰 모달 본문 창 */
+.review-modal-content {
+  background-color: #fff !important;
+  padding: 30px !important;
+  border-radius: 8px !important;
+  width: 90% !important;
+  max-width: 500px !important;
+  position: relative !important;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3) !important;
+  animation: review-slide-down 0.3s ease-out;
+}
+
+/* 리뷰 모달 나타날 때 애니메이션 */
+@keyframes review-slide-down {
+  from {
+    transform: translateY(-30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* 리뷰 모달 닫기 버튼 */
+.review-modal-content .close-btn {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: #f8f9fa;
+  border-radius: 50%;
+  font-size: 18px;
+  font-weight: bold;
+  color: #6c757d;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.review-modal-content .close-btn:hover {
+  background: #e9ecef;
+  color: #495057;
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.review-modal-content .close-btn:active {
+  transform: scale(0.95);
+}
+
+.review-modal-content h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  text-align: center;
+  font-size: 24px;
+  color: #111827;
+}
+
+/* 모달 폼 그룹 */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: bold;
+  color: #374151;
+  font-size: 14px;
+}
+
+/* 별점 입력 스타일 */
+.stars-input .star {
+  font-size: 30px;
+  color: #ddd;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+/* 선택된 별 색상 고정 (우선순위 높임) */
+.stars-input .star.selected {
+  color: #f9d849 !important;
+}
+
+/* 선택되지 않은 별은 회색으로 */
+.stars-input .star:not(.selected) {
+  color: #ddd;
+}
+
+/* 문자 수 표시 */
+.char-count {
+  text-align: right;
+  margin-top: 5px;
+  font-size: 12px;
+  color: #666;
+}
+
+.char-count.warning {
+  color: #f59e0b;
+}
+
+.char-count.error {
+  color: #ef4444;
+}
+
+/* 리뷰 모달 제목 입력 필드 */
+.review-modal-content input[type="text"] {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 16px;
+  transition: border-color 0.2s ease;
+}
+
+.review-modal-content input[type="text"]:focus {
+  outline: none;
+  border-color: #f9d849;
+  box-shadow: 0 0 0 3px rgba(249, 216, 73, 0.1);
+}
+
+/* 리뷰 모달 내용 텍스트박스 */
+.review-modal-content textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 16px;
+  font-family: inherit;
+  line-height: 1.5;
+  resize: vertical;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+  transition: border-color 0.2s ease;
+}
+
+.review-modal-content textarea:focus {
+  outline: none;
+  border-color: #f9d849;
+  box-shadow: 0 0 0 3px rgba(249, 216, 73, 0.1);
+}
+
+/* 리뷰 모달 등록하기 버튼 */
+.review-modal-content .submit-btn {
+  width: 100%;
+  padding: 12px;
+  background-color: #f9d849;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: bold;
+  color: #000;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.review-modal-content .submit-btn:hover {
+  background-color: #fdd835;
+  box-shadow: 0 2px 8px rgba(249, 216, 73, 0.3);
+}
+
+.review-modal-content .submit-btn:active {
+  transform: scale(0.98);
+}
+
+.schedule-list ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 8px 0 0;
+}
+
+.schedule-list li {
+  margin-bottom: 4px;
+  font-size: 16px;
+  color: #4b5563;
+}
+
+/* ========== 리뷰 관련 추가 스타일 ========== */
+
+/* 리뷰 컨테이너 및 텍스트 줄바꿈 */
+.review-item-container {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.review-item-container * {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
+}
+
+/* 리뷰 작성 버튼 */
+.review-write-btn {
+  float: right;
+  display: inline-block;
+  padding: 8px 14px;
+  background: #fff;
+  color: #333;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  text-align: center;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.review-write-btn:hover,
+.review-write-btn:focus-visible {
+  background: #f9d849;
+  border-color: #f9d849;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+/* 리뷰 수정/삭제 버튼 */
+.review-action-btn {
+  padding: 6px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+  color: #000;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.review-action-btn:hover {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+.review-action-btn.delete-btn:hover {
+  background: #fee2e2;
+  border-color: #ef4444;
+  color: #dc2626;
+}
+
+/* 모달 버튼 그룹 스타일 */
+.modal-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.modal-buttons .btn {
+  flex: 1;
+  max-width: 150px;
+  text-align: center;
+  padding: 12px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  color: #000;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.modal-buttons .btn:hover {
+  background: #f9d849;
+  border-color: #f9d849;
+  color: #000;
+}
+
+.modal-buttons .btn--primary {
+  background: #f9d849;
+  border-color: #f9d849;
+  color: #000;
+}
+
+.modal-buttons .btn--primary:hover {
+  background: #fdd835;
+  border-color: #fdd835;
+}

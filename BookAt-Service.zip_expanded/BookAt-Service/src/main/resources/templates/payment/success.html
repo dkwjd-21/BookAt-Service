@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <title>결제 완료</title>
+
+
+  <link rel="stylesheet" th:href="@{/css/header.css}" />
+  <link rel="stylesheet" th:href="@{/css/footer.css}" />
+  <link rel="stylesheet" th:href="@{/css/payment.css}" />
+
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script th:src="@{/js/utils/axiosIntercepter.js}"></script>
+  <script th:src="@{/js/utils/logout.js}"></script>
+  <script th:src="@{/js/utils/userAuth.js}"></script>
+  <script th:src="@{/js/utils/header.js}"></script>
+</head>
+
+<div th:replace="~{fragments/header :: main-header}"></div>
+
+<body class="success-body">
+  <div class="container order-complete">
+
+    <!-- 상단  -->
+    <div class="panel panel-crumb">
+      <div class="crumb-left">
+        <span class="crumb-label">주문</span>
+        <span class="crumb-sep">›</span>
+        <span class="crumb-current">결제</span>
+      </div>
+      <span class="status-badge">결제완료</span>
+    </div>
+
+    <!-- 결제 완료 -->
+    <div class="panel panel-success combined">
+      <div class="success-head">
+        <div class="head-left">
+          <div class="title-line">
+            <svg class="icon-check" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M9 16.2l-3.5-3.5L4 14.2 9 19l12-12-1.5-1.5z"/>
+            </svg>
+            <p id="success-title" class="title">결제가 완료되었습니다</p>
+           <div class="head-actions">
+          <a id="receipt-url" class="link-receipt" target="_blank" rel="noreferrer">영수증 보기</a>
+        </div>
+          </div>
+
+          <!-- 메타 카드 -->
+          <div class="meta-grid meta-card">
+            <div class="meta-row"><span class="meta-label">주문일시</span><span id="order-date" class="meta-value"></span></div>
+            <div class="meta-row"><span class="meta-label">결제번호</span><span id="pg-tid" class="meta-value"></span></div>
+            <div class="meta-row"><span class="meta-label">주문번호</span><span id="order-id" class="meta-value"></span></div>
+            <div class="meta-row"><span class="meta-label">결제수단</span><span id="method-text" class="meta-value"></span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 주문 상품 -->
+      <div class="panel-head" style="margin-top:12px;">
+        <h3 class="section-title">주문 상품</h3>
+        <span class="muted">주문 상품 정보가 없습니다.</span>
+      </div>
+      <ul class="item-list"></ul>
+
+      <!-- 결제 금액 요약 -->
+      <div class="summary">
+        <div class="summary-row">
+          <span>상품 합계</span>
+          <span class="amt"><strong id="summary-subtotal">0</strong><i> 원</i></span>
+        </div>
+        <div class="summary-row">
+          <span>배송비</span>
+          <span class="amt"><strong id="summary-shipping">0</strong><i> 원</i></span>
+        </div>
+        <div class="summary-divider"></div>
+        <div class="summary-row total">
+          <span class="strong">총 결제금액</span>
+          <span class="amt"><strong id="summary-total">0</strong><i> 원</i></span>
+        </div>
+        <div class="delivery-box">
+          <span class="label strong">예상 배송일</span>
+          <span class="date strong" id="eta-date">10월 20일(월) 도착 예정</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 액션 버튼 -->
+    <div class="action-row">
+      <a href="/" class="btn btn--primary">쇼핑 계속하기</a>
+      <a href="/myPage" class="btn">주문내역 확인</a>
+    </div>
+  </div>
+
+  <div th:replace="~{fragments/footer :: main-footer}"></div>
+</body>
+
+
+<script>
+(function(){
+  const qs = new URLSearchParams(location.search);
+  const m = qs.get('m'), i = qs.get('i'), t = qs.get('t');
+  if (!m || !t) { alert("잘못된 접근입니다."); location.href="/"; return; }
+
+  const fmt = (n)=> (n==null?"0":String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ","));
+  const paidLabel = "결제완료";
+  const methodMap = { CARD:"카드" };
+
+  axiosInstance.get("/payment/success/api", { params: { m, i, t }})
+    .then(({data}) => {
+      if (data.status !== "success") throw new Error(data.message || "로드 실패");
+
+
+      document.querySelectorAll('.status-badge').forEach(el => el.textContent = paidLabel);
+      // 상단 타이틀
+      const title = (data.title || "주문") + "에 대한 결제가 완료되었습니다!";
+      document.getElementById("success-title").textContent = title;
+
+      // 메타
+      const dt = data.orderDate ? data.orderDate.replace("T"," ").slice(0,16) : "";
+      document.getElementById("order-date").textContent = dt;
+      document.getElementById("pg-tid").textContent   = data.pgTid || "";
+      document.getElementById("order-id").textContent = data.orderId ?? "";
+      document.getElementById("method-text").textContent = methodMap[data.method] || (data.method || "");
+
+      const receiptA = document.getElementById("receipt-url");
+      if (receiptA && data.receiptUrl) receiptA.href = data.receiptUrl; else if (receiptA) receiptA.style.display = "none";
+
+      // 주문 상품 렌더
+      const emptyMsg = document.querySelector(".panel .panel-head .muted");
+      const list = document.querySelector(".panel .item-list");
+      if (Array.isArray(data.items) && data.items.length > 0 && list) {
+        if (emptyMsg) emptyMsg.style.display = "none";
+        list.innerHTML = "";
+        data.items.forEach(it => {
+          const qty   = it.quantity ?? 1;
+          const price = it.price ?? 0;
+          const li = document.createElement("li");
+          li.className = "item item-card";
+          li.innerHTML = `
+            <div class="thumb"><img src="${it.coverImage||''}" alt="cover" /></div>
+            <div class="info">
+              <a class="item-title">${it.title||''}</a>
+              <div class="item-sub">${it.author||''}</div>
+              <div class="item-sub">주문수량: <span>${qty}</span> · 도서금액: <span>${fmt(price)}</span>원</div>
+            </div>`;
+          list.appendChild(li);
+        });
+      }
+
+      const subtotal = (data.items || []).reduce((sum, it) => sum + (it.price || 0) * (it.quantity || 1), 0);
+      const shipping = Math.max((data.amount || 0) - subtotal, 0);
+
+      document.getElementById("summary-subtotal").textContent = fmt(subtotal);
+      document.getElementById("summary-shipping").textContent = fmt(shipping);
+      document.getElementById("summary-total").textContent    = fmt(data.amount || 0);
+    })
+    .catch(err => {
+      console.error("[SUCCESS API] error:", err);
+      alert("결과를 불러올 수 없습니다.");
+      location.href = "/";
+    });
+})();
+</script>
+</html>

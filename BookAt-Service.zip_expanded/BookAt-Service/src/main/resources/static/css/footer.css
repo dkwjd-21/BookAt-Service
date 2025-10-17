@@ -1,0 +1,32 @@
+.footer {
+  width: 100%;
+  margin: 0;                     /* ← 혹시 모를 마진 제거 */
+  border-top: 1px solid #bfbfbf;
+  background: #eaeaea;
+  color: #6d6d6d;
+  padding: 40px 0;     
+  flex:0 0 auto;              /* 혹시 상위가 flex면 수축 방지 */
+}
+
+.ft_content{
+  max-width:1200px;
+  margin:0 auto;
+  padding:0 5%;
+  display:flex;
+  flex-wrap:wrap;         /* 로고 줄바꿈 허용 */
+  align-items:center;
+  gap:8px 16px;
+}
+
+/* 1행: 로고가 한 줄 전체 */
+.ft_logo{ flex:0 0 100%; }
+.ft_logo img{ width:120.645px; height:26.525px; margin-bottom:10px; }
+
+/* 2행: 왼쪽/오른쪽 끝 배치 */
+.ft__left{  flex:0 0 auto; }
+.ft__right{ flex:0 0 auto; margin-left:auto; text-align:right; }  /* ← 핵심 한 줄 */
+
+.footer{ flex:0 0 auto; } /* 상위가 flex여도 수축 방지 */
+
+
+

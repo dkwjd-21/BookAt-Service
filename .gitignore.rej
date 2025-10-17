@@ -1,0 +1,6 @@
+diff a/.gitignore b/.gitignore	(rejected hunks)
+@@ -0,3 +0 @@
+ /.metadata/
+-
+-.env
+\ No newline at end of file

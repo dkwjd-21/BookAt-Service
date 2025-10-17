@@ -1,0 +1,15 @@
+CREATE TABLE REFUND (
+	refund_id	number	NOT NULL,
+	payment_id	number	NOT NULL
+);
+
+-- 시퀀스 생성
+CREATE SEQUENCE SEQ_REFUND;
+
+
+-- 테이블 조인
+ALTER TABLE REFUND ADD CONSTRAINT PK_REFUND PRIMARY KEY (refund_id, payment_id); -- 복합 기본키
+ALTER TABLE REFUND ADD CONSTRAINT FK_PAYMENT_TO_refund_1 FOREIGN KEY (payment_id) REFERENCES PAYMENT (payment_id);
+
+-- 테이블 확인
+SELECT * FROM REFUND ORDER BY REFUND_ID;

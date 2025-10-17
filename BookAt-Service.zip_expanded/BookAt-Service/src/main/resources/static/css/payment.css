@@ -1,0 +1,346 @@
+/* =========================
+ * 결제 조회 페이지
+ * ========================= */
+
+
+.pay-list{ list-style:none; padding:0; margin:0; }
+.pay-item{ display:flex; justify-content:space-between; gap:16px; padding:14px 8px; border-top:1px solid var(--line); }
+.pay-item:first-child{ border-top:none; }
+.pay-title{ font-weight:800; color:var(--ink); }
+.pay-sub .sep{ margin:0 6px; color:#c4c7cc; }
+.pay-ids{ margin-top:6px; font-size:13px; color:#6b7280; display:flex; gap:12px; }
+.pay-actions{ display:flex; gap:8px; align-items:center; }
+.btn--danger{ border:1px solid #ef4444; color:#7f1d1d; background:#fff5f5; border-radius:10px; height:40px; padding:0 14px; font-weight:800; }
+.btn--danger:hover{ background:#fee2e2; }
+
+/* =========================
+ * 결제완료 페이지
+ * ========================= */
+:root{
+  --navy:#003274;
+  --primary:#B5D173;
+  --ink:#111827;
+  --muted:#6b7280;
+  --line:#e5e7eb;
+  --panel:#fff;
+}
+
+.success-body{ background:#f7f8fa; }
+
+.container.order-complete{
+  margin:0 auto;
+  max-width: 980px;
+  padding: 28px 20px 60px;
+}
+
+/* 공통 패널 */
+.panel{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:16px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.05);
+  padding:20px;
+  margin-bottom:18px;
+}
+
+/* 크럼/상태 */
+.panel-crumb{ display:flex; align-items:center; justify-content:space-between; }
+.crumb-left{ display:flex; align-items:baseline; gap:8px; }
+.crumb-label{ font-size:18px; font-weight:700; color:#222; }
+.crumb-sep{ color:#9ca3af; }
+.crumb-current{ font-size:18px; font-weight:800; color:var(--navy); }
+.status-badge{
+  display:inline-block; padding:4px 10px; border-radius:10px;
+  background: color-mix(in srgb, var(--primary) 25%, white);
+  border:1px solid var(--primary);
+  color:#2f3e1b; font-weight:700;
+}
+
+/* 완료 헤더 */
+.panel-success .success-head{
+  display:flex; align-items:flex-start; justify-content:space-between;
+  gap:16px;
+  margin-bottom: 12px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+}
+.panel-success .head-left{ min-width:0; flex:1; }
+.panel-success .title-line{
+  display:flex; align-items:center; gap:12px; margin-bottom:10px;
+}
+.panel-success .icon-check{ width:30px; height:30px; fill:var(--primary); flex:0 0 auto; }
+.panel-success .title{ font-size:22px; font-weight:800; margin:0; color:var(--ink); }
+
+/* 영수증 링크(우상단) */
+.head-actions{ margin-left: auto; }
+.link-receipt{
+  display:inline-flex; align-items:center; height:38px; padding:0 14px;
+  border-radius:10px; border:1px solid var(--line); background:#fff;
+  color:var(--navy); font-weight:700; text-decoration:none;
+}
+.link-receipt:hover{ background:#f9fafb; }
+
+/* 메타 카드(2열) */
+.meta-card{
+  background:#fafafa;
+  border:1px solid var(--line);
+  border-radius:12px;
+}
+.meta-grid{
+  display:grid;
+  grid-template-columns: 140px 1fr;
+  gap:10px 16px;
+  padding:10px 12px;
+}
+.meta-row{ display:contents; }
+.meta-label{ color:#374151; font-weight:700; }
+.meta-value{ color:#111827; }
+
+/* 섹션 타이틀 */
+.panel-head{ display:flex; align-items:center; justify-content:space-between; margin:14px 0 6px; }
+.section-title{ font-size:18px; font-weight:800; margin:0; color:var(--ink); }
+.muted{ color:var(--muted); font-weight:500; }
+
+/* 주문 상품 리스트 */
+.item-list{ list-style:none; margin:6px 0 0; padding:0; }
+.item{
+  display:grid; grid-template-columns:86px 1fr; gap:14px;
+  align-items:center;
+}
+.item-card{
+  background:#fafafa;
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:12px; margin-top:10px;
+}
+.thumb img{
+  width:86px; height:116px; object-fit:cover;
+  border-radius:8px; border:1px solid var(--line); background:#f8f8f8;
+}
+.item .info{ align-self:center; }
+.item-title{
+  display:inline-block; font-weight:700; color:var(--ink);
+  text-decoration:none;
+}
+.item-title:hover{ text-decoration:underline; }
+.item-sub{ color:#6b7280; margin-top:6px; font-size:14px; }
+
+/* 요약 */
+.summary{ padding:6px 2px 12px;}
+.summary-row{
+  display:flex; align-items:baseline; justify-content:space-between;
+  padding:10px 0; font-size:15px;
+}
+.summary-row .amt{ display:inline-flex; align-items:baseline; gap:4px; min-width:120px; justify-content:flex-end; }
+.summary-row .amt i{ font-style:normal; color:var(--muted); }
+.summary-row strong{ font-weight:800; }
+.summary-row.total{ font-size:18px; }
+.summary-row .strong{ font-weight:800; }
+.summary-divider{border-top: 1px solid var(--line); margin-top: 10px;}
+
+/* 예상 배송일 */
+.delivery-box{
+  display:flex; align-items:baseline; justify-content:space-between;
+  padding:10px 0;
+}
+.delivery-box .label{ color:#2f3e1b; }
+.delivery-box .date{ color:var(--primary); }
+.delivery-box .strong{ font-weight:800; font-size:18px; }
+
+/* 버튼 (패널 밖) */
+.action-row{ display:flex; gap:10px; justify-content:flex-end; margin-top:16px; }
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:6px;
+  height:40px; padding:0 16px; border-radius:10px;
+  border:1px solid var(--line); background:#fff; color:var(--ink);
+  text-decoration:none; font-weight:700;
+  transition: background-color .15s ease, color .15s ease, border-color .15s ease, box-shadow .15s ease;
+}
+.btn:hover{ background:var(--primary); }
+.btn--primary{
+  border-color:var(--primary); background:#fff; color:#1b2610;
+  box-shadow:0 2px 10px rgba(181,209,115,.35);
+}
+.btn--primary:hover{ filter:brightness(0.98); background:var(--primary); }
+
+/* 반응형 */
+@media (max-width: 520px){
+  .container.order-complete{ padding: 20px 14px 40px; }
+  .meta-grid{ grid-template-columns: 110px 1fr; }
+  .item{ grid-template-columns:72px 1fr; gap:10px; }
+  .thumb img{ width:72px; height:98px; }
+  .link-receipt{ height:36px; }
+}
+
+
+/* =========================
+ * payFragment
+ * ========================= */
+
+/* 컬러 */
+:root{
+  --line: #e5e7eb;
+  --primary: #B5D173;
+  --navy: #003274;
+}
+
+/* 북캣페이 배너 */
+.pay-brand {
+  display:flex; align-items:center; gap:12px; padding:14px;
+  border:1px solid var(--line, #e5e7eb); border-radius:16px; background:#fff;
+  box-shadow: 0 8px 20px rgba(0,0,0,.04);
+  margin-bottom:14px;
+  position: relative;
+  cursor: pointer;            
+  user-select: none;
+  transition:
+    border-color .2s ease,
+    background-color .2s ease,
+    box-shadow .2s ease,
+    transform .05s ease;
+}
+.pay-brand:hover{
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 12%, white);
+  box-shadow: 0 10px 24px rgba(181,209,115,.25);
+}
+.pay-brand:active{
+  transform: translateY(1px);
+}
+.pay-brand .logo {
+  width:36px; height:36px; border-radius:10px; background:#003274;
+  display:inline-flex; align-items:center; justify-content:center; color:#fff; font-weight:800;
+}
+.pay-brand .tit {font-weight:800; color:#111827;}
+.pay-brand .sub {color:#6b7280; font-size:13px;}
+.pay-brand .badge {
+  background: color-mix(in srgb, var(--primary, #B5D173) 22%, white);
+  color:#1b2610; border:1px solid var(--primary, #B5D173);
+  padding:2px 8px; border-radius:999px; font-size:12px; margin-left:6px;
+}
+
+/* 혜택 카드 그리드 */
+.benefit-grid{
+  display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:10px 0 16px;
+}
+.benefit{
+  border:1px dashed #B5D173; border-radius:12px; padding:10px 12px; background:#fff; text-align:center;
+}
+.benefit strong{ display:block; font-size:12px; }
+
+/* 포인트 사용*/
+.point-panel { border-top: 1px solid #e9ecef; border-bottom: 1px solid #e9ecef; padding:14px; background:#fff; margin-bottom:20px; }
+.point-row { display:flex; align-items:center; justify-content:space-between; gap:10px; margin:6px 0; }
+.point-amt { font-weight:800; color:var(--navy, #003274); }
+.point-use{ display:flex; gap:8px; align-items:center; }
+.point-use input{
+  width:140px; padding:10px 12px; border:1px solid #e5e7eb; border-radius:10px;
+}
+
+/* 4) 결제수단 탭 버튼 */
+.pay-methods{ display:flex; gap:8px; margin:10px 0 12px; }
+.pay-method-btn{
+  flex: 1 1 50%;
+  height: 44px;
+  border:1px solid var(--line);
+  background:#fff;
+  color:#111827;
+  border-radius:10px;
+  font-size:16px;
+  font-weight:700;
+  transition: background-color .15s ease, color .15s ease, border-color .15s ease, box-shadow .15s ease;
+}
+.pay-method-btn:hover{
+  background:#003274;
+  border-color:#002552;
+  color:#fff;
+  box-shadow:0 6px 16px rgba(0,50,116,.18);
+}
+.pay-method-btn.is-active{
+  background:#003274;
+  border-color:#002552;
+  color:#fff;
+}
+
+/* 5) 무통장 입력폼 */
+#vbankSection .bank-line,
+#vbankSection .bank-meta{
+  line-height: 1.6;        /* ★ 줄간격 */
+  margin: 2px 0;           /* ★ 위아래 간격 */
+}
+
+#vbankSection .field{      
+  padding: 0 12px;
+}
+#vbankSection .label{
+  display:block;
+  margin-bottom:6px;
+  color:#374151;
+}
+#vbankSection .field .input,
+#cash_rcpt_number_input{
+  box-sizing: border-box;   /* ★ 패널 넘침 방지 */
+  width: 100%;
+  height: 40px;           
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:10px 12px;
+  outline:none;
+}
+#vbankSection .field .input:focus,
+#cash_rcpt_number_input:focus{
+  border-color:#003274;
+  box-shadow:0 0 0 3px color-mix(in srgb, #003274 18%, transparent);
+}
+
+#vbankSection .ctrl-row .check{
+  transform: scale(1.28);      
+  transform-origin: left center;   
+  margin-right: 6px;                
+  cursor: pointer;  
+}
+#vbankSection .ctrl-row label[for="cash_rcpt_check"]{
+  cursor: pointer;                 
+}
+
+/* 체크/라디오 포인트 컬러 */
+#vbankSection .check,
+#vbankSection .radio{
+  accent-color: var(--primary); 
+}
+
+/* vbankSection 기본 숨김 → 무통장입금 선택 시에만 표시 */
+#vbankSection{ display:none; }       
+#vbankSection.open{ display:block; }
+#vbankSection.open{
+  max-height: min(48vh, 420px);  /* 화면 절반~420px 중 작은 값 */
+  overflow: auto;                 /* ★ 패널 내부 스크롤 */
+  padding-right: 6px;             /* 스크롤 여백 */
+}  
+
+#vbankSection .ctrl-row{
+  display:flex; align-items:center; gap:8px;
+  padding: 6px 12px;
+}
+
+
+/* 6) 결제하기 버튼 */
+#payBtn.btn.pay-button{
+  width:100%;
+  height:55px;
+  background: var(--primary);
+  border:1px solid var(--primary);
+  color:#1b2610;
+  font-weight:1400;
+  font-size:16px;
+  border-radius:12px;
+  box-shadow:0 6px 18px rgba(181,209,115,.35);
+}
+#payBtn.btn.pay-button:hover{
+  filter: brightness(.98);
+  transform: translateY(-1px);
+  box-shadow:0 10px 24px rgba(181,209,115,.45);
+}
+
+
+.help{color:#6b7280; font-size:13px;}

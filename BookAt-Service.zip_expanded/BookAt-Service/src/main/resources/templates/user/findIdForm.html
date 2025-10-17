@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <title>아이디 찾기</title>
+    <link rel="stylesheet" th:href="@{/css/logindefault.css}" />
+    <script th:src="@{/js/user/verificationSimpleAuth.js}"></script>
+    <script src="https://cdn.portone.io/v2/browser-sdk.js"></script>
+    <script th:inline="javascript">
+      /*<![CDATA[*/
+      const PORTONE_STORE_ID = /*[[${portoneStoreId}]]*/ "default-store-id";
+      const PORTONE_CHANNEL_KEY = /*[[${portoneChannelKey}]]*/ "default-channel-key";
+      /*]]>*/
+    </script>
+    <script>
+      function doVerification() {
+        verificationFindIdPw(
+          PORTONE_STORE_ID,
+          PORTONE_CHANNEL_KEY,
+          function success(userInfo) {
+            document.getElementById("find-id-info").textContent = "{ " + userInfo.userId + " }";
+            document.getElementById("find-id").style.display = "block";
+            document.getElementById("verify-btn").style.display = "none";
+            document.getElementById("find-id-result-err").style.display = "none";
+          },
+          function error(userInfo) {
+            document.getElementById("find-id-result-err").textContent = userInfo.message;
+            document.getElementById("find-id-result-err").style.display = "block";
+            document.getElementById("find-id").style.display = "block";
+            document.getElementById("find-id-result").style.display = "none";
+            document.getElementById("verify-btn").style.display = "none";
+          }
+        );
+      }
+    </script>
+  </head>
+  <body>
+    <div id="container">
+      <h1>아이디 찾기</h1>
+
+      <div class="login-container">
+        <div id="verify-btn" class="verify-btn">
+          <button type="button" onclick="doVerification()">간편인증</button>
+        </div>
+
+        <div id="find-id" class="find-id" style="display: none">
+          <p id="find-id-result" class="find-id-result">회원님의 아이디는 <span id="find-id-info"></span>입니다.</p>
+          <p id="find-id-result-err" class="find-id-result" style="display: none"></p>
+        </div>
+
+        <div class="links">
+          <a href="/user/login">로그인 페이지로 가기</a><span>|</span>
+          <a href="/user/findPw">비밀번호 찾기</a>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

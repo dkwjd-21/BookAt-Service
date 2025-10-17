@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>예매 대기 모달</title>
+	<link rel="stylesheet" th:href="@{/css/queueModal.css}" />
+	<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+	<script th:src="@{/js/utils/axiosIntercepter.js}"></script>
+	<script th:src="@{/js/utils/logout.js}"></script>
+	<script th:src="@{/js/utils/userAuth.js}"></script>
+	<script th:src="@{/js/queue/QueueModal.js}"></script>
+</head>
+
+<body>
+	<button style="width: 100px; height: 50px; margin: 10px" onclick="onModal();">
+		예매하기
+	</button>
+
+	<hr>
+
+	<div>
+		<h3>좌석유형 예매내역</h3>
+		<table>
+			<thead>
+				<tr>
+					<th>예매번호</th>
+					<th>티켓번호</th>
+					<th>티켓상태</th>
+					<th>인원유형</th>
+					<th>좌석번호</th>
+					<th>좌석명</th>
+					<th>이벤트번호</th>
+					<th>회차번호</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr th:each="data : ${existingDataList}">
+					<td th:text="${data['예매번호']}"></td>
+					<td th:text="${data['티켓번호']}"></td>
+					<td th:text="${data['티켓상태']}"></td>
+					<td th:text="${data['인원유형']}"></td>
+					<td th:text="${data['좌석번호']}"></td>
+					<td th:text="${data['좌석명']}"></td>
+					<td th:text="${data['이벤트번호']}"></td>
+					<td th:text="${data['회차번호']}"></td>
+				</tr>
+			</tbody>
+		</table>
+		
+		<button onclick="onModifyModal(100, 102);">예매변경</button>
+	</div>
+	
+	<div class="queueModal-overlay" style="display: none">
+		<div class="modal-content">
+			<h1 class="modal-title">
+				티켓 예매를 위해<br />
+				<span class="modal-highlight">접속 대기중</span>입니다
+			</h1>
+			<div class="modal-circle">
+				<p class="modal-label">대기순서</p>
+				<span class="modal-waitingNum">-</span>
+			</div>
+			<p class="modal-notice">
+				페이지를 새로고침 하시면<br />
+				대기 순서에 변동이 생길 수 있으니,<br />
+				잠시만 기다려주세요.
+			</p>
+			<p class="modal-totalWaiting">현재 대기 인원 : <span class="modal-watingCount">0</span>명</p>
+		</div>
+	</div>
+
+
+</body>
+
+</html>

@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title th:text="${event.eventName}"></title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script th:src="@{/js/utils/axiosIntercepter.js}"></script>
+    <script th:src="@{/js/utils/logout.js}"></script>
+    <script th:src="@{/js/utils/userAuth.js}"></script>
+    <script th:src="@{/js/utils/header.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/header.css}" />
+    <link rel="stylesheet" th:href="@{/css/footer.css}" />
+    <link rel="stylesheet" type="text/css" th:href="@{/css/event_detail.css}" />
+    <link rel="stylesheet" th:href="@{/css/QueueModal.css}" />
+  </head>
+  <body>
+    <div th:replace="~{fragments/header :: main-header}"></div>
+    <main class="main_container">
+      <main class="container">
+        <div class="breadcrumb">
+          <span class="crumb-label">이벤트 카테고리 </span>
+          <span th:switch="${event.localCode}" style="color: #6b7280">
+            <a th:href="@{/events/category(local_code='SEOUL')}" class="crumb-link"><span th:case="'GYEONGGI_INCHEON'" style="color: #6b7280">경기/인천</span></a>
+            <a th:href="@{/events/category(local_code='SEOUL')}" class="crumb-link"><span th:case="'SEOUL'" style="color: #6b7280">서울</span></a>
+            <a th:href="@{/events/category(local_code='JEOLLA')}" class="crumb-link"><span th:case="'JEOLLA'" style="color: #6b7280">전라</span></a>
+            <a th:href="@{/events/category(local_code='JEJU')}" class="crumb-link"><span th:case="'JEJU'" style="color: #6b7280">제주</span></a>
+            <a th:href="@{/events/category(local_code='GANGWON')}" class="crumb-link"><span th:case="'GANGWON'" style="color: #6b7280">강원</span></a>
+            <a th:href="@{/events/category(local_code='CHUNGCHEONG')}" class="crumb-link"><span th:case="'CHUNGCHEONG'" style="color: #6b7280">충청</span></a>
+            <a th:href="@{/events/category(local_code='GYEONGSANG')}" class="crumb-link"><span th:case="'GYEONGSANG'" style="color: #6b7280">경상</span></a>
+          </span>
+        </div>
+      </main>
+
+      <main class="container">
+        <section class="event-header">
+          <div class="event-image-container">
+            <img th:src="${event.eventImage}" alt="Event Image" class="event-main-image" />
+          </div>
+          <div class="event-info">
+            <h1 th:text="${event.eventName}" class="event-title"></h1>
+            <br />
+            <div class="meta">
+              <h2>날짜</h2>
+              <p
+                class="date"
+                th:text="${#lists.size(eventParts) == 1
+                   ? #temporals.format(eventParts[0].scheduleTime, 'yyyy년 MM월 dd일 HH:mm')
+                   : #dates.format(event.eventDate, 'yyyy년 MM월 dd일')}"
+              ></p>
+              <div th:if="${#lists.size(eventParts) > 1}" class="schedule-list">
+                <ul>
+                  <li
+                    th:each="part : ${eventParts}"
+                    th:text="${part.scheduleName != null
+                        ? part.scheduleName + ' - ' + #temporals.format(part.scheduleTime, 'HH:mm')
+                        : #temporals.format(part.scheduleTime, 'yyyy년 MM월 dd일 HH:mm')}"
+                  ></li>
+                </ul>
+              </div>
+              <h2>장소</h2>
+              <p class="location" th:text="${event.address}"></p>
+            </div>
+            <hr />
+            <div class="price-info">
+              <span class="price" th:text="${#numbers.formatDecimal(event.eventPrice, 0, 'COMMA', 0, 'POINT')} + '원'"></span>
+              <span class="price-inform">표시된 금액은 기준가이며,<br />선택 옵션 또는 할인/추가 요금에 따라 실제 결제 금액이 달라질 수 있습니다.</span>
+            </div>
+            <div class="actions">
+              <button class="wishlist-btn">찜</button>
+              <button class="wishlist-btn">알림받기</button>
+              <button id="reserve-btn" th:data-event-id="${event.eventId}" class="reserve-btn" th:data-event-date="${#dates.format(event.eventDate, 'yyyy-MM-dd')}">예매하기</button>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <main class="container">
+        <section class="related-books">
+          <h2>관련 도서</h2>
+          <div class="related-book-list">
+            <a th:href="@{'/books/' + ${book.bookId}}">
+              <div class="related-book-item">
+                <th:block th:if="${book != null}">
+                  <img th:src="${book.bookCover}" alt="Book Cover" class="related-book-image" />
+                  <div class="book-info">
+                    <span class="book-category">강원</span>
+                    <p class="book-title" th:text="${book.bookTitle}"></p>
+                  </div>
+                </th:block>
+              </div>
+            </a>
+          </div>
+        </section>
+      </main>
+
+      <main class="container">
+        <section class="event-details">
+          <div class="event-description">
+            <h2>이벤트 소개</h2>
+            <p th:text="${event.eventDescription}"></p>
+            <br />
+            <h2>장소</h2>
+            <p th:text="${event.address}"></p>
+            <br />
+            <h2>참가 금액</h2>
+            <div th:if="${event.ticketType == 'PERSON_TYPE'}">
+              <table>
+                <tr>
+                  <td>성인</td>
+                  <td style="padding-left: 10px" th:text="${#numbers.formatDecimal(event.eventPrice, 0, 'COMMA', 0, 'POINT')} + '원'"></td>
+                </tr>
+                <tr>
+                  <td>청소년</td>
+                  <td style="padding-left: 10px" th:text="${#numbers.formatDecimal(event.eventPrice * 0.8, 0, 'COMMA', 0, 'POINT')} + '원'"></td>
+                </tr>
+                <tr>
+                  <td>어린이</td>
+                  <td style="padding-left: 10px" th:text="${#numbers.formatDecimal(event.eventPrice * 0.5, 0, 'COMMA', 0, 'POINT')} + '원'"></td>
+                </tr>
+              </table>
+            </div>
+            <div th:if="${event.ticketType == 'SEAT_TYPE'}">
+              <table>
+                <tr>
+                  <td>일반석</td>
+                  <td style="padding-left: 10px" th:text="${#numbers.formatDecimal(seatPrices['STANDARD'], 0, 'COMMA', 0, 'POINT')} + '원'"></td>
+                </tr>
+                <!-- <tr>
+                  <td>프리미엄석</td>
+                  <td style="padding-left: 10px" th:text="${#numbers.formatDecimal(seatPrices['PREMIUM'], 0, 'COMMA', 0, 'POINT')} + '원'"></td>
+                </tr>
+                <tr>
+                  <td>VIP석</td>
+                  <td style="padding-left: 10px" th:text="${#numbers.formatDecimal(seatPrices['VIP'], 0, 'COMMA', 0, 'POINT')} + '원'"></td>
+                </tr>                 추후 구현을 위해 주석처리 해뒀습니다.-->
+              </table>
+            </div>
+          </div>
+          <div class="event-map">
+            <div id="map">
+              <div class="map-overlay"></div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <main class="container">
+        <section class="review-section">
+          <h2>리뷰</h2>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px">
+            <h3 class="section-title" style="margin: 0">전체 리뷰 (<span th:text="${reviewCount}">0</span>)</h3>
+            <button type="button" class="review-write-btn" id="openReviewModalBtn">리뷰 작성</button>
+          </div>
+          <div class="soft-divider"></div>
+          <br />
+          <hr />
+          <br />
+
+          <!-- 리뷰 없을 때 -->
+          <div th:if="${#lists.isEmpty(reviews)}" style="color: #6b7280">작성된 리뷰가 없습니다.</div>
+
+          <!-- 리뷰 리스트 -->
+          <div th:each="rv : ${reviews}" class="review-item-container" style="padding: 30px 0; border-bottom: 2px solid #eee; position: relative" th:attr="data-review-id=${rv.reviewId}, data-author-id=${rv.userId}, data-title=${rv.title}, data-content=${rv.content}, data-rating=${rv.rating}">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px">
+              <!-- 별점 표시: 가득★ 와 빈☆를 5개 기준으로 -->
+              <span>
+                <span class="stars">
+                  <span th:each="i : ${#numbers.sequence(1,5)}" th:text="${i <= rv.rating} ? '★' : '☆'" th:classappend="${i <= rv.rating} ? 'on' : ''">★</span>
+                </span>
+              </span>
+              <span class="meta review-author-id" th:text="${rv.userId}">user_id</span>&nbsp;&nbsp;|&nbsp;&nbsp;
+              <span class="meta" th:text="${#temporals.format(rv.createdAt, 'yyyy.MM.dd')}">2025.09.01</span>
+            </div>
+
+            <!-- 리뷰 제목 -->
+            <div style="font-weight: 600; font-size: 16px; color: #111827; margin-top: 12px; margin-left: 90px; word-wrap: break-word; overflow-wrap: break-word; max-width: calc(100% - 120px)" th:text="${rv.title}">리뷰 제목</div>
+
+            <!-- 리뷰 내용 -->
+            <div style="white-space: pre-line; color: #374151; margin-top: 8px; margin-left: 90px; word-wrap: break-word; overflow-wrap: break-word; max-width: calc(100% - 120px)" th:text="${rv.content}">리뷰 내용</div>
+
+            <!-- 수정/삭제 버튼 (JavaScript로 동적으로 표시) -->
+            <div class="review-actions" style="position: absolute; top: 30px; right: 0; display: none; gap: 8px">
+              <button type="button" class="review-action-btn edit-btn">수정</button>
+              <button type="button" class="review-action-btn delete-btn">삭제</button>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <main class="container">
+        <section class="cancellation-info">
+          <h2>티켓 예매 및 취소/환불 안내</h2>
+          <div>
+            <pre class="info_text">
+1. 예매 기간
+  - 예매 오픈: 이벤트 당일 기준 1개월 전
+  - 예매 마감: 이벤트 시작 직전까지
+2. 취소 및 환불 규정
+  - 이벤트 2주 전까지: 전액 환불 (취소 수수료 없음)
+  - 2주 전 ~ 1주 전: 결제 금액의 10% 수수료 부과
+  - 1주 전 : 결제 금액의 20% 수수료 부과
+  ※ 환불 시 예매 번호는 무효 처리되며, 좌석 및 인원 수에 즉시 반영됩니다.
+3. 티켓 발권
+  - 예매 번호 확인 후 현장 발권 또는 모바일 QR 발권 가능
+4. 좌석 변경 안내
+  - 동일 가격의 좌석으로 변경 가능합니다.
+  - 기존 좌석은 취소 처리 후 새 좌석으로 즉시 배정됩니다.
+            </pre>
+          </div>
+        </section>
+      </main>
+    </main>
+
+    <div th:replace="fragments/footer :: main-footer"></div>
+
+    <script type="text/javascript" th:src="@{'//dapi.kakao.com/v2/maps/sdk.js?appkey=' + ${kakaoMapsAppkey} + '&libraries=services'}"></script>
+
+    <script th:inline="javascript">
+      /*<![CDATA[*/
+      var eventAddress = /*[[${event.address}]]*/ "주소 정보 없음";
+      /*]]>*/
+    </script>
+
+    <script th:src="@{/js/queue/QueueModal.js}"></script>
+    <script th:src="@{/js/event_detail.js}"></script>
+    <script th:inline="javascript">
+      /*<![CDATA[*/
+      // 컨트롤러에서 RedirectAttributes로 전달한 'errorMessage' 속성이 있는지 확인
+      var errorMessage = /*[[${errorMessage}]]*/ null;
+
+      // errorMessage 변수에 값이 존재한다면(null이 아니라면) alert
+      if (errorMessage) {
+        alert(errorMessage);
+      }
+      /*]]>*/
+    </script>
+    <div class="queueModal-overlay" style="display: none">
+      <div class="modal-content">
+        <h1 class="modal-title">
+          티켓 예매를 위해<br />
+          <span class="modal-highlight">접속 대기중</span>입니다
+        </h1>
+        <div class="modal-circle">
+          <p class="modal-label">대기순서</p>
+          <span class="modal-waitingNum">-</span>
+        </div>
+        <p class="modal-notice">
+          페이지를 새로고침 하시면<br />
+          대기 순서에 변동이 생길 수 있으니,<br />
+          잠시만 기다려주세요.
+        </p>
+        <p class="modal-totalWaiting">현재 대기 인원 : <span class="modal-watingCount">0</span>명</p>
+      </div>
+    </div>
+  </body>
+  <!-- 리뷰 작성 모달 -->
+  <div id="reviewModal" class="review-modal-overlay">
+    <div class="review-modal-content">
+      <button type="button" class="close-btn" aria-label="close">&times;</button>
+      <h2>리뷰 작성</h2>
+
+      <form id="reviewForm">
+        <input type="hidden" name="eventId" th:value="${event.eventId}" />
+
+        <div class="form-group">
+          <label>별점</label>
+          <div class="stars-input" id="starsInput">
+            <span class="star" data-value="1">★</span>
+            <span class="star" data-value="2">★</span>
+            <span class="star" data-value="3">★</span>
+            <span class="star" data-value="4">★</span>
+            <span class="star" data-value="5">★</span>
+          </div>
+          <input type="hidden" id="rating" name="rating" value="0" required />
+        </div>
+
+        <div class="form-group">
+          <label for="reviewTitle">리뷰 제목</label>
+          <input type="text" id="reviewTitle" name="title" placeholder="리뷰 제목을 입력해주세요." maxlength="50" required />
+          <div class="char-count"><span id="titleCharCount">0</span>/50자</div>
+        </div>
+
+        <div class="form-group">
+          <label for="reviewContent">리뷰 내용</label>
+          <textarea id="reviewContent" name="content" rows="6" placeholder="리뷰 내용을 입력해주세요." maxlength="500" style="resize: vertical; word-wrap: break-word" required></textarea>
+          <div class="char-count"><span id="contentCharCount">0</span>/500자</div>
+        </div>
+
+        <button type="submit" class="submit-btn">등록하기</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 리뷰 수정 모달 -->
+  <div id="editReviewModal" class="review-modal-overlay">
+    <div class="review-modal-content">
+      <button type="button" class="close-btn" aria-label="close">&times;</button>
+      <h2>리뷰 수정</h2>
+
+      <form id="editReviewForm">
+        <input type="hidden" id="editReviewId" />
+
+        <div class="form-group">
+          <label>별점</label>
+          <div class="stars-input" id="editStarsInput">
+            <span class="star" data-value="1">★</span>
+            <span class="star" data-value="2">★</span>
+            <span class="star" data-value="3">★</span>
+            <span class="star" data-value="4">★</span>
+            <span class="star" data-value="5">★</span>
+          </div>
+          <input type="hidden" id="editRating" name="rating" value="0" required />
+        </div>
+
+        <div class="form-group">
+          <label for="editReviewTitle">리뷰 제목</label>
+          <input type="text" id="editReviewTitle" name="title" placeholder="리뷰 제목을 입력해주세요." maxlength="50" required />
+          <div class="char-count"><span id="editTitleCharCount">0</span>/50자</div>
+        </div>
+
+        <div class="form-group">
+          <label for="editReviewContent">리뷰 내용</label>
+          <textarea id="editReviewContent" name="content" rows="6" placeholder="리뷰 내용을 입력해주세요." maxlength="500" style="resize: vertical; word-wrap: break-word" required></textarea>
+          <div class="char-count"><span id="editContentCharCount">0</span>/500자</div>
+        </div>
+
+        <button type="submit" class="submit-btn">수정하기</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 중복 리뷰 모달 -->
+  <div id="duplicateReviewModal" class="review-modal-overlay">
+    <div class="review-modal-content">
+      <button type="button" class="close-btn" aria-label="close">&times;</button>
+      <h2>이미 작성된 리뷰가 있습니다</h2>
+      <p>해당 이벤트에 대한 리뷰를 이미 작성하셨습니다.<br />한 이벤트당 하나의 리뷰만 작성할 수 있습니다.</p>
+      <div class="modal-buttons">
+        <button type="button" class="btn btn--primary" id="closeDuplicateModalBtn">확인</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 리뷰 로그인 필요 모달 -->
+  <div id="reviewLoginRequiredModal" class="review-modal-overlay">
+    <div class="review-modal-content">
+      <button type="button" class="close-btn" aria-label="close">&times;</button>
+      <h2>로그인 필요</h2>
+      <p>리뷰를 작성하려면 로그인이 필요합니다.</p>
+      <div class="modal-buttons">
+        <button type="button" class="btn btn--primary" id="reviewGoToLoginBtn">로그인하기</button>
+        <button type="button" class="btn" id="reviewCancelLoginBtn">취소</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 리뷰 작성 성공 모달 -->
+  <div id="reviewCreateSuccessModal" class="review-modal-overlay">
+    <div class="review-modal-content">
+      <button type="button" class="close-btn" aria-label="close">&times;</button>
+      <h2>리뷰 작성 완료</h2>
+      <p>리뷰가 성공적으로 작성되었습니다!</p>
+      <div class="modal-buttons">
+        <button type="button" class="btn btn--primary" id="reviewCreateOkBtn">확인</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 리뷰 수정 성공 모달 -->
+  <div id="reviewUpdateSuccessModal" class="review-modal-overlay">
+    <div class="review-modal-content">
+      <button type="button" class="close-btn" aria-label="close">&times;</button>
+      <h2>리뷰 수정 완료</h2>
+      <p>리뷰가 성공적으로 수정되었습니다!</p>
+      <div class="modal-buttons">
+        <button type="button" class="btn btn--primary" id="reviewUpdateOkBtn">확인</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 리뷰 삭제 확인 모달 -->
+  <div id="reviewDeleteConfirmModal" class="review-modal-overlay">
+    <div class="review-modal-content">
+      <button type="button" class="close-btn" aria-label="close">&times;</button>
+      <h2>리뷰 삭제</h2>
+      <p>정말로 이 리뷰를 삭제하시겠습니까?</p>
+      <div class="modal-buttons">
+        <button type="button" class="btn btn--primary" id="reviewDeleteConfirmBtn">삭제</button>
+        <button type="button" class="btn" id="reviewDeleteCancelBtn">취소</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 리뷰 삭제 성공 모달 -->
+  <div id="reviewDeleteSuccessModal" class="review-modal-overlay">
+    <div class="review-modal-content">
+      <button type="button" class="close-btn" aria-label="close">&times;</button>
+      <h2>리뷰 삭제 완료</h2>
+      <p>리뷰가 성공적으로 삭제되었습니다!</p>
+      <div class="modal-buttons">
+        <button type="button" class="btn btn--primary" id="reviewDeleteOkBtn">확인</button>
+      </div>
+    </div>
+  </div>
+</html>

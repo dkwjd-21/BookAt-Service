@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BookAt</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script th:src="@{/js/utils/axiosIntercepter.js}"></script>
+    <script th:src="@{/js/utils/logout.js}"></script>
+    <script th:src="@{/js/utils/userAuth.js}"></script>
+    <script th:src="@{/js/utils/header.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/header.css}" />
+    <link rel="stylesheet" th:href="@{/css/footer.css}" />
+    <link rel="stylesheet" type="text/css" th:href="@{/css/event_mainpage.css}" />
+    <style>
+      /* 이미지 없을 때 빈 자리 모두 회색빈칸 처리 */
+      .header-banner img,
+      .event-cover {
+        background-color: #cccccc;
+        width: 100%;
+        height: auto;
+        display: block;
+      }
+      .header-banner img {
+        height: 200px;
+        object-fit: cover;
+      }
+      .event-card .event-cover {
+        height: 180px;
+        object-fit: contain;
+      }
+    </style>
+  </head>
+  <body>
+    <script th:src="@{/js/event_mainpage.js}"></script>
+    <div th:replace="fragments/header :: main-header"></div>
+    <script th:src="@{/js/utils/header.js}"></script>
+
+    <main class="container">
+      <section class="header-banner">
+        <div>
+          <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1200&auto=format&fit=crop" alt="Promotion Banner" style="background-color: #cccccc" />
+
+          <div>
+            <img src="https://placehold.co/1440x200?text=EventPromotionBanner2" alt="Promotion Banner" style="background-color: #cccccc" />
+          </div>
+        </div>
+      </section>
+
+      <div class="chip-row" style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px">
+        <a class="chip" th:href="@{/events}" style="background-color: #f9d849; color: #fff; border-color: #f9d849">전체</a>
+        <a class="chip" th:href="@{/events/category(local_code='SEOUL')}" th:classappend="${currentLocalCode == 'SEOUL'} ? 'active' : ''">서울</a>
+        <a class="chip" th:href="@{/events/category(local_code='GYEONGGI_INCHEON')}" th:classappend="${currentLocalCode == 'GYEONGGI_INCHEON'} ? 'active' : ''">경기<br />인천</a>
+        <a class="chip" th:href="@{/events/category(local_code='JEOLLA')}" th:classappend="${currentLocalCode == 'JEOLLA'} ? 'active' : ''">전라</a>
+        <a class="chip" th:href="@{/events/category(local_code='GYEONGSANG')}" th:classappend="${currentLocalCode == 'GYEONGSANG'} ? 'active' : ''">경상</a>
+        <a class="chip" th:href="@{/events/category(local_code='GANGWON')}" th:classappend="${currentLocalCode == 'GANGWON'} ? 'active' : ''">강원</a>
+        <a class="chip" th:href="@{/events/category(local_code='CHUNGCHEONG')}" th:classappend="${currentLocalCode == 'CHUNGCHEONG'} ? 'active' : ''">충청</a>
+        <a class="chip" th:href="@{/events/category(local_code='JEJU')}" th:classappend="${currentLocalCode == 'JEJU'} ? 'active' : ''">제주</a>
+      </div>
+
+      <div>
+        <section class="event-carousel-section">
+          <h2 class="section-title">인기 이벤트</h2>
+          <div class="carousel">
+            <button class="carousel-nav carousel-nav--prev" type="button" aria-label="이전">&lt;</button>
+            <div class="carousel-viewport">
+              <div class="carousel-track">
+                <article class="event-card" th:each="event : ${event}">
+                  <a th:href="@{/events/detail(event_id=${event.eventId})}">
+                    <img th:src="${event.eventImage}" alt="event Cover" class="event-cover" />
+                    <p class="meta" th:text="${#strings.substring(event.address, 0, 2)}"></p>
+                    <p th:text="${event.eventName}" class="event-title">이벤트 이름</p>
+                  </a>
+                </article>
+              </div>
+            </div>
+            <button class="carousel-nav carousel-nav--next" type="button" aria-label="다음">&gt;</button>
+          </div>
+        </section>
+
+        <section class="event-carousel-section">
+          <h2 class="section-title">오픈 예정 이벤트</h2>
+          <div class="carousel">
+            <button class="carousel-nav carousel-nav--prev" type="button" aria-label="이전">&lt;</button>
+            <div class="carousel-viewport">
+              <div class="carousel-track">
+                <article class="event-card" th:each="openTime : ${openTime}">
+                  <a th:href="@{/events/detail(event_id=${openTime.eventId})}">
+                    <img th:src="${openTime.eventImage}" alt="event Cover" class="event-cover" />
+                    <p class="meta" th:text="${#strings.substring(openTime.address, 0, 2)}"></p>
+                    <p th:text="${openTime.eventName}" class="event-title">이벤트 이름</p>
+                  </a>
+                </article>
+              </div>
+            </div>
+            <button class="carousel-nav carousel-nav--next" type="button" aria-label="다음">&gt;</button>
+          </div>
+        </section>
+
+        <section class="event-carousel-section">
+          <h2 class="section-title">마감 임박 이벤트</h2>
+          <div class="carousel">
+            <button class="carousel-nav carousel-nav--prev" type="button" aria-label="이전">&lt;</button>
+            <div class="carousel-viewport">
+              <div class="carousel-track">
+                <article class="event-card" th:each="closeTime : ${closeTime}">
+                  <a th:href="@{/events/detail(event_id=${closeTime.eventId})}">
+                    <img th:src="${closeTime.eventImage}" alt="event Cover" class="event-cover" />
+                    <p class="meta" th:text="${#strings.substring(#strings.substringAfter(closeTime.address, ' '), 0, 2)}"></p>
+                    <p th:text="${closeTime.eventName}" class="event-title">이벤트 이름</p>
+                  </a>
+                </article>
+              </div>
+            </div>
+            <button class="carousel-nav carousel-nav--next" type="button" aria-label="다음">&gt;</button>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <div th:replace="fragments/footer :: main-footer"></div>
+  </body>
+</html>

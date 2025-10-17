@@ -1,0 +1,391 @@
+/* --- 1. Pretendard 폰트 불러오기 --- */
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+/* style.css */
+
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+body {
+	font-family: 'Pretendard', sans-serif;
+	background-color: #f0f2ff;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	min-height: 100vh;
+}
+
+.popup-container {
+	width: 1000px;
+	height: 700px;
+	background-color: #fff;
+	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+}
+
+header {
+	padding: 20px 40px;
+	background-color: #003274;
+}
+
+.logo {
+	height: 28px;
+}
+
+
+/* 1. Header 아래의 전체 2단 레이아웃 컨테이너 */
+.body-wrapper {
+	display: flex;
+	/* 자식 요소인 .left-column과 .summary-content를 좌우로 배치 */
+	flex-grow: 1;
+	overflow: hidden;
+}
+
+/* 2. 왼쪽 열 (nav와 main을 감싸는 컨테이너) */
+.left-column {
+	flex: 1;
+	/* 오른쪽 aside를 제외한 모든 공간을 차지 */
+	display: flex;
+	flex-direction: column;
+	/* 자식인 nav와 main을 수직으로 배치 */
+	border-right: 1px solid #e0e0e0;
+	/* 오른쪽 열과의 구분선 */
+}
+
+/* 3. 왼쪽 열 내부 요소 스타일 */
+.progress-steps {
+	border-bottom: 1px solid #f0f0f0;
+}
+
+.progress-steps ol {
+	list-style: none;
+	display: flex;
+}
+
+.progress-steps li {
+	flex: 1;
+	text-align: center;
+	padding: 15px 0;
+	font-size: 16px;
+	color: #999;
+	border-bottom: 3px solid transparent;
+	cursor: pointer;
+}
+
+.progress-steps li.active {
+	color: #333;
+	font-weight: 700;
+	background-color: #FAE06D;
+}
+
+.content-wrapper {
+	flex-grow: 1;
+	/* 왼쪽 열에서 nav를 제외한 나머지 공간을 모두 차지 */
+	padding: 40px;
+	overflow-y: auto;
+	overflow: hidden;
+}
+
+.selection-area {
+  display: none;
+}
+
+/* 활성화된 step 표시 */
+.selection-area.active {
+  display: block;
+}
+
+/* --- 핵심 레이아웃 코드 --- */
+.selection-area.firstSection.active {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.calendar-container {
+	/* 왼쪽 달력 영역이 오른쪽보다 2배 넓게 설정 */
+	flex: 2;
+
+	background-color: white;
+	padding: 20px;
+	height: 500px;
+}
+
+.select-container {
+	/* 오른쪽 선택 영역이 공간의 1만큼 차지 */
+	flex: 1;
+
+	background-color: white;
+	padding: 20px;
+	height: 500px;
+}
+
+.calendar-container h3 {
+	margin-bottom: 20px;
+	align-self: flex-start;
+}
+
+/* 달력 부분 */
+/* 달력 헤더 (년/월 표시) */
+#Date {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	margin-bottom: 20px;
+	font-size: 20px;
+	font-weight: 700;
+	position: relative;
+}
+
+#Date b {
+	cursor: pointer;
+}
+
+.changeMon {
+	position: absolute;
+	right: 0;
+}
+
+.changeMon button {
+	background: none;
+	border: none;
+	cursor: pointer;
+	font-size: 16px;
+	color: #555;
+}
+
+/* 달력 테이블 */
+#Calender table {
+	width: 100%;
+	border-collapse: collapse;
+	table-layout: fixed;
+	/* 모든 셀 너비 동일하게 */
+}
+
+#Calender th,
+#Calender td {
+	padding: 15px 0;
+	text-align: center;
+	font-size: 15px;
+}
+
+#Calender th {
+	font-weight: 500;
+	color: #888;
+}
+
+#Calender td {
+	border-radius: 50%;
+	width: 40px;
+	height: 52px;
+}
+
+/* --- JavaScript로 제어될 달력 날짜 스타일 --- */
+/* 이벤트가 있는 활성화된 날짜 */
+.event-day {
+	cursor: pointer;
+	font-weight: 700;
+	background-color: #FCECA4;
+}
+
+/* 이벤트가 없는 비활성화된 날짜 */
+.disabled-day {
+	color: #ccc;
+	/* 흐린 회색 글씨 */
+	cursor: not-allowed;
+	/* 클릭할 수 없다는 커서 모양 */
+}
+
+/* 제목 스타일 (날짜 선택, 회차 선택) */
+.select-day,
+.select-part {
+	font-size: 18px;
+	font-weight: 700;
+	margin-bottom: 10px;
+	/* 제목과 옵션 박스 사이 간격 */
+}
+
+/* 선택 옵션 박스 스타일 */
+.option-day,
+.option-part {
+	width: fit-content;
+	padding: 12px 15px;
+	border: 1px solid #ddd;
+	border-radius: 6px;
+	font-size: 15px;
+	cursor: pointer;
+	transition: border-color 0.2s, background-color 0.2s;
+	margin-bottom: 30px;
+	/* 다음 제목과의 간격 */
+}
+
+/* 회차선택 잔여석 0 이면 적용 */
+.option-part.disabled {
+    background-color: #e0e0e0;
+    color: #888;
+    cursor: not-allowed;
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+.option-day:hover,
+.option-part:hover{
+	background-color: #FCECA4;
+}
+
+/* 선택된 날짜 및 회차 옵션에 적용될 스타일 */
+.selected {
+  background-color: #FCECA4; 
+  font-weight: bold;
+  border-radius: 4px;
+}
+
+.person-select-table {
+	width: 100%;
+	margin: 0 auto;
+	border-collapse: collapse;
+}
+
+/* 등급 인원 선택 */
+.person-select-table th,
+.person-select-table td {
+	text-align: left;
+	padding: 10px;
+}
+
+.person-select-table tr:last-child {
+	border-bottom: 1px solid #ccc;
+}
+
+.person-select-table p {
+	font-size: 15px;
+}
+
+.person-info {
+    margin-top: 10px;
+    padding: 7px;
+    border: 1px solid #ddd;
+    background: #fafafa;
+    border-radius: 6px;
+}
+
+.person-info p {
+    margin: 4px 0;
+    font-size: 14px;
+}
+
+.input-count {
+  width: 60px;
+  height: 28px;
+  text-align: center;
+  border: 1px solid #D1D5DB;
+  border-radius: 6px;
+  padding: 0;
+}
+
+.select-count::-webkit-outer-spin-button,
+.select-count::-webkit-inner-spin-button {
+  -webkit-appearance: auto;
+  margin: 0;
+}
+
+/* 정보입력 */
+.pay-info-container {
+	width: 100%;
+	margin: 20px auto 0;
+	padding: 20px;
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+}
+
+.pay-info-form > div {
+	margin: 20px;
+}
+
+.pay-info-container label {
+	display: inline-block;
+	width: 100px;
+	font-size: 16px;
+	font-weight: 600;
+	color: #444;
+}
+
+.pay-info-container input {
+	display: inline-block;
+	width: calc(100% - 110px);
+	padding: 12px;
+	font-size: 15px;
+	box-sizing: border-box;
+	border: 1px solid #ccc;
+	border-radius: 8px;
+}
+
+/* 결제버튼 비활성화 */
+#submit-btn:disabled,
+#submit-btn.btn-disabled {
+	background-color: #e0e0e0;
+	color: #888;
+	cursor: not-allowed;
+	pointer-events: none;
+	opacity: 0.6;
+}
+
+/* 4. 오른쪽 열 (aside) */
+.summary-content {
+	width: 250px;
+	background-color: #CCD6E3;
+	padding: 40px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+/* --- (이하 스타일은 이전과 동일) --- */
+.event-poster {
+	text-align: center;
+}
+
+.posterImg {
+	width: 110px;
+	height: 150px;
+	background-color: #fff;
+	border: 1px solid #ccc;
+	margin-bottom: 10px;
+	padding: 4px;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.event-poster h2 {
+	font-size: 22px;
+	font-weight: 700;
+	margin-bottom: 10px;
+}
+
+.event-poster p {
+	font-size: 16px;
+	color: #333;
+	line-height: 1.6;
+}
+
+.next-button {
+	width: 100%;
+	padding: 16px;
+	font-size: 16px;
+	font-weight: 700;
+	color: #fff;
+	background-color: #003274;
+	border: none;
+	border-radius: 8px;
+	cursor: pointer;
+	transition: background-color 0.2s;
+}
+
+.next-button:hover {
+	background-color: rgb(0, 32, 74);
+}
+

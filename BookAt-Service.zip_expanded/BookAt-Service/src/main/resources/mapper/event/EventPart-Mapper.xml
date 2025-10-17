@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.bookat.mapper.EventPartMapper">
+	
+	<select id="findEventPartsByEventId" parameterType="int" resultType="EventPart">
+		SELECT * FROM EVENT_PART WHERE EVENT_ID = #{eventId}
+	</select>
+	
+	<update id="updateRemainingSeatByReservation">
+		UPDATE EVENT_PART
+		SET REMAINING_SEAT = REMAINING_SEAT - #{reservedCount}
+		WHERE SCHEDULE_ID = #{scheduleId}
+			AND EVENT_ID = #{eventId}
+			AND REMAINING_SEAT >= #{reservedCount}
+	</update>
+	
+</mapper>
