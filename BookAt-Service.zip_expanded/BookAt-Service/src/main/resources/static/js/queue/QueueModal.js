@@ -16,12 +16,21 @@ async function onModal(eventId) {
   }
 
   const modal = document.querySelector(".queueModal-overlay");
+  const mapOverlay = document.querySelector(".map-overlay");
   if (!modal) return;
   if (modal.style.display === "none") {
     modal.style.display = "flex";
+    // 지도 오버레이 표시
+    if (mapOverlay) {
+      mapOverlay.style.display = "block";
+    }
     if (!eventId) {
       console.error("이벤트 아이디가 전달되지 않았습니다.");
       modal.style.display = "none";
+      // 지도 오버레이 숨김
+      if (mapOverlay) {
+        mapOverlay.style.display = "none";
+      }
       return;
     }
     sessionStorage.setItem(EVENT_ID_KEY, eventId);
@@ -38,10 +47,18 @@ async function onModal(eventId) {
       } else {
         alert("대기열 진입 실패");
         modal.style.display = "none";
+        // 지도 오버레이 숨김
+        if (mapOverlay) {
+          mapOverlay.style.display = "none";
+        }
       }
     } catch (err) {
       console.error("대기열 진입 에러:", err);
       modal.style.display = "none";
+      // 지도 오버레이 숨김
+      if (mapOverlay) {
+        mapOverlay.style.display = "none";
+      }
     }
   }
 }
@@ -57,12 +74,21 @@ async function onModifyModal(eventId, reservationId) {
   }
 
   const modal = document.querySelector(".queueModal-overlay");
+  const mapOverlay = document.querySelector(".map-overlay");
   if (!modal) return;
   if (modal.style.display === "none") {
     modal.style.display = "flex";
+    // 지도 오버레이 표시
+    if (mapOverlay) {
+      mapOverlay.style.display = "block";
+    }
     if (!eventId || !reservationId) {
       console.error("이벤트 아이디 또는 예약 아이디가 전달되지 않았습니다.");
       modal.style.display = "none";
+      // 지도 오버레이 숨김
+      if (mapOverlay) {
+        mapOverlay.style.display = "none";
+      }
       return;
     }
     // 예약 변경 로직에서는 eventId와 reservationId를 저장
@@ -84,10 +110,18 @@ async function onModifyModal(eventId, reservationId) {
       } else {
         alert("대기열 진입 실패");
         modal.style.display = "none";
+        // 지도 오버레이 숨김
+        if (mapOverlay) {
+          mapOverlay.style.display = "none";
+        }
       }
     } catch (err) {
       console.error("대기열 진입 에러:", err);
       modal.style.display = "none";
+      // 지도 오버레이 숨김
+      if (mapOverlay) {
+        mapOverlay.style.display = "none";
+      }
     }
     console.log(`[예약 변경] 이벤트 아이디: ${eventId}, 예약 아이디: ${reservationId}`);
   }
@@ -154,7 +188,12 @@ function stopQueuePolling() {
 
 function closeModal() {
   const modal = document.querySelector(".queueModal-overlay");
+  const mapOverlay = document.querySelector(".map-overlay");
   if (modal) modal.style.display = "none";
+  // 지도 오버레이 숨김
+  if (mapOverlay) {
+    mapOverlay.style.display = "none";
+  }
 }
 
 // -------------------- 대기열 탈퇴 --------------------

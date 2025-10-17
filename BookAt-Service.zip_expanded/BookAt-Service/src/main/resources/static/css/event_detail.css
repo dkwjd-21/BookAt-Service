@@ -384,6 +384,20 @@ body {
   width: 400px;
   height: 280px;
   border-radius: 10px;
+  position: relative;
+}
+
+/* 지도 오버레이 - 큐모달이 열릴 때 지도 위에 회색 배경 표시 */
+.map-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  border-radius: 10px;
+  display: none;
+  z-index: 1;
 }
 /* ========== 리뷰 모달 스타일 ========== */
 .review-modal-overlay {
